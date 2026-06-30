@@ -1,6 +1,10 @@
 
 
 {% assign product = closest.product %}
+{% capture product_titlecase %}
+  {% render 'product-titlecase', title: product.title %}
+{% endcapture %}
+{% assign product_titlecase = product_titlecase | strip %}
 
 {% capture children %}
   {% unless product == blank %}
@@ -39,7 +43,7 @@
   {% if product == blank %}
     <h3 class="h4">{{ 'content.product_card_placeholder' | t }}</h3>
   {% else %}
-    <h3 class="h4">{{ product.title }}</h3>
+    <h3 class="h4">{{ product_titlecase }}</h3>
   {% endif %}
 </div>
 

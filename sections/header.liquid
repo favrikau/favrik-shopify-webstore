@@ -328,6 +328,7 @@
   class="{{ class }}"
   data-theme-color="rgb({{ section.settings.background_color_top.rgb | default: settings.page_background_color.rgb }})"
   data-bubble-style="{{ section.settings.bubble_style }}"
+  data-menu-style="menu"
   {% if transparent %}
     transparent="{{ transparent }}"
   {% endif %}
@@ -471,16 +472,17 @@
 
 {% stylesheet %}
   body {
-    --header-height: 60px;
+    --header-height: 48px;
     --header-group-height: var(--header-height);
     --transparent-header-offset-boolean: 0; /* stylelint-disable-line declaration-property-value-disallowed-list */
   }
 
   .header {
     /* Set header paddings based on height setting */
-    --header-padding: var(--padding-sm);
+    --header-padding: var(--padding-xs);
     --font-paragraph--line-height: 1;
     --header-content-transition-timing: 0s;
+    --closed-underlay-blur: 0;
 
     display: block;
     contain: layout style;
@@ -521,7 +523,12 @@
     --header-content-transition-timing: calc(var(--submenu-animation-speed) - var(--animation-speed-fast))
       var(--animation-speed-fast) var(--ease-out-cubic);
 
-    --closed-underlay-height: 0px;
+    --closed-underlay-height: 100%;
+    --closed-underlay-opacity: 0;
+    --closed-underlay-background: rgb(48 33 24 / 0.34);
+    --closed-underlay-blur: 0;
+    --color-submenu: var(--closed-underlay-background);
+    --header-logo-scale: 1.6;
 
     /* used to display the appropriate logo based on transparency state */
     --header-logo-display: none;
@@ -544,7 +551,10 @@
       --color-background-rgb: inherit;
       --color-border: inherit;
       --color-border-rgb: inherit;
-      --closed-underlay-height: 100%;
+      --closed-underlay-opacity: 1;
+      --closed-underlay-blur: 4px;
+      --color-background-top-row: var(--closed-underlay-background);
+      --color-background-bottom-row: var(--closed-underlay-background);
     }
 
     /** For transparent header, apply transparent text color to rows when menu is not hovered */
@@ -579,6 +589,10 @@
       --color-background-rgb: inherit;
       --color-border: inherit;
       --color-border-rgb: inherit;
+      --closed-underlay-opacity: 1;
+      --closed-underlay-blur: 4px;
+      --color-background-top-row: var(--closed-underlay-background);
+      --color-background-bottom-row: var(--closed-underlay-background);
       --header-content-transition-timing: var(--submenu-animation-speed) var(--ease-out-cubic);
     }
   }
@@ -639,7 +653,8 @@
   }
 
   .header[data-sticky-state='active'] {
-    view-transition-name: sticky-header;
+    --closed-underlay-blur: 6px;
+    view-transition-name: none;
   }
 
   :active-view-transition-type(empty-cart-drawer) {
@@ -649,7 +664,29 @@
   }
 
   .header[data-sticky-state='idle'] {
-    opacity: 0;
+    opacity: 1;
+  }
+
+  .header .header__row {
+    --color-foreground: #ffffff;
+    --color-foreground-rgb: 255 255 255;
+    --color-border: #ffffff;
+    --color-border-rgb: 255 255 255;
+    --color-primary-button-background: #ffffff;
+    --color-primary-button-text: var(--color-transparent-text-contrast, var(--palette-darkest));
+  }
+
+  .header[data-sticky-state][data-scroll-direction='down'] {
+    --header-logo-display: block;
+    --header-logo-inverse-display: none;
+  }
+
+  .header[transparent][data-sticky-state='active'] {
+    --color-background-top-row: var(--closed-underlay-background);
+    --color-background-bottom-row: var(--closed-underlay-background);
+    --closed-underlay-opacity: 1;
+    --closed-underlay-blur: 6px;
+    --header-logo-scale: 1;
   }
 
   /* ================================
@@ -662,12 +699,15 @@
 
   .header__underlay-closed {
     height: var(--closed-underlay-height, 100%);
+    opacity: var(--closed-underlay-opacity, 1);
+    backdrop-filter: blur(var(--closed-underlay-blur, 0));
+    -webkit-backdrop-filter: blur(var(--closed-underlay-blur, 0));
     z-index: var(--layer-lowest);
     background: linear-gradient(
       var(--color-background-top-row) 0 var(--top-row-height),
       var(--color-background-bottom-row) var(--top-row-height) var(--header-height)
     );
-    transition: height var(--animation-speed-slow) var(--ease-out-cubic);
+    transition: opacity var(--animation-speed-slow) var(--ease-out-cubic);
   }
 
   .header__underlay-open {
@@ -685,7 +725,7 @@
     content: '';
     position: absolute;
     inset: 0;
-    box-shadow: var(--shadow-popover);
+    box-shadow: none;
     clip-path: inset(var(--header-height) 0 -100px 0); /* stylelint-disable-line */
     transition: height var(--submenu-animation-speed) var(--ease-out-cubic);
   }
@@ -696,7 +736,7 @@
   [data-transparent-background='both']:hover,
   [data-transparent-background='both']:focus-within {
     :is(.header__underlay-open, .header__underlay-closed) {
-      --color-background-top-row: var(--color-background);
+      --color-background-top-row: var(--closed-underlay-background, var(--color-background));
     }
   }
 
@@ -706,7 +746,7 @@
   [data-transparent-background='both']:hover,
   [data-transparent-background='both']:focus-within {
     :is(.header__underlay-open, .header__underlay-closed) {
-      --color-background-bottom-row: var(--color-background);
+      --color-background-bottom-row: var(--closed-underlay-background, var(--color-background));
     }
   }
 
@@ -746,21 +786,21 @@
   .header__row--top:not(.divider--page-width),
   .header__row--top.divider--page-width .header__columns,
   .header__row--bottom {
-    border-bottom: var(--border-bottom-width) solid var(--border-bottom-color, var(--color-border));
+    border-bottom: 0 !important;
   }
 
   @media screen and (max-width: 749px) {
     .header__row--top:not(.divider--page-width),
     .header__row--top.divider--page-width .header__columns {
-      border-bottom-width: var(--border-bottom-width-mobile);
-      border-bottom-color: var(--border-bottom-color-mobile);
+      border-bottom-width: 0 !important;
+      border-bottom-color: transparent !important;
     }
   }
 
   #header-component[data-menu-style='drawer'] .header__row--top:not(.divider--page-width),
   #header-component[data-menu-style='drawer'] .header__row--top.divider--page-width .header__columns {
-    border-bottom-width: var(--border-bottom-width-mobile);
-    border-bottom-color: var(--border-bottom-color-mobile);
+    border-bottom-width: 0 !important;
+    border-bottom-color: transparent !important;
   }
 
   .header__row.divider--page-width:not(.section--page-width) .header__columns {
@@ -866,7 +906,7 @@
       }
 
       &:not(:has(header-actions)) .search-action {
-        grid-area: leftB;
+        grid-area: rightA;
       }
 
       &:not(:has(shopify-account)) .search-action {
@@ -874,7 +914,7 @@
       }
 
       .search-action {
-        grid-area: leftB;
+        grid-area: rightA;
       }
 
       header-actions {
@@ -901,7 +941,7 @@
     }
 
     &:not(:has(header-actions)) .search-action {
-      grid-area: leftB;
+      grid-area: rightA;
     }
 
     &:not(:has(shopify-account)) .search-action {
@@ -909,7 +949,7 @@
     }
 
     .search-action {
-      grid-area: leftB;
+      grid-area: rightA;
     }
 
     header-actions {
@@ -922,39 +962,25 @@
     grid-template-columns: 1fr;
   }
 
-  /* Check for hover support to avoid unnecessary expensive recalculations when tapping on mobile */
-  @media (hover: hover) {
-    /* Column-specific dimming effect when any interactive element is hovered
-        Multiple selectors for performance: each simple :has() check is faster than one complex selector with multiple conditions */
-    .header__column:has(header-menu:hover),
-    .header__column:has(.header-actions__action:hover),
-    .header__column:has(.header__icon--menu:hover) {
-      header-menu:not(:hover),
-      .header-actions__action:not(:hover),
-      .header__icon--menu:not(:hover) {
-        opacity: var(--opacity-subdued-text);
-        transition: opacity var(--animation-speed) var(--animation-easing);
-      }
-    }
-  }
-
-  /* Ensure smooth transitions for all interactive elements */
+  /* Keep header controls fully visible while the background fades independently. */
   header-menu,
   .header-actions__action,
   .header__icon--menu {
-    transition: opacity var(--animation-speed) var(--animation-easing);
+    opacity: 1;
+    transition: none;
   }
 
   /* Header action button styles */
   .header-actions__action {
-    --button-color: var(--color-foreground);
+    --button-color: rgb(255 247 236 / 0.62);
     color: var(--button-color);
     cursor: pointer;
     display: flex;
     justify-content: center;
+    transition: all var(--animation-speed) ease-in-out;
 
     &:hover {
-      --button-color: var(--color-foreground);
+      --button-color: rgb(255 247 236 / 0.84);
     }
   }
 
@@ -973,7 +999,7 @@
   }
 
   .header.header--compact {
-    --header-padding: var(--padding-2xs);
+    --header-padding: 4px;
   }
 
   .header__columns {
@@ -997,7 +1023,7 @@
 
   /* When the header is transparent, add a margin to a potential header-section below it */
   .header-section:has(.header[transparent]) + .shopify-section {
-    margin-top: var(--header-height);
+    margin-top: 0;
   }
 
   /* Optimize layout performance for hidden menus */

@@ -1,0 +1,11 @@
+{%- liquid
+  assign title_words = title | split: ' '
+
+  for word in title_words
+    unless forloop.first
+      echo ' '
+    endunless
+
+    echo word | capitalize
+  endfor
+-%}

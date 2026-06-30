@@ -20,6 +20,8 @@
     endif
   endif
 
+  assign use_inverse_logo = false
+
   assign alt_text_fallback = 'accessibility.home_logo_alt' | t: store_name: shop.name
 %}
 
@@ -43,8 +45,10 @@
   {{ block.shopify_attributes }}
 >
   {% liquid
-    assign logo_width = settings.logo_height | times: settings.logo.aspect_ratio | ceil
-    assign logo_width_mobile = settings.logo_height_mobile | times: settings.logo.aspect_ratio | ceil
+    assign fallback_logo_aspect_ratio = 3
+    assign logo_aspect_ratio = settings.logo.aspect_ratio | default: fallback_logo_aspect_ratio
+    assign logo_width = settings.logo_height | times: logo_aspect_ratio | ceil
+    assign logo_width_mobile = settings.logo_height_mobile | times: logo_aspect_ratio | ceil
     assign inverse_logo_width = settings.logo_height | times: inverse_logo.aspect_ratio | ceil
     assign inverse_logo_width_mobile = settings.logo_height_mobile | times: inverse_logo.aspect_ratio | ceil
     assign logo_style = '--header-logo-image-width: ' | append: logo_width | append: 'px;' | append: '--header-logo-image-width-mobile: ' | append: logo_width_mobile | append: 'px; --header-logo-image-height: ' | append: settings.logo_height | append: 'px; --header-logo-image-height-mobile: ' | append: settings.logo_height_mobile | append: 'px;'
@@ -55,14 +59,14 @@
     class="header-logo__image-container header-logo__image-container--original"
     data-testid="header-logo"
   >
-    {% render 'image',
-      image: settings.logo,
-      class: 'header-logo__image',
-      height: settings.logo_height,
-      alt_text_fallback: alt_text_fallback,
-      text_fallback: shop.name,
-      style: logo_style
-    %}
+    <img
+      src="{{ 'favrik_logo.png' | asset_url }}"
+      class="header-logo__image"
+      style="{{ logo_style }}"
+      alt="{{ alt_text_fallback | escape }}"
+      width="{{ logo_width }}"
+      height="{{ settings.logo_height }}"
+    >
   </span>
 
   {% if use_inverse_logo %}
@@ -124,6 +128,10 @@
     object-fit: contain;
     height: var(--header-logo-image-height-mobile);
     width: var(--header-logo-image-width-mobile);
+    filter: brightness(0) invert(1);
+    transform: scale(var(--header-logo-scale, 1));
+    transform-origin: center;
+    transition: transform var(--animation-speed-slow) var(--ease-out-cubic);
 
     @media screen and (min-width: 750px) {
       height: var(--header-logo-image-height);

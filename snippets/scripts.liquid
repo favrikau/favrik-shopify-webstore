@@ -64,6 +64,21 @@
   {% endif %}
 ></script>
 
+<script
+  src="{{ 'gsap.min.js' | asset_url }}"
+  defer
+></script>
+<script
+  src="{{ 'gsap-smooth-scroll.js' | asset_url }}"
+  defer
+></script>
+{% if template.name == 'index' %}
+  <script
+    src="{{ 'random-collection-images.js' | asset_url }}"
+    defer
+  ></script>
+{% endif %}
+
 <link
   rel="modulepreload"
   href="{{ 'utilities.js' | asset_url }}"

@@ -45,18 +45,27 @@
             role="list"
           >
             {% for link in block_settings.menu.links %}
-              <li>
-                <a
-                  href="{{ link.url }}"
-                  id="MenuItem-{{ link.handle }}"
-                  class="menu-list__item"
-                  {% if link.current %}
-                    aria-current="page"
-                  {% endif %}
-                >
-                  {{- link.title -}}
-                </a>
-              </li>
+              {% liquid
+                assign link_title_downcase = link.title | strip | downcase
+                assign is_home_link = false
+                if link.handle == 'home' or link.url == routes.root_url or link.url == '/' or link_title_downcase == 'home'
+                  assign is_home_link = true
+                endif
+              %}
+              {% unless is_home_link %}
+                <li>
+                  <a
+                    href="{{ link.url }}"
+                    id="MenuItem-{{ link.handle }}"
+                    class="menu-list__item"
+                    {% if link.current %}
+                      aria-current="page"
+                    {% endif %}
+                  >
+                    {{- link.title -}}
+                  </a>
+                </li>
+              {% endunless %}
             {% endfor %}
           </ul>
         </div>
@@ -92,61 +101,102 @@
     %}
 
     {% capture children %}
+      {% assign rendered_fw26_link = false %}
       {% for link in block_settings.menu.links %}
-        <li
-          role="presentation"
-          class="menu-list__list-item"
-          on:focus="/activate"
-          on:blur="/deactivate"
-          on:pointerenter="/activate"
-          on:pointerleave="/deactivate"
-        >
-          <a
-            href="{{ link.url }}"
-            data-skip-node-update="true"
-            class="menu-list__link{% if link.active %} menu-list__link--active{% endif %}"
-            {%- if link.links != blank -%}
-              aria-controls="submenu-{{ forloop.index }}"
-              aria-haspopup="true"
-              aria-expanded="false"
-            {%- endif -%}
-            {% if link.current %}
-              aria-current="page"
-            {% endif %}
-            ref="menuitem"
+        {% liquid
+          assign link_title_downcase = link.title | strip | downcase
+          assign is_home_link = false
+          assign is_fw26_link = false
+          assign is_catalog_link = false
+          if link.handle == 'home' or link.url == routes.root_url or link.url == '/' or link_title_downcase == 'home'
+            assign is_home_link = true
+          endif
+          if link.url contains '/collections/fw2026' or link_title_downcase == 'fw26' or link_title_downcase == 'fw2026'
+            assign is_fw26_link = true
+          endif
+          if link.handle == 'catalog' or link.url contains '/collections/all' or link_title_downcase == 'catalog'
+            assign is_catalog_link = true
+          endif
+        %}
+        {% unless is_home_link or is_fw26_link %}
+          <li
+            role="presentation"
+            class="menu-list__list-item"
+            on:focus="/activate"
+            on:blur="/deactivate"
+            on:pointerenter="/activate"
+            on:pointerleave="/deactivate"
           >
-            <span class="menu-list__link-title">{{- link.title -}}</span>
-          </a>
-          {%- if link.links != blank -%}
-            <div class="menu-list__submenu{{ background_color_classes }}" ref="submenu[]">
-              <div
-                id="submenu-{{ forloop.index }}"
-                class="menu-list__submenu-inner"
-                style="{% render 'submenu-font-styles', settings: block_settings %}"
-              >
-                {% assign list_id = 'MegaMenuList-' | append: forloop.index %}
-                <div class="mega-menu section section--full-width-margin section--{{ section.settings.section_width }}">
-                  <div
-                    class="mega-menu__grid"
-                    data-menu-grid-id="{{ list_id }}"
-                  >
-                    {% render 'mega-menu-list',
-                      parent_link: link,
-                      id: list_id,
-                      section: section,
-                      grid_columns_count: 6,
-                      grid_columns_count_tablet: 4,
-                      grid_columns_count_collection_images: 8,
-                      menu_content_type: menu_content_type,
-                      content_aspect_ratio: ratio,
-                      image_border_radius: image_border_radius
-                    %}
+            <a
+              href="{{ link.url }}"
+              data-skip-node-update="true"
+              class="menu-list__link{% if link.active %} menu-list__link--active{% endif %}"
+              {%- if link.links != blank -%}
+                aria-controls="submenu-{{ forloop.index }}"
+                aria-haspopup="true"
+                aria-expanded="false"
+              {%- endif -%}
+              {% if link.current %}
+                aria-current="page"
+              {% endif %}
+              ref="menuitem"
+            >
+              <span class="menu-list__link-title">{{- link.title -}}</span>
+            </a>
+            {%- if link.links != blank -%}
+              <div class="menu-list__submenu{{ background_color_classes }}" ref="submenu[]">
+                <div
+                  id="submenu-{{ forloop.index }}"
+                  class="menu-list__submenu-inner"
+                  style="{% render 'submenu-font-styles', settings: block_settings %}"
+                >
+                  {% assign list_id = 'MegaMenuList-' | append: forloop.index %}
+                  <div class="mega-menu section section--full-width-margin section--{{ section.settings.section_width }}">
+                    <div
+                      class="mega-menu__grid"
+                      data-menu-grid-id="{{ list_id }}"
+                    >
+                      {% render 'mega-menu-list',
+                        parent_link: link,
+                        id: list_id,
+                        section: section,
+                        grid_columns_count: 6,
+                        grid_columns_count_tablet: 4,
+                        grid_columns_count_collection_images: 8,
+                        menu_content_type: menu_content_type,
+                        content_aspect_ratio: ratio,
+                        image_border_radius: image_border_radius
+                      %}
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          {%- endif -%}
-        </li>
+            {%- endif -%}
+          </li>
+          {% if is_catalog_link and rendered_fw26_link == false %}
+            <li
+              role="presentation"
+              class="menu-list__list-item header-menu__fw26-item"
+              on:focus="/activate"
+              on:blur="/deactivate"
+              on:pointerenter="/activate"
+              on:pointerleave="/deactivate"
+            >
+              <a
+                href="/collections/fw2026"
+                data-skip-node-update="true"
+                class="menu-list__link header-menu__fw26-link{% if request.path contains '/collections/fw2026' %} menu-list__link--active{% endif %}"
+                {% if request.path contains '/collections/fw2026' %}
+                  aria-current="page"
+                {% endif %}
+                ref="menuitem"
+              >
+                <span class="menu-list__link-title">FW2026</span>
+              </a>
+            </li>
+            {% assign rendered_fw26_link = true %}
+          {% endif %}
+        {% endunless %}
       {% endfor %}
       <li
         class="menu-list__list-item"
@@ -249,7 +299,13 @@
     }
 
     & a {
-      color: var(--color-foreground);
+      color: var(--header-menu-muted-color, rgb(255 247 236 / 0.62));
+      transition: all var(--animation-speed) ease-in-out;
+    }
+
+    & a:is(:hover, :focus, [aria-current='page']) {
+      color: var(--header-menu-active-color, rgb(255 247 236 / 1));
+      font-weight: 600;
     }
   }
 
@@ -263,6 +319,9 @@
   .menu-list {
     --menu-horizontal-gap: var(--gap-xl);
     --menu-vertical-gap: var(--gap-xl);
+    --header-menu-muted-color: rgb(255 247 236 / 0.62);
+    --header-menu-hover-color: rgb(255 247 236 / 0.84);
+    --header-menu-active-color: rgb(255 247 236 / 1);
 
     display: flex;
     height: 100%;
@@ -292,7 +351,7 @@
     font-size: var(--menu-top-level-font-size);
     line-height: var(--menu-top-level-font-line-height);
     text-transform: var(--menu-top-level-font-case);
-    color: var(--menu-top-level-font-color);
+    color: var(--header-menu-muted-color);
     text-decoration: none;
     display: flex;
     flex-direction: column;
@@ -300,6 +359,7 @@
     cursor: pointer;
     height: 100%;
     margin-block: 0;
+    transition: all var(--animation-speed) ease-in-out;
 
     &::after {
       content: '';
@@ -317,7 +377,8 @@
 
     &:hover,
     &:focus {
-      color: var(--menu-top-level-font-color);
+      color: var(--header-menu-hover-color);
+      font-weight: 600;
     }
 
     @media screen and (min-width: 750px) {
@@ -328,6 +389,7 @@
   .menu-list__link-title {
     padding-inline: calc(var(--gap-xl) / 2);
   }
+
   [slot='overflow'] .menu-list__link-title {
     padding-inline: 0;
   }
@@ -362,7 +424,23 @@
   .menu-list:not(:has(.menu-list__list-item:hover)) .menu-list__link--active,
   .menu-list .menu-list__list-item:where(:hover, :focus-within) .menu-list__link,
   .menu-list .menu-list__list-item[slot='overflow'] .menu-list__link[aria-expanded='true'] {
-    color: var(--menu-top-level-font-color);
+    color: var(--header-menu-hover-color);
+    font-weight: 600;
+  }
+
+  .menu-list .menu-list__link--active,
+  .menu-list .menu-list__link[aria-current='page'] {
+    color: var(--header-menu-active-color);
+    font-weight: 600;
+  }
+
+  .menu-list:where(:has(.menu-list__list-item:hover)),
+  .menu-list:where(:has(.menu-list__list-item:focus-within)),
+  .menu-list:where(:has(.menu-list__list-item:not([aria-hidden='true']) .menu-list__link--active)) {
+    .menu-list__link:not(:hover, :focus, .menu-list__link--active, [aria-current='page']) {
+      color: var(--header-menu-muted-color);
+      font-weight: var(--menu-top-level-font-weight);
+    }
   }
 
   .overflow-menu::part(list) {
@@ -518,14 +596,16 @@
     font-size: var(--menu-child-font-size);
     line-height: var(--menu-child-font-line-height);
     text-transform: var(--menu-child-font-case);
-    color: var(--menu-child-font-color);
+    color: var(--header-menu-muted-color);
     white-space: normal;
     text-decoration: none;
     display: inline-flex;
     padding: var(--padding-2xs) 0;
+    transition: all var(--animation-speed) ease-in-out;
 
     &:hover {
-      color: var(--menu-child-active-font-color);
+      color: var(--header-menu-hover-color);
+      font-weight: 600;
     }
   }
 
@@ -536,10 +616,12 @@
     font-size: var(--menu-parent-font-size);
     line-height: var(--menu-parent-font-line-height);
     text-transform: var(--menu-parent-font-case);
-    color: var(--menu-parent-font-color);
+    color: var(--header-menu-active-color);
+    transition: all var(--animation-speed) ease-in-out;
 
     &:hover {
-      color: var(--menu-parent-active-font-color);
+      color: var(--header-menu-hover-color);
+      font-weight: 600;
     }
   }
 

@@ -10,6 +10,7 @@
   @param {object} block_settings - Block settings object
   @param {object} [section_settings] - Section settings for layout-aware sizing
   @param {string} [block_attributes] - Block shopify attributes for theme editor
+  @param {boolean} [randomize_collection_image] - Use a rotating product image for collection cards
 
   @example
   {% render 'resource-image',
@@ -37,6 +38,7 @@
   assign block_settings = block_settings | default: empty
   assign section_settings = section_settings | default: empty
   assign block_attributes = block_attributes | default: ''
+  assign randomize_collection_image = randomize_collection_image | default: false
 
   # Early return if required parameters missing
   unless parent_block_id != blank and block_settings != empty
@@ -49,7 +51,17 @@
     assign image_resource = image_source
   elsif content_type == 'collections'
     assign collection = closest.collection
-    assign image_resource = collection.image
+    if randomize_collection_image
+      assign products_with_images = collection.products | where: 'featured_image'
+      if products_with_images.size > 0
+        assign image_resource = products_with_images.first.featured_image
+      endif
+    endif
+
+    if image_resource == blank
+      assign image_resource = collection.image
+    endif
+
     if image_resource == blank
       assign image_resource = collection.products.first.featured_image
     endif
@@ -151,11 +163,37 @@
       {% render 'overlay', settings: block_settings %}
     {%- endif -%}
 
-    {{
-      image_resource
-      | image_url: width: 3840
-      | image_tag: widths: widths, class: 'resource-image__image', sizes: sizes, loading: loading
-    }}
+    {% if randomize_collection_image and products_with_images.size > 1 %}
+      <div
+        class="resource-image__random-pool"
+        data-random-collection-image
+      >
+        {% for product in products_with_images limit: 12 %}
+          {% liquid
+            assign random_image_loading = 'lazy'
+            if forloop.first
+              assign random_image_loading = loading
+            endif
+          %}
+          {{
+            product.featured_image
+            | image_url: width: 3840
+            | image_tag:
+              widths: widths,
+              class: 'resource-image__image resource-image__random-image',
+              sizes: sizes,
+              loading: random_image_loading,
+              data-random-image: forloop.index0
+          }}
+        {% endfor %}
+      </div>
+    {% else %}
+      {{
+        image_resource
+        | image_url: width: 3840
+        | image_tag: widths: widths, class: 'resource-image__image', sizes: sizes, loading: loading
+      }}
+    {% endif %}
   </div>
 {% else %}
   <div
@@ -207,6 +245,27 @@
     aspect-ratio: var(--ratio);
     width: 100%;
     height: 100%;
+  }
+
+  .resource-image__random-pool {
+    width: 100%;
+    height: 100%;
+  }
+
+  .resource-image__random-image {
+    display: none;
+  }
+
+  .resource-image__random-image.is-active {
+    display: block;
+  }
+
+  .resource-image__random-image:first-child {
+    display: block;
+  }
+
+  .resource-image__random-pool:has(.resource-image__random-image.is-active) .resource-image__random-image:first-child:not(.is-active) {
+    display: none;
   }
 
   .resource-image--placeholder {

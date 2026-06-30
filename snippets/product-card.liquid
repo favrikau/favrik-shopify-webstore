@@ -34,6 +34,10 @@
 
   assign product_card_id = 'product-card-link-' | append: block.id | append: '-' | append: product.id
   assign product_card_gap_value = product_card_gap | default: block_settings.product_card_gap
+  capture product_titlecase
+    render 'product-titlecase', title: product.title
+  endcapture
+  assign product_titlecase = product_titlecase | strip
 
   # Logic to determine which variant URL to use (matching swatch selection logic)
   assign variant_to_link = product.selected_or_first_available_variant
@@ -87,7 +91,7 @@
     ref="productCardLink"
   >
     <span class="visually-hidden">
-      {{ product.title }}
+      {{ product_titlecase }}
     </span>
   </a>
   <div

@@ -1,13 +1,68 @@
 
 
+{% liquid
+  assign show_bilingual_title = false
+  if template.name == 'index' and closest.collection != blank
+    assign show_bilingual_title = true
+  endif
+%}
+
 {% if closest.collection == blank %}
   {% assign text = 'placeholders.collection_title' | t %}
   {% assign collection_title = '<p>' | append: text | append: '</p>' %}
   {% render 'text', fallback_text: collection_title, block: block %}
+{% elsif show_bilingual_title %}
+  {% liquid
+    assign collection_title_en = closest.collection.title | escape
+    assign collection_title_ko = closest.collection.metafields.custom.korean_title.value | default: closest.collection.metafields.custom.korean_title
+
+    if collection_title_ko == blank
+      case closest.collection.handle
+        when 'fw2026'
+          assign collection_title_ko = '2026 가을/겨울 컬렉션'
+        when 'on-sale'
+          assign collection_title_ko = '세일'
+      endcase
+    endif
+
+    assign collection_title_ko = collection_title_ko | default: closest.collection.title | escape
+    capture collection_title
+      echo '<p class="collection-title__en">'
+      echo collection_title_en
+      echo '</p><p class="collection-title__ko" lang="ko">'
+      echo collection_title_ko
+      echo '</p>'
+    endcapture
+  %}
+  {% render 'text', fallback_text: collection_title, block: block, class: 'collection-title-bilingual' %}
 {% elsif closest.collection != blank %}
   {% assign collection_title = '<p>' | append: closest.collection.title | append: '</p>' %}
   {% render 'text', fallback_text: collection_title, block: block %}
 {% endif %}
+
+{% stylesheet %}
+  .collection-title-bilingual {
+    gap: 1px;
+    color: var(--color, #fff7ec);
+  }
+
+  .collection-title-bilingual .collection-title__en,
+  .collection-title-bilingual .collection-title__ko {
+    margin-block: 0;
+  }
+
+  .collection-title-bilingual .collection-title__en {
+    font-family: var(--font-body--family);
+    font-style: var(--font-body--style);
+  }
+
+  .collection-title-bilingual .collection-title__ko {
+    font-family: var(--font-korean--family);
+    font-size: 0.72em;
+    font-weight: 400;
+    line-height: 1.25;
+  }
+{% endstylesheet %}
 
 {% schema %}
 {
