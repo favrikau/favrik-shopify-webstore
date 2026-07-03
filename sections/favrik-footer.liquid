@@ -23,6 +23,20 @@
     assign returns_url = '/policies/refund-policy'
   endif
 
+  assign privacy_url = section.settings.privacy_policy_url
+  if privacy_url == blank and shop.privacy_policy != blank
+    assign privacy_url = shop.privacy_policy.url
+  elsif privacy_url == blank
+    assign privacy_url = '/policies/privacy-policy'
+  endif
+
+  assign terms_url = section.settings.terms_of_use_url
+  if terms_url == blank and shop.terms_of_service != blank
+    assign terms_url = shop.terms_of_service.url
+  elsif terms_url == blank
+    assign terms_url = '/policies/terms-of-service'
+  endif
+
   assign locations_url = section.settings.locations_url
   if locations_url == blank and pages['locations'] != blank
     assign locations_url = pages['locations'].url
@@ -165,9 +179,14 @@
             · ABN {{ section.settings.abn | escape }}
           {%- endif -%}
           · &copy; {{ 'now' | date: '%Y' }} {{ copyright_name | escape }}
+          · <a href="{{ privacy_url }}">Privacy Policy</a>
+          · <a href="{{ terms_url }}">Terms of Use</a>
         </p>
       {% else %}
-        <span class="favrik-footer__meta-spacer" aria-hidden="true"></span>
+        <p class="favrik-footer__legal-single">
+          <a href="{{ privacy_url }}">Privacy Policy</a>
+          · <a href="{{ terms_url }}">Terms of Use</a>
+        </p>
       {% endif %}
 
       {% if section.settings.tagline_ko != blank %}
@@ -326,14 +345,20 @@
 
   .favrik-footer__legal-single a {
     color: inherit;
-    text-decoration: underline;
-    text-underline-offset: 2px;
+    text-decoration: none;
     transition: opacity 0.25s var(--ease-out-cubic, ease);
   }
 
   .favrik-footer__legal-single a:hover,
   .favrik-footer__legal-single a:focus-visible {
     opacity: 0.7;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  .favrik-footer__legal-single a[href^='mailto:'] {
+    text-decoration: underline;
+    text-underline-offset: 2px;
   }
 
   .favrik-footer__tagline-ko {
@@ -385,6 +410,16 @@
       "type": "url",
       "id": "returns_policy_url",
       "label": "Returns policy URL"
+    },
+    {
+      "type": "url",
+      "id": "privacy_policy_url",
+      "label": "Privacy policy URL"
+    },
+    {
+      "type": "url",
+      "id": "terms_of_use_url",
+      "label": "Terms of use URL"
     },
     {
       "type": "url",

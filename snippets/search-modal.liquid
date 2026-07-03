@@ -6,6 +6,7 @@
 {% enddoc %}
 
 {% render 'predictive-search-styles' %}
+{% render 'search-autocomplete-styles' %}
 
 <script
   src="{{ 'dialog.js' | asset_url }}"
@@ -240,16 +241,9 @@
     right: 0;
 
     @media screen and (min-width: 750px) {
-      --to-top-gradient-background: linear-gradient(
-        to top,
-        rgb(var(--color-background-rgb) / var(--opacity-90)),
-        rgb(var(--color-background-rgb) / var(--opacity-80)),
-        rgb(var(--color-background-rgb) / var(--opacity-40)),
-        transparent
-      );
-
       padding-block: var(--padding-xs) var(--padding-lg);
-      background-image: var(--to-top-gradient-background);
+      background-color: var(--color-background);
+      background-image: none;
     }
   }
 

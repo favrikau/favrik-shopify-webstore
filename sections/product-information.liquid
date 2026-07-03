@@ -91,7 +91,7 @@
           class="sticky-add-to-cart__title"
           data-testid="sticky-product-title"
         >
-          {{ product.title | escape }}
+          {%- render 'product-titlecase', title: product.title -%}
         </p>
         <div
           class="sticky-add-to-cart__variant"

@@ -93,7 +93,7 @@
             ref="fieldsets[]"
             {{ option_id_attribute }}
           >
-            <legend>
+            <legend class="visually-hidden">
               {{ product_option.name | escape -}}
               {%- if variant_style == 'swatch' -%}
                 <span class="variant-option__swatch-value">{{ product_option.selected_value }}</span>
@@ -149,6 +149,17 @@
                     mode: 'unscaled'
                   %}
                 {% else %}
+                  {% capture variant_chip_color %}
+                    {% render 'product-color-from-name', color_name: product_option_value.name %}
+                  {% endcapture %}
+                  {% assign variant_chip_color = variant_chip_color | strip %}
+                  {% if variant_chip_color != blank %}
+                    <span
+                      class="variant-option__color-chip{% if variant_chip_color == '#f4f1ea' or variant_chip_color == '#c9c9c9' or variant_chip_color == '#9eb5d4' %} variant-option__color-chip--light{% endif %}"
+                      style="--variant-color-chip: {{ variant_chip_color }};"
+                      aria-hidden="true"
+                    ></span>
+                  {% endif %}
                   {% if product_option_value.available == true %}
                     <span
                       class="variant-option__button-label__pill"

@@ -19,7 +19,7 @@
       <a
         href="{{ closest.product.selected_or_first_available_variant.url }}"
       >
-        {{- closest.product.title }}
+        {%- render 'product-titlecase', title: closest.product.title -%}
       </a>
     </div>
     {% content_for 'blocks' %}
@@ -133,6 +133,9 @@
     },
     {
       "type": "product-custom-property"
+    },
+    {
+      "type": "product-shipping-returns"
     }
   ],
   "tag": null,
@@ -518,10 +521,6 @@
               "settings": {
                 "style_class": "button-secondary"
               }
-            },
-            "accelerated-checkout": {
-              "type": "accelerated-checkout",
-              "static": true
             }
           },
           "block_order": []

@@ -1,0 +1,45 @@
+{%- liquid
+  assign output = description | default: ''
+
+  if output == blank
+    echo output
+  else
+    assign paragraphs = output | split: '</p>'
+    assign cleaned_paragraphs = ''
+
+    for paragraph in paragraphs
+      assign chunk = paragraph | strip
+      if chunk == blank
+        continue
+      endif
+
+      assign chunk_plain = chunk | strip_html | strip
+      assign is_featured_callout = false
+
+      if chunk_plain contains 'Featured in the'
+        assign is_featured_callout = true
+      elsif chunk_plain contains 'featured in the'
+        assign is_featured_callout = true
+      elsif chunk contains '𝘍𝘦𝘢𝘵𝘶𝘳𝘦𝘥'
+        assign is_featured_callout = true
+      elsif chunk_plain contains 'Featured in' and chunk_plain contains 'Collection'
+        assign is_featured_callout = true
+      endif
+
+      unless is_featured_callout
+        if cleaned_paragraphs != blank
+          assign cleaned_paragraphs = cleaned_paragraphs | append: '</p>'
+        endif
+        assign cleaned_paragraphs = cleaned_paragraphs | append: chunk
+      endunless
+    endfor
+
+    if cleaned_paragraphs != blank and cleaned_paragraphs contains '<p'
+      unless cleaned_paragraphs contains '</p>'
+        assign cleaned_paragraphs = cleaned_paragraphs | append: '</p>'
+      endunless
+    endif
+
+    echo cleaned_paragraphs
+  endif
+-%}

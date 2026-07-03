@@ -1,0 +1,39 @@
+{% doc %}
+  Shared styles for search autocomplete / suggestion dropdowns — solid, fully opaque panels.
+{% enddoc %}
+
+{% stylesheet %}
+  /* Collection page SKU/name autocomplete */
+  .facets__sku-search-results {
+    background-color: var(--color-background);
+    opacity: 1;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  .is-facets-stuck .facets__sku-search-results {
+    background-color: #fff7ec;
+    opacity: 1;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  /* Global predictive search suggestion panel */
+  .predictive-search-dropdown,
+  .predictive-search-form__content-wrapper,
+  .predictive-search-form__content,
+  .predictive-search-results__inner {
+    background-color: var(--color-background);
+    opacity: 1;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  .predictive-search.color-custom-popover,
+  .predictive-search.color-custom-popover .predictive-search-form__header-inner,
+  .predictive-search.color-custom-popover .predictive-search-form__content-wrapper,
+  .predictive-search.color-custom-popover .predictive-search-form__content {
+    background-color: var(--color-background);
+    opacity: 1;
+  }
+{% endstylesheet %}

@@ -10,7 +10,7 @@
 {% liquid
   assign block_settings = block.settings
   assign plain_text = block_settings.text | strip_newlines | strip
-  assign visible_text = plain_text | strip_html
+  assign visible_text = plain_text | strip_html | strip
   assign text_width = width | default: block_settings.width
 
   if block_settings.font_size contains 'heading-lg' or block_settings.font_size contains 'heading-xl'
@@ -22,6 +22,45 @@
   endif
   if block_settings.type_preset == 'rte' or block_settings.type_preset == 'paragraph'
     assign is_rte = true
+  endif
+
+  assign display_text = block_settings.text
+  if request.page_type == 'product'
+    assign product_resource = closest.product | default: product
+    if product_resource != blank
+      assign raw_product_title = product_resource.title | strip
+      assign is_product_title_block = false
+
+      if visible_text == raw_product_title
+        assign is_product_title_block = true
+      elsif plain_text contains 'closest.product.title' or plain_text contains 'product.title'
+        assign is_product_title_block = true
+      endif
+
+      if is_product_title_block
+        capture clean_product_title
+          render 'product-titlecase', title: product_resource.title
+        endcapture
+        assign clean_product_title = clean_product_title | strip
+        assign display_text = '<h1>' | append: clean_product_title | append: '</h1>'
+      else
+        assign raw_description_plain = product_resource.description | strip_html | strip
+        assign is_product_description_block = false
+
+        if raw_description_plain != blank and visible_text == raw_description_plain
+          assign is_product_description_block = true
+        elsif plain_text contains 'closest.product.description' or plain_text contains 'product.description'
+          assign is_product_description_block = true
+        endif
+
+        if is_product_description_block
+          capture cleaned_product_description
+            render 'product-description-display', description: product_resource.description
+          endcapture
+          assign display_text = cleaned_product_description | strip
+        endif
+      endif
+    endif
   endif
 
   capture text_block_classes
@@ -94,7 +133,7 @@
   </div>
 {% elsif plain_text != blank %}
   <{{ element }} {{ attributes | strip_newlines | strip }}>
-    {{ block.settings.text }}
+    {{ display_text }}
   </{{ element }}>
 {% endif %}
 

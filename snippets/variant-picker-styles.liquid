@@ -103,4 +103,40 @@
     text-align: right;
     justify-content: right;
   }
+
+  .product-details .variant-option__button-label,
+  .product-details .variant-option__button-label::before,
+  .product-details .variant-option__button-label::after,
+  .product-details .variant-option__button-label__pill {
+    border-radius: 0;
+  }
+
+  .product-details .variant-option__button-label:has(.variant-option__color-chip) {
+    flex-direction: column;
+    gap: 6px;
+    min-height: auto;
+    padding-block: 10px;
+    padding-inline: 12px;
+  }
+
+  .variant-option__color-chip {
+    position: relative;
+    z-index: 2;
+    display: block;
+    width: 22px;
+    height: 6px;
+    flex-shrink: 0;
+    background-color: var(--variant-color-chip);
+    border: 0.5px solid rgb(48 33 24 / 0.22);
+    border-radius: 0;
+    pointer-events: none;
+  }
+
+  .variant-option__color-chip--light {
+    border-color: rgb(48 33 24 / 0.14);
+  }
+
+  .product-details .variant-option__button-label:has(.variant-option__color-chip) .variant-option__button-label__text {
+    text-align: center;
+  }
 {% endstylesheet %}

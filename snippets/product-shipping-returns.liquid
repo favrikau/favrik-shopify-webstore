@@ -1,0 +1,164 @@
+{% doc %}
+  Expandable Shipping & Returns section for product pages.
+{% enddoc %}
+
+{% capture shipping_returns_content %}
+  <details class="details" data-testid="accordion-details">
+    <summary class="details__header product-section-heading">
+      Shipping &amp; Returns
+      <span class="svg-wrapper icon-caret icon-animated">
+        {{- 'icon-caret.svg' | inline_asset_content -}}
+      </span>
+      <span class="svg-wrapper icon-plus">
+        {{- 'icon-plus.svg' | inline_asset_content -}}
+      </span>
+    </summary>
+
+    <div class="details-content product-shipping-returns__content">
+      <h3 class="product-shipping-returns__heading">Shipping</h3>
+
+      <h4 class="product-shipping-returns__subheading">Sales And Promotional Event Orders</h4>
+      <p>
+        During popular sales and promotions Favrik may be unable to dispatch your order in full because one or more
+        products are out of stock as we prepare to dispatch your order. If this occurs, you will receive an email
+        notification about the out of stock product(s) and an automatic refund to your payment method(s) used.
+      </p>
+      <p>
+        Favrik may experience delays of up to three (3) business days in dispatching your order for delivery to you.
+      </p>
+
+      <h4 class="product-shipping-returns__subheading">Delivery Address Review Delay</h4>
+      <p>
+        Favrik orders require a valid delivery address which complies with Delivery Service requirements. We use a
+        real-time address validation service at checkout to assist you to enter and select a valid delivery address.
+      </p>
+      <p>
+        If you do not use the address validation service at checkout or manually override and enter an invalid delivery
+        address, your order will be delayed until we can confirm a valid delivery address for your order.
+      </p>
+
+      <h4 class="product-shipping-returns__subheading">Lost Or Delay In-Transit Orders</h4>
+      <p>
+        If you have not received your Favrik order within 10 business days, please contact Customer Service, and we will
+        request an investigation with the responsible Delivery Service.
+      </p>
+
+      <h3 class="product-shipping-returns__heading">Returns</h3>
+
+      <h4 class="product-shipping-returns__subheading">Change Of Mind Policy</h4>
+      <p>
+        While we do not offer a refund for change of mind, you may exchange the item or request a credit note within 14
+        days from the date of purchase or delivery. The exchange can be made one time only, and credit is valid for 1
+        year from the refund date and for single use only. Our policy does not exclude or replace your rights under the
+        Australian Consumer Law and regulations.
+      </p>
+
+      <h4 class="product-shipping-returns__subheading">Purchase In-store</h4>
+      <p>To be eligible for an exchange or credit note, the following conditions must be met:</p>
+      <ul>
+        <li>Proof of purchase is accompanied with the returned item.</li>
+        <li>The item is unworn, unwashed, unused, and in its original condition with all tags intact.</li>
+        <li>Any discounts received at the time of purchase will be carried over.</li>
+      </ul>
+
+      <h4 class="product-shipping-returns__subheading">Purchase Online</h4>
+      <p>
+        For online purchases, the in-store return option is available. You can exchange, but return postage and
+        re-delivery cost are at your cost. To be eligible for an exchange or credit note, the following conditions must
+        be met:
+      </p>
+      <ul>
+        <li>Proof of purchase is accompanied with the returned item.</li>
+        <li>The item is unworn, unwashed, unused, and in its original condition with all tags intact.</li>
+        <li>Any discounts received at the time of purchase will be carried over.</li>
+        <li>If the purchase included free shipping, the shipping fee will be deducted from the credit.</li>
+      </ul>
+
+      <h4 class="product-shipping-returns__subheading">Exceptions</h4>
+      <p>Our change of mind policy does not apply to the following items:</p>
+      <ul>
+        <li>Sale items</li>
+        <li>Accessories and home items</li>
+        <li>Swimwear and underwear</li>
+      </ul>
+    </div>
+  </details>
+{% endcapture %}
+
+<div
+  class="product-shipping-returns accordion accordion--plus accordion--dividers"
+  style="
+    --summary-font-family: var(--font-body--family);
+    --summary-font-style: var(--font-body--style);
+    --summary-font-weight: var(--font-heading--weight);
+    --summary-font-size: var(--font-body--size);
+    --summary-font-line-height: var(--font-body--line-height);
+    --summary-font-case: var(--font-body--case);
+  "
+>
+  {% render 'accordion-custom-component', children: shipping_returns_content %}
+</div>
+
+{% render 'accordion-styles' %}
+
+{% stylesheet %}
+  .product-shipping-returns {
+    margin-block-start: var(--padding-md);
+    padding-block-start: var(--padding-md);
+    border-block-start: var(--style-border-width) solid var(--color-border);
+  }
+
+  .product-shipping-returns .details__header {
+    font-weight: inherit;
+  }
+
+  .product-shipping-returns__content {
+    font-family: var(--font-body--family);
+    font-style: var(--font-body--style);
+    font-size: var(--font-body--size);
+    line-height: var(--font-body--line-height);
+  }
+
+  .product-shipping-returns__content :lang(ko) {
+    font-family: var(--font-korean--family);
+  }
+
+  .product-shipping-returns__heading {
+    font-family: inherit;
+    font-size: inherit;
+    font-weight: var(--font-heading--weight);
+    line-height: inherit;
+    margin-block: var(--padding-xl) var(--padding-sm);
+    text-transform: none;
+  }
+
+  .product-shipping-returns__heading:first-child {
+    margin-block-start: 0;
+  }
+
+  .product-shipping-returns__subheading {
+    font-family: inherit;
+    font-size: inherit;
+    font-weight: var(--font-heading--weight);
+    line-height: inherit;
+    margin-block: var(--padding-lg) var(--padding-xs);
+    text-transform: none;
+  }
+
+  .product-shipping-returns__content p {
+    margin-block: 0 var(--padding-sm);
+  }
+
+  .product-shipping-returns__content p:last-child {
+    margin-block-end: 0;
+  }
+
+  .product-shipping-returns__content ul {
+    margin-block: var(--padding-xs) var(--padding-lg);
+    padding-inline-start: 1.25rem;
+  }
+
+  .product-shipping-returns__content li {
+    margin-block: var(--padding-xs);
+  }
+{% endstylesheet %}

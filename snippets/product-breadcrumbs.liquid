@@ -1,0 +1,55 @@
+{%- liquid
+  assign breadcrumb_collection = collection
+
+  if breadcrumb_collection == blank
+    assign preferred_handles = 'fw2026,on-sale' | split: ','
+
+    for preferred_handle in preferred_handles
+      for product_collection in product.collections
+        if product_collection.handle == preferred_handle
+          assign breadcrumb_collection = product_collection
+          break
+        endif
+      endfor
+
+      if breadcrumb_collection != blank
+        break
+      endif
+    endfor
+  endif
+
+  if breadcrumb_collection == blank
+    for product_collection in product.collections
+      unless product_collection.handle == 'all' or product_collection.handle == 'frontpage'
+        assign breadcrumb_collection = product_collection
+        break
+      endunless
+    endfor
+  endif
+-%}
+
+{%- if breadcrumb_collection != blank -%}
+  {%- liquid
+    assign collection_label = breadcrumb_collection.title | escape
+    assign product_label = product.title | strip
+    capture clean_product_title
+      render 'product-titlecase', title: product_label
+    endcapture
+    assign product_label = clean_product_title | strip | escape
+  -%}
+
+  <nav
+    class="product-breadcrumbs"
+    aria-label="Breadcrumb"
+  >
+    <ol class="product-breadcrumbs__list list-unstyled">
+      <li class="product-breadcrumbs__item">
+        <a class="product-breadcrumbs__link" href="{{ breadcrumb_collection.url }}">{{ collection_label }}</a>
+      </li>
+      <li class="product-breadcrumbs__item">
+        <span class="product-breadcrumbs__separator" aria-hidden="true">/</span>
+        <span class="product-breadcrumbs__current" aria-current="page">{{ product_label }}</span>
+      </li>
+    </ol>
+  </nav>
+{%- endif -%}

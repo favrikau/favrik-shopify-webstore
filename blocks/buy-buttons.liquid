@@ -227,13 +227,6 @@
             can_add_to_cart: can_add_to_cart,
             add_to_cart_text: add_to_cart_text
           %}
-
-          {% content_for 'block',
-            type: 'accelerated-checkout',
-            id: 'accelerated-checkout',
-            can_add_to_cart: can_add_to_cart,
-            form_obj: form
-          %}
         </div>
         {%- if block_settings.gift_card_form and product.gift_card? -%}
           </span>
@@ -337,7 +330,7 @@
         </h2>
         <div class="theme-drawer__header pickup-availability__header-container">
           <div class="pickup-availability__column">
-            <h4 class="pickup-location__h4">{{ closest.product.title }}</h4>
+            <h4 class="pickup-location__h4">{%- render 'product-titlecase', title: closest.product.title -%}</h4>
             {% unless closest.product.has_only_default_variant %}
               <p class="pickup-location__text-sm">
                 {{ closest.product.selected_or_first_available_variant.title }}
@@ -631,10 +624,6 @@
           "settings": {
             "style_class": "button-secondary"
           }
-        },
-        "accelerated-checkout": {
-          "type": "accelerated-checkout",
-          "static": true
         }
       }
     }

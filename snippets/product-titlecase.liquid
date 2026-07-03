@@ -1,14 +1,16 @@
 {%- liquid
   assign working_title = title | strip
 
-  assign bracket_parts = working_title | split: ']'
-  if bracket_parts.size > 1
-    assign bracket_head = bracket_parts | first
-    assign bracket_first_char = bracket_head | slice: 0, 1
-    if bracket_head contains '[' and bracket_first_char == '['
-      assign working_title = bracket_parts | slice: 1, bracket_parts.size | join: ']' | strip
+  for strip_pass in (1..3)
+    assign bracket_parts = working_title | split: ']'
+    if bracket_parts.size > 1
+      assign bracket_head = bracket_parts | first | strip
+      assign bracket_first_char = bracket_head | slice: 0, 1
+      if bracket_head contains '[' and bracket_first_char == '['
+        assign working_title = bracket_parts | slice: 1, bracket_parts.size | join: ']' | strip
+      endif
     endif
-  endif
+  endfor
 
   assign title_words = working_title | split: ' '
   assign skipping_leading_tags = true

@@ -1,0 +1,18 @@
+
+<div {{ block.shopify_attributes }}>
+  {% render 'product-shipping-returns' %}
+</div>
+
+{% schema %}
+{
+  "name": "Shipping & Returns",
+  "tag": null,
+  "settings": [],
+  "presets": [
+    {
+      "name": "Shipping & Returns",
+      "category": "t:categories.product"
+    }
+  ]
+}
+{% endschema %}
