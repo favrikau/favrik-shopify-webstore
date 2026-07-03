@@ -161,14 +161,16 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding-inline: var(--drawer-padding) 0;
-    padding-block: var(--padding-sm);
-    margin-inline-end: var(--margin-md);
+    gap: clamp(0.25rem, 0.7vw, 0.5rem);
+    padding-inline: clamp(0.25rem, 0.8vw, var(--drawer-padding)) 0;
+    padding-block: clamp(0.125rem, 0.5vw, var(--padding-sm));
+    margin-inline-end: clamp(0rem, 0.6vw, var(--margin-md));
+    min-width: 0;
     position: relative;
   }
 
   .sorting-filter__container .facets__label {
-    font-size: var(--font-h4--size);
+    font-size: var(--facets-control-font-size, var(--font-h4--size));
   }
 
   .sorting-filter__select-wrapper {
@@ -177,7 +179,8 @@
     border-radius: var(--variant-picker-button-radius);
     align-items: center;
     overflow: clip;
-    padding: var(--padding-2xs) var(--padding-xs);
+    padding: var(--padding-2xs) clamp(0.25rem, 0.7vw, var(--padding-xs));
+    min-width: 0;
   }
 
   .sorting-filter__select-wrapper:has(:focus-visible) {
@@ -194,9 +197,13 @@
     border: 0;
     margin: 0;
     cursor: pointer;
-    width: 100%;
+    width: auto;
+    min-width: 0;
+    max-width: 12rem;
     padding-inline-end: var(--icon-size-2xs);
     text-align: right;
+    font-size: var(--facets-control-font-size, inherit);
+    line-height: 1.15;
 
     /* Needed for Safari */
     text-align-last: right;

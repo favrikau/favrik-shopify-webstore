@@ -1,0 +1,1016 @@
+{% liquid
+  assign collection = section.settings.collection
+  assign left_image = section.settings.left_image
+  assign right_image = section.settings.right_image
+  assign center_image = section.settings.center_image
+  assign landscape_image = section.settings.landscape_image
+  assign left_link = section.settings.left_link
+  assign right_link = section.settings.right_link
+  assign center_link = section.settings.center_link
+  assign landscape_link = section.settings.landscape_link
+  assign use_random_images = false
+  assign candidate_limit = 24
+  assign candidates_rendered = 0
+  assign landscape_candidates_rendered = 0
+
+  if left_image == blank and right_image == blank and center_image == blank and collection != blank
+    assign use_random_images = true
+  endif
+
+  if section.settings.background_color != blank
+    render 'contrast-override', background_color: section.settings.background_color, section_id: section.id
+  endif
+
+  if use_random_images == false
+    assign left_product = null
+    assign center_product = null
+    assign right_product = null
+    assign landscape_product = null
+
+    if collection != blank
+      for product in collection.products
+        if product.featured_image == blank
+          continue
+        endif
+
+        if left_image == blank and left_product == null
+          assign left_product = product
+          continue
+        endif
+
+        if center_image == blank and center_product == null
+          if left_product == null or product.id != left_product.id
+            assign center_product = product
+            continue
+          endif
+        endif
+
+        if right_image == blank and right_product == null
+          if left_product == null or product.id != left_product.id
+            if center_product == null or product.id != center_product.id
+              assign right_product = product
+              break
+            endif
+          endif
+        endif
+      endfor
+
+      if landscape_image == blank
+        assign landscape_found = false
+        for product in collection.products
+          if landscape_found
+            continue
+          endif
+
+          for image in product.images
+            if image.aspect_ratio >= 1.2
+              assign landscape_image = image
+              assign landscape_product = product
+              assign landscape_found = true
+              break
+            endif
+          endfor
+        endfor
+
+        if landscape_image == blank
+          for product in collection.products
+            if product.featured_image != blank
+              assign landscape_image = product.featured_image
+              assign landscape_product = product
+              break
+            endif
+          endfor
+        endif
+      endif
+    endif
+
+    if left_image == blank and left_product != blank
+      assign left_image = left_product.featured_image
+    endif
+
+    if center_image == blank and center_product != blank
+      assign center_image = center_product.featured_image
+    endif
+
+    if right_image == blank and right_product != blank
+      assign right_image = right_product.featured_image
+    endif
+
+    if left_link == blank and left_product != blank
+      assign left_link = left_product.url
+    endif
+
+    if center_link == blank and center_product != blank
+      assign center_link = center_product.url
+    endif
+
+    if right_link == blank and right_product != blank
+      assign right_link = right_product.url
+    endif
+
+    if landscape_link == blank and landscape_product != blank
+      assign landscape_link = landscape_product.url
+    endif
+  endif
+
+  assign left_widths = '640, 832, 960, 1200, 1600, 2000'
+  assign right_widths = '480, 640, 832, 960, 1200'
+  assign landscape_widths = '960, 1200, 1600, 2000, 2400'
+  assign left_sizes = '(min-width: 750px) 50vw, 100vw'
+  assign right_sizes = '(min-width: 750px) 34vw, 72vw'
+  assign landscape_sizes = '100vw'
+  assign caption_en = section.settings.caption_en | default: 'Seoul Inspired. Everyday Elevated'
+  assign caption_ko = section.settings.caption_ko | default: '서울에서 영감받은. 일상의 품격'
+
+  assign brand_text_en = section.settings.brand_text_en
+  if brand_text_en == blank
+    assign brand_text_en = 'Favrik is a Korean-inspired womenswear brand rooted in timeless, directional fashion.|Chic, refined, and made for the modern wardrobe.'
+  endif
+  assign brand_lines_en = brand_text_en | split: '|'
+
+  assign brand_text_ko = section.settings.brand_text_ko
+  if brand_text_ko == blank
+    assign brand_text_ko = 'Favrik은 한국적 감성을 바탕으로 한 여성 의류 브랜드입니다.|시간이 지나도 변치 않는 우아함과 감각적인 방향성을 담아, 현대적인 옷장을 완성합니다.'
+  endif
+  assign brand_lines_ko = brand_text_ko | split: '|'
+
+  assign brand_text_secondary_en = section.settings.brand_text_secondary_en
+  if brand_text_secondary_en == blank
+    assign brand_text_secondary_en = 'Every piece is designed to elevate the everyday.|Soft styling. Clean lines. Effortless layers. Real clothes for real life.'
+  endif
+  assign brand_lines_secondary_en = brand_text_secondary_en | split: '|'
+
+  assign brand_text_secondary_ko = section.settings.brand_text_secondary_ko
+  if brand_text_secondary_ko == blank
+    assign brand_text_secondary_ko = '일상을 조금 더 세련되게.|부드러운 무드, 깔끔한 라인, 자연스러운 레이어링. 매일 입기 좋은 옷을 제안합니다.'
+  endif
+  assign brand_lines_secondary_ko = brand_text_secondary_ko | split: '|'
+%}
+
+<div
+  class="section-background{% if section.settings.background_color != blank %} color-custom-{{ section.id }}{% endif %}"
+></div>
+
+<div
+  class="section section--{{ section.settings.section_width }} spacing-style{% if section.settings.background_color != blank %} color-custom-{{ section.id }}{% endif %}"
+  style="{% render 'spacing-style', settings: section.settings %}"
+  data-testid="collection-image-duo"
+  {% if use_random_images %}
+    data-random-image-duo
+  {% endif %}
+>
+  {% if use_random_images or left_image != blank or right_image != blank or center_image != blank or landscape_image != blank %}
+    <div class="collection-image-duo">
+      {% if use_random_images %}
+        <div class="collection-image-duo__candidates" hidden aria-hidden="true">
+          {% for product in collection.products %}
+            {% if product.featured_image == blank %}
+              {% continue %}
+            {% endif %}
+
+            {% if candidates_rendered == 0 %}
+              {% assign fallback_primary_product = product %}
+            {% elsif candidates_rendered == 1 %}
+              {% assign fallback_center_product = product %}
+            {% elsif candidates_rendered == 2 %}
+              {% assign fallback_secondary_product = product %}
+            {% endif %}
+
+            <div
+              class="collection-image-duo__candidate"
+              data-duo-candidate
+              data-product-id="{{ product.id }}"
+              data-product-url="{{ product.url }}"
+              data-image-aspect="{{ product.featured_image.aspect_ratio }}"
+            >
+              {{
+                product.featured_image
+                | image_url: width: 2000
+                | image_tag:
+                  widths: left_widths,
+                  sizes: left_sizes,
+                  class: 'collection-image-duo__img',
+                  loading: 'lazy'
+              }}
+            </div>
+
+            {% assign candidates_rendered = candidates_rendered | plus: 1 %}
+            {% if candidates_rendered >= candidate_limit %}
+              {% break %}
+            {% endif %}
+          {% endfor %}
+        </div>
+
+        <div class="collection-image-duo__landscape-candidates" hidden aria-hidden="true">
+          {% for product in collection.products %}
+            {% for image in product.images %}
+              {% if image.aspect_ratio < 1.1 %}
+                {% continue %}
+              {% endif %}
+
+              {% if landscape_candidates_rendered == 0 %}
+                {% assign fallback_landscape_product = product %}
+                {% assign fallback_landscape_image = image %}
+              {% endif %}
+
+              <div
+                class="collection-image-duo__candidate"
+                data-duo-landscape-candidate
+                data-product-id="{{ product.id }}"
+                data-product-url="{{ product.url }}"
+                data-image-aspect="{{ image.aspect_ratio }}"
+              >
+                {{
+                  image
+                  | image_url: width: 2400
+                  | image_tag:
+                    widths: landscape_widths,
+                    sizes: landscape_sizes,
+                    class: 'collection-image-duo__img',
+                    loading: 'lazy'
+                }}
+              </div>
+
+              {% assign landscape_candidates_rendered = landscape_candidates_rendered | plus: 1 %}
+              {% if landscape_candidates_rendered >= candidate_limit %}
+                {% break %}
+              {% endif %}
+            {% endfor %}
+
+            {% if landscape_candidates_rendered >= candidate_limit %}
+              {% break %}
+            {% endif %}
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      <div class="collection-image-duo__primary" data-duo-slot="primary">
+        {% liquid
+          if use_random_images
+            assign slot_left_image = fallback_primary_product.featured_image
+            assign slot_left_link = fallback_primary_product.url
+          else
+            assign slot_left_image = left_image
+            assign slot_left_link = left_link
+          endif
+        %}
+
+        {% if slot_left_image != blank %}
+          {% if slot_left_link != blank %}
+            <a class="collection-image-duo__link" href="{{ slot_left_link }}">
+          {% endif %}
+          <div class="collection-image-duo__media collection-image-duo__media--primary">
+            {{
+              slot_left_image
+              | image_url: width: 2000
+              | image_tag:
+                widths: left_widths,
+                sizes: left_sizes,
+                class: 'collection-image-duo__img',
+                loading: 'lazy'
+            }}
+            <div class="collection-image-duo__caption">
+              <span class="collection-image-duo__caption-en">{{ caption_en | escape }}</span>
+              <span class="collection-image-duo__caption-ko" lang="ko">{{ caption_ko | escape }}</span>
+            </div>
+          </div>
+          {% if slot_left_link != blank %}
+            </a>
+          {% endif %}
+        {% else %}
+          <div class="collection-image-duo__media collection-image-duo__media--primary collection-image-duo__media--placeholder">
+            {{ 'collection-apparel-2' | placeholder_svg_tag }}
+            <div class="collection-image-duo__caption">
+              <span class="collection-image-duo__caption-en">{{ caption_en | escape }}</span>
+              <span class="collection-image-duo__caption-ko" lang="ko">{{ caption_ko | escape }}</span>
+            </div>
+          </div>
+        {% endif %}
+      </div>
+
+      <div class="collection-image-duo__secondary">
+        <div class="collection-image-duo__secondary-stack">
+          <div class="collection-image-duo__slot collection-image-duo__slot--center" data-duo-slot="secondary-center">
+            {% liquid
+              if use_random_images
+                assign slot_center_image = fallback_center_product.featured_image
+                assign slot_center_link = fallback_center_product.url
+              else
+                assign slot_center_image = center_image
+                assign slot_center_link = center_link
+              endif
+            %}
+
+            {% if slot_center_image != blank %}
+              {% if slot_center_link != blank %}
+                <a class="collection-image-duo__link" href="{{ slot_center_link }}">
+              {% endif %}
+              <div class="collection-image-duo__media collection-image-duo__media--center">
+                {{
+                  slot_center_image
+                  | image_url: width: 1600
+                  | image_tag:
+                    widths: right_widths,
+                    sizes: right_sizes,
+                    class: 'collection-image-duo__img',
+                    loading: 'lazy'
+                }}
+              </div>
+              {% if slot_center_link != blank %}
+                </a>
+              {% endif %}
+            {% else %}
+              <div class="collection-image-duo__media collection-image-duo__media--center collection-image-duo__media--placeholder">
+                {{ 'collection-apparel-4' | placeholder_svg_tag }}
+              </div>
+            {% endif %}
+          </div>
+
+          <div class="collection-image-duo__slot collection-image-duo__slot--bottom" data-duo-slot="secondary-bottom">
+            {% liquid
+              if use_random_images
+                assign slot_right_image = fallback_secondary_product.featured_image
+                assign slot_right_link = fallback_secondary_product.url
+              else
+                assign slot_right_image = right_image
+                assign slot_right_link = right_link
+              endif
+            %}
+
+            {% if slot_right_image != blank %}
+              {% if slot_right_link != blank %}
+                <a class="collection-image-duo__link" href="{{ slot_right_link }}">
+              {% endif %}
+              <div class="collection-image-duo__media collection-image-duo__media--secondary">
+                {{
+                  slot_right_image
+                  | image_url: width: 1600
+                  | image_tag:
+                    widths: right_widths,
+                    sizes: right_sizes,
+                    class: 'collection-image-duo__img',
+                    loading: 'lazy'
+                }}
+              </div>
+              {% if slot_right_link != blank %}
+                </a>
+              {% endif %}
+            {% else %}
+              <div class="collection-image-duo__media collection-image-duo__media--secondary collection-image-duo__media--placeholder">
+                {{ 'collection-apparel-3' | placeholder_svg_tag }}
+              </div>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="collection-image-duo__copy">
+          <div class="collection-image-duo__copy-section">
+            <div class="collection-image-duo__copy-block collection-image-duo__copy-block--en">
+              {% for line in brand_lines_en %}
+                {% assign line_stripped = line | strip %}
+                {% if line_stripped != blank %}
+                  <p class="collection-image-duo__copy-line">{{ line_stripped | escape }}</p>
+                {% endif %}
+              {% endfor %}
+            </div>
+            <div class="collection-image-duo__copy-block collection-image-duo__copy-block--ko" lang="ko">
+              {% for line in brand_lines_ko %}
+                {% assign line_stripped = line | strip %}
+                {% if line_stripped != blank %}
+                  <p class="collection-image-duo__copy-line">{{ line_stripped | escape }}</p>
+                {% endif %}
+              {% endfor %}
+            </div>
+          </div>
+          <div class="collection-image-duo__copy-section">
+            <div class="collection-image-duo__copy-block collection-image-duo__copy-block--en">
+              {% for line in brand_lines_secondary_en %}
+                {% assign line_stripped = line | strip %}
+                {% if line_stripped != blank %}
+                  <p class="collection-image-duo__copy-line">{{ line_stripped | escape }}</p>
+                {% endif %}
+              {% endfor %}
+            </div>
+            <div class="collection-image-duo__copy-block collection-image-duo__copy-block--ko" lang="ko">
+              {% for line in brand_lines_secondary_ko %}
+                {% assign line_stripped = line | strip %}
+                {% if line_stripped != blank %}
+                  <p class="collection-image-duo__copy-line">{{ line_stripped | escape }}</p>
+                {% endif %}
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="collection-image-duo__landscape" data-duo-landscape-slot>
+      {% liquid
+        if use_random_images
+          assign slot_landscape_image = fallback_landscape_image
+          assign slot_landscape_link = fallback_landscape_product.url
+        else
+          assign slot_landscape_image = landscape_image
+          assign slot_landscape_link = landscape_link
+        endif
+      %}
+
+      {% if slot_landscape_image != blank %}
+        {% if slot_landscape_link != blank %}
+          <a class="collection-image-duo__link" href="{{ slot_landscape_link }}">
+        {% endif %}
+        <div class="collection-image-duo__media collection-image-duo__media--landscape">
+          {{
+            slot_landscape_image
+            | image_url: width: 2400
+            | image_tag:
+              widths: landscape_widths,
+              sizes: landscape_sizes,
+              class: 'collection-image-duo__img',
+              loading: 'lazy'
+          }}
+          <div class="collection-image-duo__landscape-logo" aria-hidden="true">
+            <span class="collection-image-duo__landscape-logo-mask">
+              <img
+                src="{{ 'favrik_logo.png' | asset_url }}"
+                alt=""
+                class="collection-image-duo__landscape-logo-image"
+                width="360"
+                height="120"
+                loading="lazy"
+              >
+            </span>
+          </div>
+        </div>
+        {% if slot_landscape_link != blank %}
+          </a>
+        {% endif %}
+      {% else %}
+        <div class="collection-image-duo__media collection-image-duo__media--landscape collection-image-duo__media--placeholder">
+          {{ 'collection-apparel-5' | placeholder_svg_tag }}
+          <div class="collection-image-duo__landscape-logo" aria-hidden="true">
+            <span class="collection-image-duo__landscape-logo-mask">
+              <img
+                src="{{ 'favrik_logo.png' | asset_url }}"
+                alt=""
+                class="collection-image-duo__landscape-logo-image"
+                width="360"
+                height="120"
+                loading="lazy"
+              >
+            </span>
+          </div>
+        </div>
+      {% endif %}
+    </div>
+  {% endif %}
+</div>
+
+{% stylesheet %}
+  .collection-image-duo {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: stretch;
+    width: 100%;
+    gap: 0;
+  }
+
+  .collection-image-duo__primary {
+    min-width: 0;
+  }
+
+  .collection-image-duo__landscape {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .collection-image-duo__secondary {
+    --duo-stack-inset: 0px;
+    --duo-stack-gap: 0px;
+    display: grid;
+    grid-template-columns: minmax(0, 2.1fr) minmax(13rem, 1fr);
+    align-items: stretch;
+    gap: 0;
+    min-width: 0;
+    min-height: 100%;
+  }
+
+  .collection-image-duo__secondary-stack {
+    display: grid;
+    grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
+    gap: var(--duo-stack-gap);
+    width: 100%;
+    min-height: 100%;
+    height: 100%;
+    min-width: 0;
+    padding: var(--duo-stack-inset) 0 var(--duo-stack-inset) var(--duo-stack-inset);
+    box-sizing: border-box;
+  }
+
+  .collection-image-duo__slot--center,
+  .collection-image-duo__slot--bottom {
+    display: block;
+    width: 100%;
+    min-height: 0;
+    margin-inline-start: 0;
+    padding: 0;
+  }
+
+  .collection-image-duo__slot--center {
+    width: 100%;
+  }
+
+  .collection-image-duo__slot--bottom {
+    width: 100%;
+  }
+
+  .collection-image-duo__link {
+    display: block;
+    width: 100%;
+    text-decoration: none;
+  }
+
+  .collection-image-duo__slot--center .collection-image-duo__link,
+  .collection-image-duo__slot--center .collection-image-duo__media--center,
+  .collection-image-duo__slot--bottom .collection-image-duo__link,
+  .collection-image-duo__slot--bottom .collection-image-duo__media--secondary,
+  .collection-image-duo__landscape .collection-image-duo__link,
+  .collection-image-duo__landscape .collection-image-duo__media--landscape {
+    width: 100%;
+    height: 100%;
+  }
+
+  .collection-image-duo__media {
+    position: relative;
+    overflow: hidden;
+    background-color: rgb(var(--color-foreground-rgb) / var(--opacity-5));
+  }
+
+  .collection-image-duo__primary,
+  .collection-image-duo__primary .collection-image-duo__link {
+    height: 100%;
+  }
+
+  .collection-image-duo__media--primary {
+    width: 100%;
+    aspect-ratio: 4 / 5;
+  }
+
+  @media screen and (min-width: 750px) {
+    .collection-image-duo__media--primary {
+      aspect-ratio: auto;
+      min-height: clamp(28rem, 72vh, 44rem);
+      height: 100%;
+    }
+  }
+
+  .collection-image-duo__media--secondary,
+  .collection-image-duo__media--center {
+    width: 100%;
+  }
+
+  .collection-image-duo__media--center {
+    aspect-ratio: auto;
+  }
+
+  .collection-image-duo__media--secondary {
+    aspect-ratio: auto;
+  }
+
+  .collection-image-duo__media--landscape {
+    width: 100%;
+    aspect-ratio: 16 / 7;
+  }
+
+  .collection-image-duo__media--landscape::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background:
+      radial-gradient(circle at center, rgb(48 33 24 / 0.18), transparent 42%),
+      linear-gradient(to bottom, rgb(48 33 24 / 0.08), rgb(48 33 24 / 0.16));
+    pointer-events: none;
+  }
+
+  .collection-image-duo__landscape-logo {
+    position: absolute;
+    inset: 50% auto auto 50%;
+    z-index: 2;
+    width: min(34vw, 24rem);
+    min-width: 10rem;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+  }
+
+  .collection-image-duo__landscape-logo::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    z-index: 3;
+    width: 144%;
+    height: 142%;
+    border: 1px solid rgb(255 247 236 / 0.82);
+    border-radius: 50%;
+    box-shadow:
+      0 0 0 1px rgb(48 33 24 / 0.12),
+      0 0.35rem 1.6rem rgb(48 33 24 / 0.24);
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.94);
+    transform-origin: center;
+    transition:
+      opacity 0.32s cubic-bezier(0.16, 1, 0.3, 1),
+      transform 0.42s cubic-bezier(0.2, 1.35, 0.34, 1);
+  }
+
+  .collection-image-duo__landscape-logo-mask {
+    position: relative;
+    display: block;
+    overflow: hidden;
+    clip-path: inset(0 50% 0 50%);
+    opacity: 0;
+    transform: scale(0.98);
+    filter: blur(2px);
+    transition:
+      clip-path 0.42s cubic-bezier(0.16, 1, 0.3, 1),
+      opacity 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+      transform 0.42s cubic-bezier(0.2, 1.28, 0.34, 1),
+      filter 0.32s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .collection-image-duo__landscape.is-logo-revealed .collection-image-duo__landscape-logo-mask {
+    clip-path: inset(0);
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0);
+    transition-delay: 0.04s, 0.04s, 0.04s, 0.04s;
+  }
+
+  .collection-image-duo__landscape.is-logo-revealed .collection-image-duo__landscape-logo::before {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+    transition-delay: 0.08s;
+  }
+
+  .collection-image-duo__landscape-logo-image {
+    width: 100%;
+    height: auto;
+    filter: brightness(0) invert(1) drop-shadow(0 0.35rem 1.4rem rgb(48 33 24 / 0.38));
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .collection-image-duo__landscape-logo-mask,
+    .collection-image-duo__landscape-logo::before {
+      animation: none;
+      transition: none;
+    }
+
+    .collection-image-duo__landscape-logo-mask {
+      clip-path: inset(0);
+      opacity: 1;
+      transform: none;
+      filter: none;
+    }
+
+    .collection-image-duo__landscape-logo::before {
+      opacity: 1;
+      transform: translate(-50%, -50%);
+    }
+
+  }
+
+  .collection-image-duo__img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center center;
+    display: block;
+  }
+
+  .collection-image-duo__media--placeholder svg {
+    width: 100%;
+    height: 100%;
+  }
+
+  .collection-image-duo__caption {
+    position: absolute;
+    inset-inline: 0;
+    bottom: 0;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+    margin: 0;
+    padding: 1.5rem 1.25rem 1.125rem;
+    text-align: left;
+    background: linear-gradient(to top, rgb(48 33 24 / 0.48) 0%, rgb(48 33 24 / 0) 100%);
+    pointer-events: none;
+  }
+
+  .collection-image-duo__caption-en {
+    font-family: var(--font-body--family);
+    font-size: clamp(0.875rem, 1.8vw, 1.125rem);
+    font-weight: var(--font-body--weight);
+    letter-spacing: 0.06em;
+    line-height: 1.25;
+    text-transform: none;
+    color: rgb(255 247 236 / 0.96);
+  }
+
+  .collection-image-duo__caption-ko {
+    font-family: var(--font-korean--family);
+    font-size: clamp(0.6875rem, 1.35vw, 0.8125rem);
+    font-weight: 400;
+    letter-spacing: 0.02em;
+    line-height: 1.35;
+    color: rgb(255 247 236 / 0.78);
+  }
+
+  .collection-image-duo__copy {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    gap: 1.5rem;
+    min-width: 0;
+    max-width: 17rem;
+    padding-block: clamp(1.5rem, 3vw, 2.5rem) clamp(2.75rem, 5vw, 4.5rem);
+    padding-inline: clamp(0.35rem, 1vw, 0.75rem) clamp(0.75rem, 1.5vw, 1.25rem);
+    box-sizing: border-box;
+  }
+
+  .collection-image-duo__copy-section {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .collection-image-duo__copy-block {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .collection-image-duo__copy-line {
+    margin: 0;
+    line-height: 1.45;
+  }
+
+  .collection-image-duo__copy-block--en .collection-image-duo__copy-line {
+    font-family: var(--font-body--family);
+    font-size: clamp(0.6875rem, 1.15vw, 0.8125rem);
+    font-weight: var(--font-body--weight);
+    letter-spacing: 0.03em;
+    color: rgb(48 33 24 / 0.88);
+  }
+
+  .collection-image-duo__copy-block--ko .collection-image-duo__copy-line {
+    font-family: var(--font-korean--family);
+    font-size: clamp(0.625rem, 1vw, 0.75rem);
+    font-weight: 400;
+    letter-spacing: 0.01em;
+    color: rgb(48 33 24 / 0.42);
+  }
+
+  @media screen and (max-width: 749px) {
+    .collection-image-duo {
+      grid-template-columns: 1fr;
+    }
+
+    .collection-image-duo__secondary {
+      grid-template-columns: 1fr;
+      align-items: stretch;
+      gap: 0;
+    }
+
+    .collection-image-duo__secondary-stack {
+      display: grid;
+      grid-template-rows: auto auto;
+      gap: var(--duo-stack-gap);
+      min-height: auto;
+      height: auto;
+      padding: 0;
+    }
+
+    .collection-image-duo__slot--center {
+      width: 100%;
+      max-width: none;
+      margin-inline-start: 0;
+    }
+
+    .collection-image-duo__slot--bottom {
+      width: 100%;
+      max-width: none;
+      margin-inline-start: 0;
+    }
+
+    .collection-image-duo__copy {
+      max-width: none;
+      border-inline-start: none;
+      padding: clamp(1.5rem, 5vw, 2rem) var(--page-margin, 1rem) clamp(3rem, 8vw, 4.5rem);
+      justify-content: flex-end;
+    }
+
+    .collection-image-duo__media--center,
+    .collection-image-duo__media--secondary {
+      aspect-ratio: 4 / 5;
+    }
+
+    .collection-image-duo__media--landscape {
+      aspect-ratio: 16 / 9;
+    }
+
+    .collection-image-duo__media--primary {
+      min-height: auto;
+      aspect-ratio: 4 / 5;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Collection image duo",
+  "tag": "section",
+  "class": "collection-image-duo-section",
+  "disabled_on": {
+    "groups": ["header", "footer"]
+  },
+  "settings": [
+    {
+      "type": "collection",
+      "id": "collection",
+      "label": "t:settings.collection",
+      "info": "Picks random product images, excluding any already shown in the image trio above. The landscape row prefers wide gallery images."
+    },
+    {
+      "type": "header",
+      "content": "Primary image caption"
+    },
+    {
+      "type": "text",
+      "id": "caption_en",
+      "label": "Caption (English)",
+      "default": "Seoul Inspired. Everyday Elevated"
+    },
+    {
+      "type": "text",
+      "id": "caption_ko",
+      "label": "Caption (Korean)",
+      "default": "서울에서 영감받은. 일상의 품격"
+    },
+    {
+      "type": "header",
+      "content": "Left image (large)"
+    },
+    {
+      "type": "image_picker",
+      "id": "left_image",
+      "label": "Image",
+      "info": "Optional. Leave blank to use a random collection image."
+    },
+    {
+      "type": "url",
+      "id": "left_link",
+      "label": "Link"
+    },
+    {
+      "type": "header",
+      "content": "Right image (centered)"
+    },
+    {
+      "type": "image_picker",
+      "id": "center_image",
+      "label": "Image",
+      "info": "Optional. Horizontally centered in the right column. Leave blank to use a random collection image."
+    },
+    {
+      "type": "url",
+      "id": "center_link",
+      "label": "Link"
+    },
+    {
+      "type": "header",
+      "content": "Right image (bottom)"
+    },
+    {
+      "type": "image_picker",
+      "id": "right_image",
+      "label": "Image",
+      "info": "Optional. Leave blank to use a random collection image."
+    },
+    {
+      "type": "url",
+      "id": "right_link",
+      "label": "Link"
+    },
+    {
+      "type": "header",
+      "content": "Landscape image (below)"
+    },
+    {
+      "type": "image_picker",
+      "id": "landscape_image",
+      "label": "Image",
+      "info": "Optional. Leave blank to choose a wide image from the collection gallery."
+    },
+    {
+      "type": "url",
+      "id": "landscape_link",
+      "label": "Link"
+    },
+    {
+      "type": "header",
+      "content": "Brand copy (right column)"
+    },
+    {
+      "type": "textarea",
+      "id": "brand_text_en",
+      "label": "English lines",
+      "default": "Favrik is a Korean-inspired womenswear brand rooted in timeless, directional fashion.|Chic, refined, and made for the modern wardrobe.",
+      "info": "Separate lines with | characters."
+    },
+    {
+      "type": "textarea",
+      "id": "brand_text_ko",
+      "label": "Korean lines",
+      "default": "Favrik은 한국적 감성을 바탕으로 한 여성 의류 브랜드입니다.|시간이 지나도 변치 않는 우아함과 감각적인 방향성을 담아, 현대적인 옷장을 완성합니다.",
+      "info": "Separate lines with | characters."
+    },
+    {
+      "type": "header",
+      "content": "Brand copy — second block"
+    },
+    {
+      "type": "textarea",
+      "id": "brand_text_secondary_en",
+      "label": "English lines",
+      "default": "Every piece is designed to elevate the everyday.|Soft styling. Clean lines. Effortless layers. Real clothes for real life.",
+      "info": "Separate lines with | characters."
+    },
+    {
+      "type": "textarea",
+      "id": "brand_text_secondary_ko",
+      "label": "Korean lines",
+      "default": "일상을 조금 더 세련되게.|부드러운 무드, 깔끔한 라인, 자연스러운 레이어링. 매일 입기 좋은 옷을 제안합니다.",
+      "info": "Separate lines with | characters."
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "t:settings.background_color",
+      "placeholder": "t:settings.default"
+    },
+    {
+      "type": "select",
+      "id": "section_width",
+      "label": "t:settings.width",
+      "options": [
+        {
+          "value": "page-width",
+          "label": "t:options.page"
+        },
+        {
+          "value": "full-width",
+          "label": "t:options.full"
+        }
+      ],
+      "default": "full-width"
+    },
+    {
+      "type": "header",
+      "content": "t:content.padding"
+    },
+    {
+      "type": "range",
+      "id": "padding-block-start",
+      "label": "t:settings.top",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding-block-end",
+      "label": "t:settings.bottom",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    }
+  ],
+  "presets": [
+    {
+      "name": "Collection image duo",
+      "category": "t:categories.collections",
+      "settings": {
+        "collection": "fw2026",
+        "section_width": "full-width"
+      }
+    }
+  ]
+}
+{% endschema %}

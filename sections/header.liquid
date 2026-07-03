@@ -80,8 +80,25 @@
     endif
   endif
 
-  capture logo
+  capture logo_markup
     content_for 'block', type: '_header-logo', id: 'header-logo'
+  endcapture
+
+  capture logo
+    echo logo_markup
+    if template.name != 'collection'
+      echo '<form class="header-scroll-search" action="'
+      echo routes.search_url
+      echo '" method="get" role="search">'
+      echo '<input type="hidden" name="type" value="product">'
+      echo '<label class="visually-hidden" for="HeaderScrollSearch-'
+      echo section.id
+      echo '">Search products</label>'
+      echo '<input id="HeaderScrollSearch-'
+      echo section.id
+      echo '" class="header-scroll-search__input" type="search" name="q" placeholder="What’s your style?" autocomplete="off" autocapitalize="off" spellcheck="false">'
+      echo '</form>'
+    endif
   endcapture
 
   capture menu
@@ -346,6 +363,8 @@
   style="
     --color-background-top-row: rgba({{ section.settings.background_color_top.rgba | default: settings.page_background_color.rgba }});
     --color-background-bottom-row: rgba({{ section.settings.background_color_bottom.rgba | default: settings.page_background_color.rgba }});
+    --closed-underlay-background: rgba({{ section.settings.background_color_top.rgba | default: settings.page_background_color.rgba }});
+    --color-submenu: var(--closed-underlay-background);
     {% if transparent and text_color_transparent != blank %}
       --color-transparent-text: {{ text_color_transparent }};
       --color-transparent-text-rgb: {{ text_color_transparent.rgb }};
@@ -370,6 +389,37 @@
   {%- if request.page_type == 'index' -%}
     <h1 class="visually-hidden">{{ shop.name }}</h1>
   {%- endif -%}
+  {% if template.name == 'collection' %}
+    <button
+      type="button"
+      class="header-collection-expand button-unstyled"
+      data-collection-header-expand
+      aria-label="Expand header"
+    >
+      <span class="header-collection-expand__marquee" aria-hidden="true">
+        <span>새로운 계절의 데일리 스타일</span>
+        <span>편안한 실루엣과 차분한 색감</span>
+        <span>오늘을 위한 자연스러운 룩</span>
+        <span>부드러운 톤의 에브리데이 웨어</span>
+        <span>가볍게 입는 감각적인 스타일</span>
+        <span>계절을 닮은 은은한 무드</span>
+        <span>일상 속 작은 취향을 담아</span>
+        <span>천천히 고르는 나만의 컬렉션</span>
+        <span>새로운 계절의 데일리 스타일</span>
+        <span>편안한 실루엣과 차분한 색감</span>
+        <span>오늘을 위한 자연스러운 룩</span>
+        <span>부드러운 톤의 에브리데이 웨어</span>
+        <span>가볍게 입는 감각적인 스타일</span>
+        <span>계절을 닮은 은은한 무드</span>
+        <span>일상 속 작은 취향을 담아</span>
+        <span>천천히 고르는 나만의 컬렉션</span>
+      </span>
+      <span class="header-collection-expand__label">
+        <span>Expand</span>
+        <span class="header-collection-expand__icon" aria-hidden="true">+</span>
+      </span>
+    </button>
+  {% endif %}
   {% for row in rows %}
     {% liquid
       assign background = 'background_color_' | append: row
@@ -483,6 +533,7 @@
     --font-paragraph--line-height: 1;
     --header-content-transition-timing: 0s;
     --closed-underlay-blur: 0;
+    --header-link-hover-transition: 0.4s var(--ease-out-cubic);
 
     display: block;
     contain: layout style;
@@ -528,7 +579,8 @@
     --closed-underlay-background: rgb(48 33 24 / 0.34);
     --closed-underlay-blur: 0;
     --color-submenu: var(--closed-underlay-background);
-    --header-logo-scale: 1.6;
+    --header-logo-scale: 3;
+    --header-logo-offset-y: 20px;
 
     /* used to display the appropriate logo based on transparency state */
     --header-logo-display: none;
@@ -597,11 +649,11 @@
     }
   }
 
-  /* When top row has transparent background, make it inherit colors from header component */
-  [data-transparent-background='top']:hover .header__row--top,
-  [data-transparent-background='top']:focus-within .header__row--top,
-  [data-transparent-background='both']:hover .header__row--top,
-  [data-transparent-background='both']:focus-within .header__row--top {
+  /* Transparent header only: swap row colors when hovered/focused */
+  .header[transparent][data-transparent-background='top']:hover .header__row--top,
+  .header[transparent][data-transparent-background='top']:focus-within .header__row--top,
+  .header[transparent][data-transparent-background='both']:hover .header__row--top,
+  .header[transparent][data-transparent-background='both']:focus-within .header__row--top {
     --color-foreground: inherit;
     --color-foreground-rgb: inherit;
     --color-border: inherit;
@@ -610,17 +662,36 @@
     --color-primary-button-text: inherit;
   }
 
-  /* When bottom row has transparent background, make it inherit colors from header component */
-  [data-transparent-background='bottom']:hover .header__row--bottom,
-  [data-transparent-background='bottom']:focus-within .header__row--bottom,
-  [data-transparent-background='both']:hover .header__row--bottom,
-  [data-transparent-background='both']:focus-within .header__row--bottom {
+  /* Transparent header only: swap row colors when hovered/focused */
+  .header[transparent][data-transparent-background='bottom']:hover .header__row--bottom,
+  .header[transparent][data-transparent-background='bottom']:focus-within .header__row--bottom,
+  .header[transparent][data-transparent-background='both']:hover .header__row--bottom,
+  .header[transparent][data-transparent-background='both']:focus-within .header__row--bottom {
     --color-foreground: inherit;
     --color-foreground-rgb: inherit;
     --color-border: inherit;
     --color-border-rgb: inherit;
     --color-primary-button-background: inherit;
     --color-primary-button-text: inherit;
+  }
+
+  /* Non-transparent pages: keep header colors stable on hover/focus */
+  .header:not([transparent]) .header__row,
+  .header:not([transparent]):is(:hover, :focus-within) .header__row {
+    --color-foreground: #ffffff;
+    --color-foreground-rgb: 255 255 255;
+    --color-border: #ffffff;
+    --color-border-rgb: 255 255 255;
+    --color-primary-button-background: #ffffff;
+  }
+
+  .header:not([transparent]) {
+    --closed-underlay-opacity: 1;
+  }
+
+  .header:not([transparent]) :is(.header__underlay-open, .header__underlay-closed) {
+    --color-background-top-row: var(--closed-underlay-background);
+    --color-background-bottom-row: var(--closed-underlay-background);
   }
 
   .header-section {
@@ -687,6 +758,11 @@
     --closed-underlay-opacity: 1;
     --closed-underlay-blur: 6px;
     --header-logo-scale: 1;
+    --header-logo-offset-y: 0px;
+  }
+
+  .header[transparent]:not([data-sticky-state='active']) .header-logo {
+    overflow: visible;
   }
 
   /* ================================
@@ -730,21 +806,20 @@
     transition: height var(--submenu-animation-speed) var(--ease-out-cubic);
   }
 
-  /* When top row has transparent background, swap underlay to merchant's chosen color at full opacity */
-  [data-transparent-background='top']:hover,
-  [data-transparent-background='top']:focus-within,
-  [data-transparent-background='both']:hover,
-  [data-transparent-background='both']:focus-within {
+  /* Transparent header only: swap underlay to solid background on hover/focus */
+  .header[transparent][data-transparent-background='top']:hover,
+  .header[transparent][data-transparent-background='top']:focus-within,
+  .header[transparent][data-transparent-background='both']:hover,
+  .header[transparent][data-transparent-background='both']:focus-within {
     :is(.header__underlay-open, .header__underlay-closed) {
       --color-background-top-row: var(--closed-underlay-background, var(--color-background));
     }
   }
 
-  /* When bottom row has transparent background, swap underlay to merchant's chosen color at full opacity */
-  [data-transparent-background='bottom']:hover,
-  [data-transparent-background='bottom']:focus-within,
-  [data-transparent-background='both']:hover,
-  [data-transparent-background='both']:focus-within {
+  .header[transparent][data-transparent-background='bottom']:hover,
+  .header[transparent][data-transparent-background='bottom']:focus-within,
+  .header[transparent][data-transparent-background='both']:hover,
+  .header[transparent][data-transparent-background='both']:focus-within {
     :is(.header__underlay-open, .header__underlay-closed) {
       --color-background-bottom-row: var(--closed-underlay-background, var(--color-background));
     }
@@ -845,6 +920,87 @@
     .overflow-menu::part(list) {
       justify-content: flex-end;
     }
+  }
+
+  .header-scroll-search {
+    display: none;
+  }
+
+  @media screen and (min-width: 990px) {
+    .header-scroll-search {
+      display: block;
+      width: clamp(11rem, 18vw, 17rem);
+      max-width: 0;
+      opacity: 0;
+      overflow: hidden;
+      pointer-events: none;
+      transform: translateX(-0.6rem) scale(0.98);
+      transform-origin: left center;
+      transition:
+        max-width 0.38s var(--ease-out-cubic, ease),
+        opacity 0.24s var(--ease-out-cubic, ease),
+        transform 0.38s var(--ease-out-cubic, ease);
+    }
+
+    #header-component[data-scroll-direction='down'] .header-scroll-search,
+    #header-component[data-sticky-state='active'] .header-scroll-search {
+      max-width: clamp(11rem, 18vw, 17rem);
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateX(0) scale(1);
+    }
+  }
+
+  .header-scroll-search__input {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 100%;
+    min-height: 2rem;
+    padding: 0.35rem 0.75rem;
+    border: 0.5px solid rgb(255 255 255 / 0.18);
+    border-radius: 5px;
+    background: transparent;
+    background-color: transparent !important;
+    color: #ffffff;
+    font-family: var(--font-body--family);
+    font-size: 0.75rem;
+    line-height: 1;
+    letter-spacing: 0.02em;
+    outline: none;
+    box-shadow: none;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    transition:
+      background-color 0.2s var(--ease-out-cubic, ease),
+      border-color 0.2s var(--ease-out-cubic, ease);
+  }
+
+  .header-scroll-search__input::placeholder {
+    color: rgb(255 255 255 / 0.62);
+  }
+
+  .header-scroll-search__input::-webkit-search-decoration,
+  .header-scroll-search__input::-webkit-search-cancel-button,
+  .header-scroll-search__input::-webkit-search-results-button,
+  .header-scroll-search__input::-webkit-search-results-decoration {
+    -webkit-appearance: none;
+    appearance: none;
+    display: none;
+  }
+
+  .header-scroll-search__input:focus {
+    border-color: rgb(255 255 255 / 0.34);
+    background: rgb(48 33 24 / 0.18);
+    background-color: rgb(48 33 24 / 0.18) !important;
+  }
+
+  .header-scroll-search__input:-webkit-autofill,
+  .header-scroll-search__input:-webkit-autofill:hover,
+  .header-scroll-search__input:-webkit-autofill:focus {
+    -webkit-text-fill-color: #ffffff;
+    caret-color: #ffffff;
+    box-shadow: 0 0 0 1000px transparent inset;
+    transition: background-color 9999s ease-out;
   }
 
   .header__columns {
@@ -972,16 +1128,11 @@
 
   /* Header action button styles */
   .header-actions__action {
-    --button-color: rgb(255 247 236 / 0.62);
+    --button-color: #ffffff;
     color: var(--button-color);
     cursor: pointer;
     display: flex;
     justify-content: center;
-    transition: all var(--animation-speed) ease-in-out;
-
-    &:hover {
-      --button-color: rgb(255 247 236 / 0.84);
-    }
   }
 
   .header-actions__action:not(.account-button) .svg-wrapper {
@@ -1000,6 +1151,144 @@
 
   .header.header--compact {
     --header-padding: 4px;
+  }
+
+  .header-collection-expand {
+    display: none;
+  }
+
+  #header-component[data-collection-facets-affixed]:not([data-collection-header-expanded]) {
+    min-height: 24px;
+    background: rgb(48 33 24 / 0.34);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    box-shadow: 0 1px 0 rgb(255 247 236 / 0.08);
+  }
+
+  #header-component[data-collection-facets-affixed]:not([data-collection-header-expanded]) :is(.header__underlay, .header__row, .header__navigation-bar-row) {
+    display: none;
+  }
+
+  #header-component[data-collection-facets-affixed]:not([data-collection-header-expanded]) .header-collection-expand {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 24px;
+    width: 100%;
+    padding: 0.2rem var(--padding-lg);
+    color: #ffffff;
+    font-family: var(--font-body--family);
+    font-size: clamp(0.625rem, 0.59rem + 0.12vw, 0.72rem);
+    line-height: 1;
+    letter-spacing: 0.04em;
+    text-align: center;
+    text-transform: none;
+    cursor: pointer;
+    overflow: hidden;
+  }
+
+  .header-collection-expand__marquee {
+    position: absolute;
+    inset-block: 0;
+    left: 0;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    gap: 0;
+    width: 200%;
+    color: rgb(255 255 255 / 0.36);
+    font-size: 0.9em;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+    pointer-events: none;
+    animation: header-collection-expand-marquee 72s linear infinite;
+    -webkit-mask-image: linear-gradient(
+      to right,
+      #000 0,
+      #000 calc(50% - 6rem),
+      transparent calc(50% - 2.8rem),
+      transparent calc(50% + 2.8rem),
+      #000 calc(50% + 6rem),
+      #000 100%
+    );
+    mask-image: linear-gradient(
+      to right,
+      #000 0,
+      #000 calc(50% - 6rem),
+      transparent calc(50% - 2.8rem),
+      transparent calc(50% + 2.8rem),
+      #000 calc(50% + 6rem),
+      #000 100%
+    );
+  }
+
+  .header-collection-expand__marquee span {
+    position: relative;
+    flex: 0 0 calc(100% / 16);
+    padding-inline: 0.28rem 0.95rem;
+    text-align: center;
+  }
+
+  .header-collection-expand__marquee span::after {
+    content: '•';
+    position: absolute;
+    right: 0.18rem;
+    top: 50%;
+    color: rgb(255 255 255 / 0.42);
+    transform: translateY(-50%);
+  }
+
+  .header-collection-expand__label {
+    position: relative;
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.28rem;
+    padding-inline: 1.1rem;
+  }
+
+  .header-collection-expand__label::before {
+    content: '';
+    position: absolute;
+    inset: -0.3rem -1.45rem;
+    z-index: -1;
+    background: transparent;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    -webkit-mask-image: linear-gradient(to right, transparent, #000 28%, #000 72%, transparent);
+    mask-image: linear-gradient(to right, transparent, #000 28%, #000 72%, transparent);
+    pointer-events: none;
+  }
+
+  .header-collection-expand__icon {
+    display: inline-block;
+    font-size: 1.1em;
+    line-height: 0.8;
+    transform: translateY(-0.02em);
+  }
+
+  @keyframes header-collection-expand-marquee {
+    from {
+      transform: translateX(0);
+    }
+
+    to {
+      transform: translateX(-50%);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .header-collection-expand__marquee {
+      animation: none;
+      transform: translateX(0);
+    }
+  }
+
+  #header-component[data-collection-facets-affixed]:not([data-collection-header-expanded]) .header-collection-expand:hover,
+  #header-component[data-collection-facets-affixed]:not([data-collection-header-expanded]) .header-collection-expand:focus-visible {
+    color: rgb(255 255 255 / 0.84);
   }
 
   .header__columns {

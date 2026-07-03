@@ -1,7 +1,55 @@
 {%- liquid
-  assign title_words = title | split: ' '
+  assign working_title = title | strip
+
+  assign bracket_parts = working_title | split: ']'
+  if bracket_parts.size > 1
+    assign bracket_head = bracket_parts | first
+    assign bracket_first_char = bracket_head | slice: 0, 1
+    if bracket_head contains '[' and bracket_first_char == '['
+      assign working_title = bracket_parts | slice: 1, bracket_parts.size | join: ']' | strip
+    endif
+  endif
+
+  assign title_words = working_title | split: ' '
+  assign skipping_leading_tags = true
+  assign display_words = ''
 
   for word in title_words
+    assign token = word | strip
+
+    if token != blank
+      assign normalized_token = token | remove: ',' | remove: '.' | remove: ';' | remove: ':' | strip
+      assign should_skip = false
+
+      if skipping_leading_tags
+        assign first_char = normalized_token | slice: 0, 1
+        assign token_size = normalized_token | size
+        assign last_index = token_size | minus: 1
+        assign last_char = normalized_token | slice: last_index, 1
+
+        if first_char == '[' and last_char == ']'
+          assign should_skip = true
+        else
+          assign skipping_leading_tags = false
+        endif
+      endif
+
+      unless should_skip
+        if display_words != blank
+          assign display_words = display_words | append: ' '
+        endif
+        assign display_words = display_words | append: token
+      endunless
+    endif
+  endfor
+
+  if display_words == blank
+    assign display_words = working_title
+  endif
+
+  assign output_words = display_words | split: ' '
+
+  for word in output_words
     unless forloop.first
       echo ' '
     endunless

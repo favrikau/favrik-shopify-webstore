@@ -7,6 +7,7 @@
   @param {string} [title] - Header of the collection or search results
   @param {string} children - List or grid of product cards
   @param {boolean} [enable_infinite_scroll] - Whether to enable infinite scroll (default: true)
+  @param {number} [products_count] - Total products in the current collection results
 {%- enddoc -%}
 
 {%- liquid
@@ -170,6 +171,18 @@
       {% else %}
         {% render 'pagination-controls', paginate: paginate %}
       {% endif %}
+
+      {% if request.page_type == 'collection' and products_count != blank and products_count > 0 %}
+        <p class="main-collection-grid__product-count">
+          {{ products_count }}
+          {%- if products_count == 1 -%}
+            piece
+          {%- else -%}
+            pieces
+          {%- endif -%}
+          , softly curated
+        </p>
+      {% endif %}
     {% endif %}
   </div>
 </div>
@@ -225,5 +238,66 @@
 
   .main-collection-grid__empty-title {
     margin: 0;
+  }
+
+  .content-for-layout[data-template='collection'] .main-collection-grid > div,
+  .content-for-layout[data-template='search'] .main-collection-grid > div {
+    padding-inline: var(--page-margin);
+  }
+
+  .content-for-layout[data-template='collection'] .main-collection-grid,
+  .content-for-layout[data-template='search'] .main-collection-grid {
+    --grid--margin--mobile: 0;
+    padding-inline: 0;
+  }
+
+  .content-for-layout[data-template='collection'] .facets-block-wrapper,
+  .content-for-layout[data-template='search'] .facets-block-wrapper {
+    --facets-inner-padding-inline: var(--page-margin);
+  }
+
+  @media screen and (min-width: 750px) {
+    .content-for-layout[data-template='collection'] .facets-block-wrapper--horizontal .facets--horizontal,
+    .content-for-layout[data-template='search'] .facets-block-wrapper--horizontal .facets--horizontal {
+      padding-inline: var(--page-margin);
+    }
+  }
+
+  .content-for-layout[data-template='collection'] .facets-toggle,
+  .content-for-layout[data-template='search'] .facets-toggle {
+    padding-inline: var(--page-margin);
+  }
+
+  .content-for-layout[data-template='collection'] .product-grid,
+  .content-for-layout[data-template='search'] .product-grid {
+    --product-grid-gap: 0px;
+    --product-grid-gap-mobile: 0px;
+    --product-grid-gap-desktop: 0px;
+    gap: 0;
+  }
+
+  .content-for-layout[data-template='collection'] .product-grid__item,
+  .content-for-layout[data-template='search'] .product-grid__item {
+    border: none;
+  }
+
+  .content-for-layout[data-template='collection'] [product-grid-view='default'] .product-grid__card,
+  .content-for-layout[data-template='search'] [product-grid-view='default'] .product-grid__card {
+    --padding-block-start: 0px;
+    --padding-block-end: 0px;
+    --padding-inline-start: 0px;
+    --padding-inline-end: 0px;
+  }
+
+  .main-collection-grid__product-count {
+    margin: 0;
+    padding-block-start: 1rem;
+    font-family: var(--font-body--family);
+    font-size: 0.625rem;
+    font-weight: var(--font-body--weight);
+    letter-spacing: 0.02em;
+    line-height: 1.4;
+    color: rgb(48 33 24 / 0.55);
+    text-align: left;
   }
 {% endstylesheet %}

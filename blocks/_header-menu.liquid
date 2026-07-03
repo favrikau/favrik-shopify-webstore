@@ -44,15 +44,29 @@
             class="menu-list__list list-unstyled"
             role="list"
           >
+            {% assign rendered_fw26_link = false %}
+            {% assign rendered_sale_link = false %}
             {% for link in block_settings.menu.links %}
               {% liquid
                 assign link_title_downcase = link.title | strip | downcase
                 assign is_home_link = false
+                assign is_fw26_link = false
+                assign is_sale_link = false
+                assign is_catalog_link = false
                 if link.handle == 'home' or link.url == routes.root_url or link.url == '/' or link_title_downcase == 'home'
                   assign is_home_link = true
                 endif
+                if link.url contains '/collections/fw2026' or link_title_downcase == 'fw26' or link_title_downcase == 'fw2026'
+                  assign is_fw26_link = true
+                endif
+                if link.url contains '/collections/on-sale' or link_title_downcase == 'shop sale' or link_title_downcase == 'sale' or link_title_downcase == 'on sale'
+                  assign is_sale_link = true
+                endif
+                if link.handle == 'catalog' or link.url contains '/collections/all' or link_title_downcase == 'catalog'
+                  assign is_catalog_link = true
+                endif
               %}
-              {% unless is_home_link %}
+              {% unless is_home_link or is_fw26_link or is_sale_link %}
                 <li>
                   <a
                     href="{{ link.url }}"
@@ -62,9 +76,43 @@
                       aria-current="page"
                     {% endif %}
                   >
-                    {{- link.title -}}
+                    <span class="menu-list__bold-hover-label" data-text="{{ link.title | escape }}">
+                      {{- link.title -}}
+                    </span>
                   </a>
                 </li>
+                {% if is_catalog_link %}
+                  {% if rendered_fw26_link == false %}
+                    <li>
+                      <a
+                        href="/collections/fw2026"
+                        id="MenuItem-fw2026"
+                        class="menu-list__item"
+                        {% if request.path contains '/collections/fw2026' %}
+                          aria-current="page"
+                        {% endif %}
+                      >
+                        <span class="menu-list__bold-hover-label" data-text="FW2026">FW2026</span>
+                      </a>
+                    </li>
+                    {% assign rendered_fw26_link = true %}
+                  {% endif %}
+                  {% if rendered_sale_link == false %}
+                    <li>
+                      <a
+                        href="/collections/on-sale"
+                        id="MenuItem-shop-sale"
+                        class="menu-list__item"
+                        {% if request.path contains '/collections/on-sale' %}
+                          aria-current="page"
+                        {% endif %}
+                      >
+                        <span class="menu-list__bold-hover-label" data-text="Shop Sale">Shop Sale</span>
+                      </a>
+                    </li>
+                    {% assign rendered_sale_link = true %}
+                  {% endif %}
+                {% endif %}
               {% endunless %}
             {% endfor %}
           </ul>
@@ -102,11 +150,13 @@
 
     {% capture children %}
       {% assign rendered_fw26_link = false %}
+      {% assign rendered_sale_link = false %}
       {% for link in block_settings.menu.links %}
         {% liquid
           assign link_title_downcase = link.title | strip | downcase
           assign is_home_link = false
           assign is_fw26_link = false
+          assign is_sale_link = false
           assign is_catalog_link = false
           if link.handle == 'home' or link.url == routes.root_url or link.url == '/' or link_title_downcase == 'home'
             assign is_home_link = true
@@ -114,11 +164,14 @@
           if link.url contains '/collections/fw2026' or link_title_downcase == 'fw26' or link_title_downcase == 'fw2026'
             assign is_fw26_link = true
           endif
+          if link.url contains '/collections/on-sale' or link_title_downcase == 'shop sale' or link_title_downcase == 'sale' or link_title_downcase == 'on sale'
+            assign is_sale_link = true
+          endif
           if link.handle == 'catalog' or link.url contains '/collections/all' or link_title_downcase == 'catalog'
             assign is_catalog_link = true
           endif
         %}
-        {% unless is_home_link or is_fw26_link %}
+        {% unless is_home_link or is_fw26_link or is_sale_link %}
           <li
             role="presentation"
             class="menu-list__list-item"
@@ -141,7 +194,7 @@
               {% endif %}
               ref="menuitem"
             >
-              <span class="menu-list__link-title">{{- link.title -}}</span>
+              <span class="menu-list__link-title" data-text="{{ link.title | escape }}">{{- link.title -}}</span>
             </a>
             {%- if link.links != blank -%}
               <div class="menu-list__submenu{{ background_color_classes }}" ref="submenu[]">
@@ -191,10 +244,33 @@
                 {% endif %}
                 ref="menuitem"
               >
-                <span class="menu-list__link-title">FW2026</span>
+                <span class="menu-list__link-title" data-text="FW2026">FW2026</span>
               </a>
             </li>
             {% assign rendered_fw26_link = true %}
+          {% endif %}
+          {% if is_catalog_link and rendered_sale_link == false %}
+            <li
+              role="presentation"
+              class="menu-list__list-item header-menu__sale-item"
+              on:focus="/activate"
+              on:blur="/deactivate"
+              on:pointerenter="/activate"
+              on:pointerleave="/deactivate"
+            >
+              <a
+                href="/collections/on-sale"
+                data-skip-node-update="true"
+                class="menu-list__link header-menu__sale-link{% if request.path contains '/collections/on-sale' %} menu-list__link--active{% endif %}"
+                {% if request.path contains '/collections/on-sale' %}
+                  aria-current="page"
+                {% endif %}
+                ref="menuitem"
+              >
+                <span class="menu-list__link-title" data-text="Shop Sale">Shop Sale</span>
+              </a>
+            </li>
+            {% assign rendered_sale_link = true %}
           {% endif %}
         {% endunless %}
       {% endfor %}
@@ -208,7 +284,7 @@
         on:pointerleave="/deactivate"
       >
         <button role="listitem" class="menu-list__link button-unstyled">
-          <span class="menu-list__link-title">{{ 'actions.more' | t }}</span>
+          <span class="menu-list__link-title" data-text="{{ 'actions.more' | t | escape }}">{{ 'actions.more' | t }}</span>
         </button>
       </li>
     {% endcapture %}
@@ -299,14 +375,39 @@
     }
 
     & a {
-      color: var(--header-menu-muted-color, rgb(255 247 236 / 0.62));
-      transition: all var(--animation-speed) ease-in-out;
+      color: #ffffff;
     }
 
-    & a:is(:hover, :focus, [aria-current='page']) {
-      color: var(--header-menu-active-color, rgb(255 247 236 / 1));
-      font-weight: 600;
+    & a:is(:hover, :focus, [aria-current='page'], .menu-list__link--active) {
+      color: #ffffff;
     }
+  }
+
+  .menu-list__bold-hover-label,
+  .menu-list__link-title {
+    display: inline-block;
+    position: relative;
+    font-weight: inherit;
+    transition:
+      opacity var(--header-link-hover-transition, 0.4s var(--ease-out-cubic)),
+      transform var(--header-link-hover-transition, 0.4s var(--ease-out-cubic));
+  }
+
+  .menu-list__link:is(:hover, :focus) .menu-list__bold-hover-label,
+  .menu-list__link:is(:hover, :focus) .menu-list__link-title,
+  .menu-list:not(:has(.menu-list__list-item:hover)) .menu-list__link--active .menu-list__bold-hover-label,
+  .menu-list:not(:has(.menu-list__list-item:hover)) .menu-list__link--active .menu-list__link-title,
+  .menu-list .menu-list__list-item:where(:hover, :focus-within) .menu-list__link .menu-list__bold-hover-label,
+  .menu-list .menu-list__list-item:where(:hover, :focus-within) .menu-list__link .menu-list__link-title,
+  .menu-list .menu-list__list-item[slot='overflow'] .menu-list__link[aria-expanded='true'] .menu-list__bold-hover-label,
+  .menu-list .menu-list__list-item[slot='overflow'] .menu-list__link[aria-expanded='true'] .menu-list__link-title,
+  .menu-list .menu-list__link--active .menu-list__bold-hover-label,
+  .menu-list .menu-list__link--active .menu-list__link-title,
+  .menu-list .menu-list__link[aria-current='page'] .menu-list__bold-hover-label,
+  .menu-list .menu-list__link[aria-current='page'] .menu-list__link-title,
+  .menu-list--mobile a.menu-list__item:is(:hover, :focus, [aria-current='page']) .menu-list__bold-hover-label {
+    opacity: 0.85;
+    transform: translateX(0.18em);
   }
 
   .menu-list__scroll-container {
@@ -319,9 +420,8 @@
   .menu-list {
     --menu-horizontal-gap: var(--gap-xl);
     --menu-vertical-gap: var(--gap-xl);
-    --header-menu-muted-color: rgb(255 247 236 / 0.62);
-    --header-menu-hover-color: rgb(255 247 236 / 0.84);
-    --header-menu-active-color: rgb(255 247 236 / 1);
+    --header-menu-color: #ffffff;
+    --header-link-hover-transition: 0.4s var(--ease-out-cubic);
 
     display: flex;
     height: 100%;
@@ -351,7 +451,7 @@
     font-size: var(--menu-top-level-font-size);
     line-height: var(--menu-top-level-font-line-height);
     text-transform: var(--menu-top-level-font-case);
-    color: var(--header-menu-muted-color);
+    color: var(--header-menu-color);
     text-decoration: none;
     display: flex;
     flex-direction: column;
@@ -359,7 +459,6 @@
     cursor: pointer;
     height: 100%;
     margin-block: 0;
-    transition: all var(--animation-speed) ease-in-out;
 
     &::after {
       content: '';
@@ -377,8 +476,7 @@
 
     &:hover,
     &:focus {
-      color: var(--header-menu-hover-color);
-      font-weight: 600;
+      color: var(--header-menu-color);
     }
 
     @media screen and (min-width: 750px) {
@@ -406,41 +504,6 @@
 
   [slot='overflow'] > .menu-list__link::after {
     content: none;
-  }
-
-  /*
-    High specificity selectors to subdue non-hovered links without javascript.
-    If the need for js-generated `hovered` and `focused` classes arises for another reason we can simplify these.
-  */
-  .menu-list:where(:has(.menu-list__list-item:hover)),
-  .menu-list:where(:has(.menu-list__list-item:focus-within)),
-  .menu-list:where(:has(.menu-list__list-item:not([aria-hidden='true']) .menu-list__link--active)) {
-    .menu-list__link {
-      color: rgb(var(--menu-top-level-font-color-rgb) / var(--opacity-subdued-text));
-    }
-  }
-
-  /* stylelint-disable-next-line selector-max-specificity */
-  .menu-list:not(:has(.menu-list__list-item:hover)) .menu-list__link--active,
-  .menu-list .menu-list__list-item:where(:hover, :focus-within) .menu-list__link,
-  .menu-list .menu-list__list-item[slot='overflow'] .menu-list__link[aria-expanded='true'] {
-    color: var(--header-menu-hover-color);
-    font-weight: 600;
-  }
-
-  .menu-list .menu-list__link--active,
-  .menu-list .menu-list__link[aria-current='page'] {
-    color: var(--header-menu-active-color);
-    font-weight: 600;
-  }
-
-  .menu-list:where(:has(.menu-list__list-item:hover)),
-  .menu-list:where(:has(.menu-list__list-item:focus-within)),
-  .menu-list:where(:has(.menu-list__list-item:not([aria-hidden='true']) .menu-list__link--active)) {
-    .menu-list__link:not(:hover, :focus, .menu-list__link--active, [aria-current='page']) {
-      color: var(--header-menu-muted-color);
-      font-weight: var(--menu-top-level-font-weight);
-    }
   }
 
   .overflow-menu::part(list) {
@@ -605,7 +668,6 @@
 
     &:hover {
       color: var(--header-menu-hover-color);
-      font-weight: 600;
     }
   }
 
@@ -621,7 +683,6 @@
 
     &:hover {
       color: var(--header-menu-hover-color);
-      font-weight: 600;
     }
   }
 

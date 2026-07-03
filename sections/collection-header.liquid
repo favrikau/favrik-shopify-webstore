@@ -1,0 +1,187 @@
+
+{% liquid
+  if section.settings.background_color != blank
+    render 'contrast-override', background_color: section.settings.background_color, section_id: section.id
+  endif
+
+  if collection.handle == 'all'
+    assign title_en = section.settings.heading_en
+    if title_en == blank
+      assign title_en = 'Catalog'
+    endif
+
+    assign title_ko = section.settings.heading_ko
+    if title_ko == blank
+      assign title_ko = '카탈로그'
+    endif
+  else
+    assign title_en = section.settings.heading_en
+    if title_en == blank
+      assign title_en = collection.title
+    endif
+
+    assign title_ko = section.settings.heading_ko
+    if title_ko == blank
+      assign title_ko = collection.metafields.custom.korean_title.value | default: collection.metafields.custom.korean_title
+
+      if title_ko == blank
+        case collection.handle
+          when 'fw2026'
+            assign title_ko = '2026 가을/겨울 컬렉션'
+          when 'on-sale'
+            assign title_ko = '세일'
+        endcase
+      endif
+    endif
+
+    assign title_ko = title_ko | default: collection.title
+  endif
+
+  assign heading_color = section.settings.heading_color | default: '#302118'
+%}
+
+<div
+  class="section-background{% if section.settings.background_color != blank %} color-custom-{{ section.id }}{% endif %}"
+></div>
+<div
+  class="section section--page-width{% if section.settings.background_color != blank %} color-custom-{{ section.id }}{% endif %}"
+>
+  <div
+    class="collection-page-header spacing-style"
+    style="{% render 'spacing-style', settings: section.settings %}"
+  >
+    {% render 'bilingual-section-heading',
+      heading_en: title_en,
+      heading_ko: title_ko,
+      color: heading_color
+    %}
+
+    {% if section.settings.show_description and collection.description != blank and collection.handle != 'on-sale' %}
+      <div class="collection-page-header__description rte">
+        {{ collection.description }}
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+{% stylesheet %}
+  .collection-page-header {
+    width: 100%;
+  }
+
+  .collection-page-header .favrik-bilingual-heading {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 1rem;
+    width: 100%;
+    color: var(--favrik-bilingual-heading-color, #302118);
+    font-size: var(--font-h4--size);
+    line-height: var(--font-h4--line-height);
+    letter-spacing: var(--font-h4--letter-spacing);
+  }
+
+  .collection-page-header .favrik-bilingual-heading__en,
+  .collection-page-header .favrik-bilingual-heading__ko {
+    margin: 0;
+  }
+
+  .collection-page-header .favrik-bilingual-heading__en {
+    font-family: var(--font-body--family);
+    font-style: var(--font-body--style);
+    font-weight: var(--font-body--weight);
+    line-height: var(--font-h4--line-height);
+    letter-spacing: var(--font-h4--letter-spacing);
+  }
+
+  .collection-page-header .favrik-bilingual-heading__ko {
+    margin-inline-start: auto;
+    text-align: right;
+    font-family: var(--font-korean--family);
+    font-size: 0.72em;
+    font-weight: 400;
+    line-height: 1.25;
+  }
+
+  .collection-page-header__description {
+    margin-block-start: 12px;
+    max-width: 65ch;
+  }
+
+  @media screen and (max-width: 1200px) {
+    .collection-page-header .favrik-bilingual-heading {
+      font-size: max(1rem, var(--font-h4--size));
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Collection heading",
+  "enabled_on": {
+    "templates": ["collection"]
+  },
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading_en",
+      "label": "Heading override (English)",
+      "info": "Leave blank to use the collection name."
+    },
+    {
+      "type": "text",
+      "id": "heading_ko",
+      "label": "Heading override (Korean)",
+      "info": "Leave blank to use the collection Korean title metafield or a default translation."
+    },
+    {
+      "type": "color",
+      "id": "heading_color",
+      "label": "Heading color",
+      "default": "#302118"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_description",
+      "label": "Show collection description",
+      "default": true
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "t:settings.background_color",
+      "placeholder": "t:settings.default"
+    },
+    {
+      "type": "header",
+      "content": "t:content.padding"
+    },
+    {
+      "type": "range",
+      "id": "padding-block-start",
+      "label": "t:settings.top",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 48
+    },
+    {
+      "type": "range",
+      "id": "padding-block-end",
+      "label": "t:settings.bottom",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 48
+    }
+  ],
+  "presets": [
+    {
+      "name": "Collection heading"
+    }
+  ]
+}
+{% endschema %}

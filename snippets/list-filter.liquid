@@ -666,6 +666,7 @@
     text-overflow: ellipsis;
     padding-block-end: var(--padding-xs);
     cursor: pointer;
+    transition: opacity 0.2s ease;
   }
 
   .facets__inputs-list-item--disabled .facets__image-label {
@@ -673,7 +674,7 @@
   }
 
   .facets__inputs-list-item:not(.facets__inputs-list-item--disabled) .facets__image-label:hover {
-    font-weight: 500;
+    opacity: 0.7;
   }
 
   /* Filter-specific variant-option styles */
@@ -776,7 +777,6 @@
     color: rgb(var(--color-foreground-rgb));
     background-color: rgb(var(--color-background-rgb));
     font-weight: 500;
-    transition: font-weight 0.2s ease;
   }
 
   .facets .variant-option--swatches {
@@ -786,7 +786,7 @@
   }
 
   .facets__inputs-list-item:not(.facets__inputs-list-item--disabled) .variant-option__button-label:hover {
-    font-weight: 500;
+    color: rgb(var(--color-foreground-rgb) / 0.72);
   }
 
   /* Variant option images (filters) */
@@ -806,7 +806,6 @@
 
     &:has(input:checked) {
       font-weight: 500;
-      transition: font-weight 0.2s ease;
     }
 
     &:has(input:checked):hover {

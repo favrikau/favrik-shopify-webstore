@@ -59,10 +59,17 @@
     }
 
     // Apply squeeze immediately, bypassing the margin transition.
-    // Only squeeze if at least one drawer was actually restored — saved
-    // drawer IDs may not exist on every page (e.g. cart-drawer on /cart).
+    // Only squeeze if at least one restored drawer wants squeeze mode (no overlay).
     var pageWrapper = document.querySelector('.page-wrapper');
-    if (pageWrapper && dialogs.length > 0) {
+    var shouldSqueeze = false;
+    for (var k = 0; k < drawerIds.length; k++) {
+      var squeezeDrawer = document.getElementById(drawerIds[k]);
+      if (squeezeDrawer && !squeezeDrawer.hasAttribute('overlay')) {
+        shouldSqueeze = true;
+        break;
+      }
+    }
+    if (pageWrapper && dialogs.length > 0 && shouldSqueeze) {
       pageWrapper.style.transition = 'none';
       pageWrapper.classList.add('page-wrapper--drawer-open');
     }
@@ -85,25 +92,25 @@
   const pageWrapper = document.querySelector('.page-wrapper');
   const squeezeQuery = window.matchMedia('(min-width: 990px)');
 
+  const shouldSqueezePage = () => {
+    if (!squeezeQuery.matches) return false;
+
+    return Array.from(document.querySelectorAll('theme-drawer[open]')).some(
+      (drawer) => !drawer.hasAttribute('overlay')
+    );
+  };
+
+  const syncPageSqueeze = () => {
+    pageWrapper?.classList.toggle('page-wrapper--drawer-open', shouldSqueezePage());
+  };
+
   // ── Squeeze coordination ──
-  // Listens to all drawers. Only squeezes on wide viewports.
-  document.addEventListener('theme-drawer:open', () => {
-    if (squeezeQuery.matches) {
-      pageWrapper?.classList.add('page-wrapper--drawer-open');
-    }
-  });
+  // Listens to all drawers. Only squeezes on wide viewports, and only for
+  // drawers that don't opt into overlay mode (e.g. cart drawer).
+  document.addEventListener('theme-drawer:open', syncPageSqueeze);
+  document.addEventListener('theme-drawer:close', syncPageSqueeze);
 
-  document.addEventListener('theme-drawer:close', () => {
-    const openDrawer = document.querySelector('theme-drawer[open]');
-    if (!openDrawer) {
-      pageWrapper?.classList.remove('page-wrapper--drawer-open');
-    }
-  });
-
-  squeezeQuery.addEventListener('change', () => {
-    const openDrawer = document.querySelector('theme-drawer[open]');
-    pageWrapper?.classList.toggle('page-wrapper--drawer-open', Boolean(openDrawer) && squeezeQuery.matches);
-  });
+  squeezeQuery.addEventListener('change', syncPageSqueeze);
 
   // ── State persistence ──
   // Store open drawer IDs sorted by their visual stack order so

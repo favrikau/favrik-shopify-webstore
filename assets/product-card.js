@@ -136,6 +136,31 @@ export class ProductCard extends ProductCardLink {
   };
 
   /**
+   * Groups title, price, and color chips into a single footer block below the gallery.
+   */
+  #organizeMetaFooter() {
+    const content = this.querySelector('.product-card__content');
+    const gallery = content?.querySelector('.card-gallery');
+
+    if (!(content instanceof HTMLElement) || !(gallery instanceof HTMLElement)) return;
+    if (content.querySelector('.product-card__meta')) return;
+
+    const meta = document.createElement('div');
+    meta.className = 'product-card__meta';
+
+    let node = gallery.nextElementSibling;
+    while (node) {
+      const next = node.nextElementSibling;
+      meta.appendChild(node);
+      node = next;
+    }
+
+    if (meta.childElementCount === 0) return;
+
+    content.appendChild(meta);
+  }
+
+  /**
    * Navigates to a URL link. Respects modifier keys for opening in new tab/window.
    * @param {Event} event - The event that triggered the navigation.
    * @param {URL} url - The URL to navigate to.
@@ -159,6 +184,7 @@ export class ProductCard extends ProductCardLink {
 
     const link = this.refs.productCardLink;
     if (!(link instanceof HTMLAnchorElement)) throw new Error('Product card link not found');
+    this.#organizeMetaFooter();
     this.#handleQuickAdd();
 
     this.addEventListener(StandardEvents.productSelect, this.#handleProductSelect);

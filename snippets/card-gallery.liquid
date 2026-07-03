@@ -157,6 +157,9 @@
       endcapture
 
       assign slideshow_attributes = 'data-generic-media-size="[generic_media_size]"' | replace: '[generic_media_size]', generic_media_size
+      if media_list_to_show.size > 1
+        assign slideshow_attributes = slideshow_attributes | append: ' data-fade-slides'
+      endif
       if settings.product_card_carousel == false
         assign slideshow_attributes = slideshow_attributes | append: ' disabled="true"'
       endif
@@ -411,6 +414,38 @@
 
     slideshow-component[actioned] & {
       content-visibility: visible;
+    }
+  }
+
+  .card-gallery slideshow-component[data-fade-slides] {
+    --card-gallery-fade-duration: 0.22s;
+  }
+
+  .card-gallery slideshow-component[data-fade-slides] slideshow-slides {
+    display: grid;
+    overflow: hidden;
+    scroll-snap-type: none;
+    scroll-behavior: auto;
+  }
+
+  .card-gallery slideshow-component[data-fade-slides] slideshow-slide {
+    grid-area: 1 / 1;
+    width: 100%;
+    opacity: 0;
+    content-visibility: visible;
+    pointer-events: none;
+    transition: opacity var(--card-gallery-fade-duration) var(--ease-out-cubic, cubic-bezier(0.33, 1, 0.68, 1));
+  }
+
+  .card-gallery slideshow-component[data-fade-slides] slideshow-slide[aria-hidden='false'] {
+    opacity: 1;
+    z-index: 1;
+    pointer-events: auto;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .card-gallery slideshow-component[data-fade-slides] slideshow-slide {
+      transition: none;
     }
   }
 {% endstylesheet %}

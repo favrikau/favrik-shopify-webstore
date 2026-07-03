@@ -1,6 +1,6 @@
 import { sectionRenderer } from '@theme/section-renderer';
 import { Component } from '@theme/component';
-import { debounce, mediaQueryLarge, startViewTransition } from '@theme/utilities';
+import { debounce, mediaQueryLarge } from '@theme/utilities';
 import { convertMoneyToMinorUnits, formatMoney } from '@theme/money-formatting';
 import { CollectionUpdateEvent, SearchUpdateEvent, StandardEvents } from '@shopify/events';
 
@@ -113,13 +113,9 @@ class FacetsFormComponent extends Component {
    * @returns {Promise<void>}
    */
   #updateSection() {
-    const viewTransition = !this.closest('dialog');
-
-    if (viewTransition) {
-      return startViewTransition(() => sectionRenderer.renderSection(this.sectionId), ['product-grid']);
-    } else {
-      return sectionRenderer.renderSection(this.sectionId).then(() => {});
-    }
+    return sectionRenderer.renderSection(this.sectionId).then(() => {
+      window.dispatchEvent(new CustomEvent('collection:facets-rendered'));
+    });
   }
 
   /**

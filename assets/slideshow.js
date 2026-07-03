@@ -244,6 +244,46 @@ export class Slideshow extends Component {
     const { visibleSlides } = this;
     const instant = prefersReducedMotion() || !animate;
 
+    if (this.hasAttribute('data-fade-slides')) {
+      const slide = slides[index];
+      if (!slide) return;
+
+      const previousIndex = this.current;
+
+      if (!prefersReducedMotion()) {
+        this.setAttribute('transitioning', '');
+      }
+
+      slides.forEach((slideshowSlide, slideIndex) => {
+        slideshowSlide.setAttribute('aria-hidden', `${slideIndex !== index}`);
+      });
+
+      if (this.#scroll) {
+        this.#scroll.to(slide, { instant: true });
+      }
+
+      this.current = index;
+
+      this.#centerSelectedThumbnail(index, 'instant');
+
+      this.dispatchEvent(
+        new SlideshowSelectEvent({
+          index,
+          previousIndex,
+          userInitiated: event != null,
+          trigger: 'select',
+          slide,
+          id: slide.getAttribute('slide-id'),
+        })
+      );
+
+      if (!prefersReducedMotion()) {
+        setTimeout(() => this.removeAttribute('transitioning'), 220);
+      }
+
+      return;
+    }
+
     // If jump is more than 1 or we looped, do the placeholder + reorder trick
     if (!instant && !isAdjacentSlide && visibleSlides.length === 1) {
       this.#disabled = true;
@@ -922,6 +962,15 @@ export class Slideshow extends Component {
   #updateVisibleSlides() {
     const { slides } = this;
     if (!slides || !slides.length) return 0;
+
+    if (this.hasAttribute('data-fade-slides')) {
+      scheduler.schedule(() => {
+        slides.forEach((slide, i) => {
+          slide.setAttribute('aria-hidden', `${i !== this.current}`);
+        });
+      });
+      return 1;
+    }
 
     const visibleSlides = this.visibleSlides;
 

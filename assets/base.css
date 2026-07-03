@@ -2368,14 +2368,20 @@ deferred-media[class] :is(.deferred-media__poster-button img, .deferred-media__p
 }
 
 .price,
-.compare-at-price {
+.compare-at-price,
+.unit-price,
+.price-per-item,
+.volume-pricing-info__price {
   font-family: var(--font-numeric--family), var(--font-body--family);
+}
+
+.price,
+.compare-at-price {
   font-style: var(--font-body--style);
   font-weight: 700;
 }
 
 .unit-price {
-  font-family: var(--font-numeric--family), var(--font-body--family);
   display: block;
   font-size: min(0.85em, var(--font-paragraph--size));
   color: rgb(var(--color-rgb, var(--color-foreground-rgb)) / var(--opacity-subdued-text));
@@ -2399,7 +2405,7 @@ product-price.text-block:is(.h1, .h2, .h3, .h4, .h5, .h6) > *:not(.tax-note) {
 product-price .volume-pricing-note,
 product-price.text-block:is(.h1, .h2, .h3, .h4, .h5, .h6) .volume-pricing-note {
   display: block;
-  font-family: var(--font-numeric--family), var(--font-body--family);
+  font-family: var(--font-body--family);
   font-weight: normal;
   font-size: var(--font-size--xs);
   line-height: normal;
@@ -3006,7 +3012,7 @@ label:has(input[type='checkbox']:disabled) {
 }
 
 .cart-secondary-typography {
-  font-family: var(--cart-secondary-font-family);
+  font-family: var(--font-numeric--family), var(--cart-secondary-font-family);
   font-style: var(--cart-secondary-font-style);
   font-weight: var(--cart-secondary-font-weight);
 }
@@ -3086,7 +3092,6 @@ label:has(input[type='checkbox']:disabled) {
 }
 
 .quantity-selector input[type='number'] {
-  font-family: var(--font-numeric--family), var(--font-body--family);
   margin: 0;
   text-align: center;
   border: none;

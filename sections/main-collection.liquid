@@ -83,7 +83,8 @@
           children: children,
           products: collection.products,
           paginate: paginate,
-          enable_infinite_scroll: section.settings.enable_infinite_scroll
+          enable_infinite_scroll: section.settings.enable_infinite_scroll,
+          products_count: paginate.items
         %}
       {% endpaginate %}
     </div>

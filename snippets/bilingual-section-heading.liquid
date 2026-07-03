@@ -1,0 +1,20 @@
+{%- doc -%}
+  Bilingual section heading — English left, Korean right.
+  Typography matches homepage collection titles (Zalando Sans + Nanum Gothic).
+
+  @param {string} heading_en - English heading text
+  @param {string} heading_ko - Korean heading text
+  @param {string} [color] - Text color, defaults to #302118
+{%- enddoc -%}
+
+{% liquid
+  assign heading_color = color | default: '#302118'
+%}
+
+<div
+  class="favrik-bilingual-heading"
+  style="--favrik-bilingual-heading-color: {{ heading_color }};"
+>
+  <p class="favrik-bilingual-heading__en">{{ heading_en | escape }}</p>
+  <p class="favrik-bilingual-heading__ko">{{ heading_ko | escape }}</p>
+</div>

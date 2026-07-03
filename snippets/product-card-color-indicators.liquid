@@ -1,0 +1,177 @@
+{%- doc -%}
+  Small solid color rectangles for product cards — bottom-right of the card.
+  Uses variant option values + keyword color library (product-color-from-name).
+
+  @param {object} product - The product object
+  @param {number} [max_colors] - Maximum values to display (default: 6)
+{%- enddoc -%}
+
+{% liquid
+  assign max_colors = max_colors | default: 6
+  assign variant_color_option = null
+
+  unless product.has_only_default_variant
+    for product_option in product.options_with_values
+      assign option_name_downcase = product_option.name | downcase
+
+      if option_name_downcase == 'color' or option_name_downcase == 'colour'
+        assign variant_color_option = product_option
+        break
+      endif
+    endfor
+
+    if variant_color_option == null and product.options_with_values.size == 1
+      assign variant_color_option = product.options_with_values.first
+    endif
+
+    if variant_color_option == null
+      for product_option in product.options_with_values
+        assign option_name_downcase = product_option.name | downcase
+
+        unless option_name_downcase == 'size'
+          assign variant_color_option = product_option
+          break
+        endunless
+      endfor
+    endif
+  endunless
+
+  assign unique_colors = ''
+  assign available_colors = ''
+  assign unique_color_count = 0
+  if variant_color_option != null
+    for product_option_value in variant_color_option.values
+      capture chip_color
+        render 'product-color-from-name', color_name: product_option_value.name
+      endcapture
+      assign chip_color = chip_color | strip
+      if chip_color != blank
+        assign color_token = chip_color | prepend: '|'
+        unless unique_colors contains color_token
+          assign unique_colors = unique_colors | append: color_token
+          assign unique_color_count = unique_color_count | plus: 1
+        endunless
+
+        if product_option_value.available
+          unless available_colors contains color_token
+            assign available_colors = available_colors | append: color_token
+          endunless
+        endif
+      endif
+    endfor
+  endif
+
+  assign shown_count = 0
+  assign rendered_colors = ''
+%}
+
+{% if unique_color_count > 0 %}
+  <div
+    class="product-card-color-indicators"
+    aria-label="{{ variant_color_option.name | escape }}"
+  >
+    {% for product_option_value in variant_color_option.values %}
+      {% if shown_count >= max_colors %}
+        {% break %}
+      {% endif %}
+
+      {% capture chip_color %}
+        {% render 'product-color-from-name', color_name: product_option_value.name %}
+      {% endcapture %}
+      {% assign chip_color = chip_color | strip %}
+
+      {% if chip_color == blank %}
+        {% continue %}
+      {% endif %}
+
+      {% assign color_token = chip_color | prepend: '|' %}
+      {% if rendered_colors contains color_token %}
+        {% continue %}
+      {% endif %}
+      {% assign rendered_colors = rendered_colors | append: color_token %}
+      {% assign chip_is_sold_out = true %}
+      {% if available_colors contains color_token %}
+        {% assign chip_is_sold_out = false %}
+      {% endif %}
+
+      <span
+        class="product-card-color-indicators__chip{% if chip_color == '#f4f1ea' or chip_color == '#c9c9c9' or chip_color == '#9eb5d4' %} product-card-color-indicators__chip--light{% endif %}{% if chip_is_sold_out %} product-card-color-indicators__chip--sold-out{% endif %}"
+        style="--color-chip-background: {{ chip_color }};"
+        title="{{ product_option_value.name | escape }}"
+      >
+        <span class="visually-hidden">{{ product_option_value.name | escape }}</span>
+      </span>
+
+      {% assign shown_count = shown_count | plus: 1 %}
+    {% endfor %}
+
+    {% assign hidden_color_count = unique_color_count | minus: shown_count %}
+    {% if hidden_color_count > 0 %}
+      <span class="product-card-color-indicators__more">+{{ hidden_color_count }}</span>
+    {% endif %}
+  </div>
+{% endif %}
+
+{% stylesheet %}
+  .product-card__meta .product-card-color-indicators {
+    position: absolute;
+    right: 10px;
+    bottom: calc(var(--product-card-meta-padding-bottom) + (var(--font-size--2xs) * 1.35 - 6px) / 2);
+    z-index: 2;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 3px;
+    pointer-events: none;
+  }
+
+  .product-card__content:not(:has(.product-card__meta)) .product-card-color-indicators {
+    position: absolute;
+    right: 10px;
+    bottom: calc(var(--product-card-meta-padding-bottom) + (var(--font-size--2xs) * 1.35 - 6px) / 2);
+    z-index: 2;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 3px;
+    pointer-events: none;
+  }
+
+  .product-card-color-indicators__chip {
+    position: relative;
+    display: block;
+    width: 22px;
+    height: 6px;
+    flex-shrink: 0;
+    border: 0.5px solid rgb(48 33 24 / 0.22);
+    border-radius: 0 !important;
+    background-color: var(--color-chip-background);
+    box-shadow: 0 0 0 0.5px rgb(255 255 255 / 0.35) inset;
+    overflow: visible;
+  }
+
+  .product-card-color-indicators__chip--light {
+    border-color: rgb(48 33 24 / 0.14);
+  }
+
+  .product-card-color-indicators__chip--sold-out::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: calc(100% + 2px);
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    background: #c0392b;
+    transform: translateX(-50%);
+  }
+
+  .product-card-color-indicators__more {
+    font-family: var(--font-body--family);
+    font-size: 0.5625rem;
+    line-height: 1;
+    letter-spacing: 0.02em;
+    color: rgb(48 33 24 / 0.55);
+    padding-inline-start: 1px;
+  }
+{% endstylesheet %}

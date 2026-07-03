@@ -26,7 +26,15 @@
   "
 >
   <div class="section-resource-list__header">
-    {%- content_for 'block', type: '_product-list-content', id: 'static-header' -%}
+    {% if section.settings.show_bilingual_heading and section.settings.heading_en != blank %}
+      {% render 'bilingual-section-heading',
+        heading_en: section.settings.heading_en,
+        heading_ko: section.settings.heading_ko,
+        color: section.settings.heading_color
+      %}
+    {% else %}
+      {%- content_for 'block', type: '_product-list-content', id: 'static-header' -%}
+    {% endif %}
   </div>
 
   {% capture list_items %}
@@ -85,6 +93,51 @@
     {%- content_for 'blocks' -%}
   </div>
 </div>
+
+{% stylesheet %}
+  .section-resource-list__header .favrik-bilingual-heading {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 1rem;
+    width: 100%;
+    padding-inline: var(--page-margin);
+    padding-block-end: 24px;
+    color: var(--favrik-bilingual-heading-color, #302118);
+    font-size: var(--font-h4--size);
+    line-height: var(--font-h4--line-height);
+    letter-spacing: var(--font-h4--letter-spacing);
+  }
+
+  .section-resource-list__header .favrik-bilingual-heading__en,
+  .section-resource-list__header .favrik-bilingual-heading__ko {
+    margin: 0;
+  }
+
+  .section-resource-list__header .favrik-bilingual-heading__en {
+    font-family: var(--font-body--family);
+    font-style: var(--font-body--style);
+    font-weight: var(--font-body--weight);
+    line-height: var(--font-h4--line-height);
+    letter-spacing: var(--font-h4--letter-spacing);
+  }
+
+  .section-resource-list__header .favrik-bilingual-heading__ko {
+    margin-inline-start: auto;
+    text-align: right;
+    font-family: var(--font-korean--family);
+    font-size: 0.72em;
+    font-weight: 400;
+    line-height: 1.25;
+  }
+
+  @media screen and (max-width: 1200px) {
+    .section-resource-list__header .favrik-bilingual-heading {
+      font-size: max(1rem, var(--font-h4--size));
+    }
+  }
+{% endstylesheet %}
 
 {% schema %}
 {
@@ -322,6 +375,37 @@
       "id": "background_color",
       "label": "t:settings.background_color",
       "placeholder": "t:settings.default"
+    },
+    {
+      "type": "header",
+      "content": "Bilingual heading"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_bilingual_heading",
+      "label": "Show bilingual heading",
+      "default": false
+    },
+    {
+      "type": "text",
+      "id": "heading_en",
+      "label": "Heading (English)",
+      "default": "Signature Collection",
+      "visible_if": "{{ section.settings.show_bilingual_heading }}"
+    },
+    {
+      "type": "text",
+      "id": "heading_ko",
+      "label": "Heading (Korean)",
+      "default": "시그니처 컬렉션",
+      "visible_if": "{{ section.settings.show_bilingual_heading }}"
+    },
+    {
+      "type": "color",
+      "id": "heading_color",
+      "label": "Heading color",
+      "default": "#302118",
+      "visible_if": "{{ section.settings.show_bilingual_heading }}"
     },
     {
       "type": "header",

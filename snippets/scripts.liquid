@@ -78,6 +78,12 @@
     defer
   ></script>
 {% endif %}
+{% if template.name == 'collection' %}
+  <script
+    src="{{ 'collection-sticky-facets.js' | asset_url }}"
+    defer
+  ></script>
+{% endif %}
 
 <link
   rel="modulepreload"

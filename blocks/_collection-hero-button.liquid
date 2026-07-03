@@ -1,0 +1,138 @@
+
+{% liquid
+  assign show_hero_button = false
+  if template.name == 'index' and closest.collection != blank
+    assign show_hero_button = true
+  endif
+%}
+
+{% if show_hero_button %}
+  {% liquid
+    assign button_en = block.settings.label_en
+    assign button_ko = block.settings.label_ko
+
+    if button_en == blank or button_ko == blank
+      case closest.collection.handle
+        when 'fw2026'
+          if button_en == blank
+            assign button_en = 'Explore Collection'
+          endif
+          if button_ko == blank
+            assign button_ko = '컬렉션 둘러보기'
+          endif
+        when 'on-sale'
+          if button_en == blank
+            assign button_en = 'Shop Sale'
+          endif
+          if button_ko == blank
+            assign button_ko = '세일 상품 보기'
+          endif
+        else
+          if button_en == blank
+            assign button_en = 'View Collection'
+          endif
+          if button_ko == blank
+            assign button_ko = '컬렉션 보기'
+          endif
+      endcase
+    endif
+
+    assign button_en = button_en | escape
+    assign button_ko = button_ko | escape
+  %}
+
+  <a
+    href="{{ closest.collection.url }}"
+    class="collection-hero-button text-block text-block--{{ block.id }}"
+    style="
+      {% if block.settings.text_color != blank %}
+        --color: {{ block.settings.text_color }};
+        --collection-hero-button-color: {{ block.settings.text_color }};
+      {% endif %}
+    "
+    {{ block.shopify_attributes }}
+  >
+    <span class="collection-hero-button__en" data-text="{{ button_en }}">{{ button_en }}</span>
+    <span class="collection-hero-button__ko">{{ button_ko }}</span>
+  </a>
+{% endif %}
+
+{% stylesheet %}
+  .collection-hero-button {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1px;
+    width: fit-content;
+    max-width: 100%;
+    text-decoration: none;
+    color: var(--collection-hero-button-color, var(--color, #fff7ec));
+    cursor: pointer;
+  }
+
+  .collection-hero-button__en,
+  .collection-hero-button__ko {
+    margin: 0;
+  }
+
+  .collection-hero-button__en {
+    font-family: var(--font-body--family);
+    font-style: var(--font-body--style);
+    font-size: var(--font-h4--size);
+    line-height: var(--font-h4--line-height);
+    letter-spacing: var(--font-h4--letter-spacing);
+    font-weight: var(--font-body--weight);
+    transition: opacity 0.4s var(--ease-out-cubic, ease), transform 0.4s var(--ease-out-cubic, ease);
+  }
+
+  .collection-hero-button__ko {
+    font-family: var(--font-korean--family);
+    font-size: calc(var(--font-h4--size) * 0.72);
+    font-weight: 400;
+    line-height: 1.25;
+    transition: opacity 0.4s var(--ease-out-cubic, ease);
+  }
+
+  .collection-hero-button:is(:hover, :focus-visible) .collection-hero-button__en {
+    opacity: 0.85;
+    transform: translateX(0.18em);
+  }
+
+  .collection-hero-button:is(:hover, :focus-visible) .collection-hero-button__ko {
+    opacity: 0.85;
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Collection hero button",
+  "tag": null,
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "Bilingual call-to-action for homepage hero collection cards. Leave labels blank to use defaults per collection."
+    },
+    {
+      "type": "text",
+      "id": "label_en",
+      "label": "Button label (English)"
+    },
+    {
+      "type": "text",
+      "id": "label_ko",
+      "label": "Button label (Korean)"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "t:settings.text_color",
+      "default": "#fff7ec"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Collection hero button"
+    }
+  ]
+}
+{% endschema %}

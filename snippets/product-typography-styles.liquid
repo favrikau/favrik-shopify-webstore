@@ -1,0 +1,58 @@
+{% doc %}
+  Product page typography — matches the site-wide Zalando Sans Expanded / Nanum Gothic stack.
+{% enddoc %}
+
+{% stylesheet %}
+  .product-information,
+  .product-recommendations,
+  .sticky-add-to-cart {
+    :is(
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6,
+        p,
+        label,
+        summary,
+        button,
+        .text-block,
+        .text-block > *,
+        .disclosures__heading,
+        .disclosures__summary-item-title,
+        .disclosures__separator,
+        .accordion__summary,
+        .variant-picker__label,
+        .variant-option__label,
+        .sticky-add-to-cart__title,
+        .sticky-add-to-cart__variant
+      ):not(.price):not(.compare-at-price):not(.unit-price):not(.price-per-item) {
+      font-family: var(--font-body--family);
+      font-style: var(--font-body--style);
+    }
+
+    :lang(ko):is(
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6,
+        p,
+        label,
+        summary,
+        button,
+        .text-block,
+        .text-block > *,
+        .disclosures__heading,
+        .disclosures__summary-item-title,
+        .accordion__summary,
+        .variant-picker__label,
+        .sticky-add-to-cart__title,
+        .sticky-add-to-cart__variant
+      ) {
+      font-family: var(--font-korean--family);
+    }
+  }
+{% endstylesheet %}

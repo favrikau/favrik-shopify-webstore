@@ -1,0 +1,40 @@
+{%- doc -%}
+  Maps a variant color name to one of 10 Favrik swatch colors (earthy blues + stone tones).
+  Many variant names collapse into the same swatch. Longer keywords are checked first.
+
+  @param {string} color_name - Variant option value (e.g. "Navy", "Stone")
+
+  @example
+  {% render 'product-color-from-name', color_name: 'Off White' %}
+{%- enddoc -%}
+
+{% liquid
+  assign name = color_name | downcase | strip
+  assign color = blank
+
+  if name == blank
+    assign color = blank
+  elsif name contains 'multicolor' or name contains 'multi color' or name contains 'multi-color' or name == 'multi'
+    assign color = blank
+  elsif name contains 'black'
+    assign color = '#1c1c1c'
+  elsif name contains 'light denim' or name contains 'light blue' or name contains 'teal'
+    assign color = '#9eb5d4'
+  elsif name contains 'navy' or name contains 'midnight' or name contains 'dark denim'
+    assign color = '#1e2a4a'
+  elsif name contains 'denim' or name contains 'blue'
+    assign color = '#5578a8'
+  elsif name contains 'charcoal' or name contains 'dark grey' or name contains 'dark gray' or name contains 'slate'
+    assign color = '#4a4a4a'
+  elsif name contains 'light grey' or name contains 'light gray'
+    assign color = '#c9c9c9'
+  elsif name contains 'stone' or name contains 'pewter' or name contains 'grey' or name contains 'gray'
+    assign color = '#9a9590'
+  elsif name contains 'sand' or name contains 'beige' or name contains 'khaki' or name contains 'tan' or name contains 'brown'
+    assign color = '#c9b08f'
+  elsif name contains 'cream' or name contains 'ivory' or name contains 'ecru' or name contains 'natural' or name contains 'white' or name contains 'off white' or name contains 'off-white' or name contains 'offwhite'
+    assign color = '#f4f1ea'
+  endif
+%}
+
+{{- color -}}

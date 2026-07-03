@@ -1,0 +1,544 @@
+{% liquid
+  assign instagram_url = section.settings.instagram_url
+  if instagram_url == blank
+    assign instagram_url = 'https://www.instagram.com/favrik__/?hl=en'
+  endif
+
+  assign about_url = section.settings.about_url
+  if about_url == blank and pages['about'] != blank
+    assign about_url = pages['about'].url
+  elsif about_url == blank
+    assign about_url = '/pages/about'
+  endif
+
+  assign collections_url = section.settings.collections_url
+  if collections_url == blank
+    assign collections_url = routes.collections_url
+  endif
+
+  assign returns_url = section.settings.returns_policy_url
+  if returns_url == blank and shop.refund_policy != blank
+    assign returns_url = shop.refund_policy.url
+  elsif returns_url == blank
+    assign returns_url = '/policies/refund-policy'
+  endif
+
+  assign locations_url = section.settings.locations_url
+  if locations_url == blank and pages['locations'] != blank
+    assign locations_url = pages['locations'].url
+  elsif locations_url == blank
+    assign locations_url = '/pages/locations'
+  endif
+
+  assign contact_url = section.settings.contact_url
+  if contact_url == blank and pages['contact'] != blank
+    assign contact_url = pages['contact'].url
+  elsif contact_url == blank
+    assign contact_url = '/pages/contact'
+  endif
+
+  assign logo_height = section.settings.logo_height
+  assign background_color = section.settings.background_color | default: '#f0e8dc'
+  assign text_color = section.settings.text_color | default: '#302118'
+  assign muted_color = section.settings.muted_text_color | default: '#8a7268'
+
+  if section.settings.background_color != blank
+    render 'contrast-override', background_color: section.settings.background_color, section_id: section.id
+  endif
+
+  assign legal_company = section.settings.company_name
+  if legal_company == blank
+    assign legal_company = shop.name
+  endif
+
+  assign legal_email = section.settings.email
+  if legal_email == blank
+    assign legal_email = shop.email
+  endif
+
+  assign legal_address = section.settings.address
+  if legal_address == blank and shop.address != blank
+    assign legal_address = shop.address | format_address | strip_html | strip_newlines
+  endif
+  if legal_address == blank
+    assign legal_address = 'Melbourne, VIC 3000, Australia'
+  endif
+
+  assign copyright_name = section.settings.copyright_name
+  if copyright_name == blank
+    assign copyright_name = shop.name
+  endif
+%}
+
+<div
+  class="section-background{% if section.settings.background_color != blank %} color-custom-{{ section.id }}{% endif %}"
+></div>
+
+<div
+  class="favrik-footer section section--{{ section.settings.section_width }}{% if section.settings.background_color != blank %} color-custom-{{ section.id }}{% endif %}"
+  style="
+    --favrik-footer-bg: {{ background_color }};
+    --favrik-footer-text: {{ text_color }};
+    --favrik-footer-muted: {{ muted_color }};
+    --favrik-footer-logo-height: {{ logo_height }}px;
+    {% render 'spacing-style', settings: section.settings %}
+  "
+  data-testid="favrik-footer"
+>
+  <div class="favrik-footer__inner">
+    <div class="favrik-footer__grid">
+      <div class="favrik-footer__column favrik-footer__column--logo">
+        <a
+          href="{{ routes.root_url }}"
+          class="favrik-footer__logo"
+          aria-label="{{ shop.name | escape }}"
+        >
+          <img
+            src="{{ 'favrik_logo.png' | asset_url }}"
+            class="favrik-footer__logo-image"
+            alt="{{ shop.name | escape }}"
+            width="180"
+            height="{{ logo_height }}"
+            loading="lazy"
+          >
+        </a>
+      </div>
+
+      <nav class="favrik-footer__column" aria-label="Company">
+        <ul class="favrik-footer__link-list list-unstyled">
+          <li class="favrik-footer__link-item">
+            <a href="{{ about_url }}" class="favrik-footer__link">About</a>
+            <span class="favrik-footer__link-ko" lang="ko">소개</span>
+          </li>
+          <li class="favrik-footer__link-item">
+            <a href="{{ collections_url }}" class="favrik-footer__link">Collections</a>
+            <span class="favrik-footer__link-ko" lang="ko">컬렉션</span>
+          </li>
+          <li class="favrik-footer__link-item">
+            <a href="{{ returns_url }}" class="favrik-footer__link">Returns Policy</a>
+            <span class="favrik-footer__link-ko" lang="ko">반품 정책</span>
+          </li>
+        </ul>
+      </nav>
+
+      <nav class="favrik-footer__column" aria-label="Connect">
+        <ul class="favrik-footer__link-list list-unstyled">
+          <li class="favrik-footer__link-item">
+            <a href="{{ locations_url }}" class="favrik-footer__link">Locations</a>
+            <span class="favrik-footer__link-ko" lang="ko">매장</span>
+          </li>
+          <li class="favrik-footer__link-item">
+            <a
+              href="{{ instagram_url }}"
+              class="favrik-footer__link"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Instagram
+            </a>
+            <span class="favrik-footer__link-ko" lang="ko">인스타그램</span>
+          </li>
+          <li class="favrik-footer__link-item">
+            <a href="{{ contact_url }}" class="favrik-footer__link">Contact Us</a>
+            <span class="favrik-footer__link-ko" lang="ko">문의</span>
+          </li>
+        </ul>
+      </nav>
+    </div>
+
+    <div class="favrik-footer__meta">
+      {% if section.settings.designer_credit != blank %}
+        <p class="favrik-footer__credit">{{ section.settings.designer_credit | escape }}</p>
+      {% endif %}
+
+      {% if section.settings.show_legal_notice %}
+        <p class="favrik-footer__legal-single">
+          {{ legal_company | escape }}
+          {%- if section.settings.phone != blank -%}
+            · {{ section.settings.phone | escape }}
+          {%- endif -%}
+          {%- if legal_email != blank -%}
+            · <a href="mailto:{{ legal_email | escape }}">{{ legal_email | escape }}</a>
+          {%- endif -%}
+          · {{ legal_address | escape }}
+          {%- if section.settings.abn != blank -%}
+            · ABN {{ section.settings.abn | escape }}
+          {%- endif -%}
+          · &copy; {{ 'now' | date: '%Y' }} {{ copyright_name | escape }}
+        </p>
+      {% else %}
+        <span class="favrik-footer__meta-spacer" aria-hidden="true"></span>
+      {% endif %}
+
+      {% if section.settings.tagline_ko != blank %}
+        <p class="favrik-footer__tagline-ko" lang="ko">{{ section.settings.tagline_ko | escape }}</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+{% stylesheet %}
+  .favrik-footer {
+    --favrik-footer-padding-top: clamp(2.5rem, 5vw, 3.5rem);
+    --favrik-footer-padding-bottom: clamp(1.75rem, 3.5vw, 2.5rem);
+
+    background-color: var(--favrik-footer-bg);
+    color: var(--favrik-footer-text);
+    padding-block-start: var(--favrik-footer-padding-top);
+    padding-block-end: var(--favrik-footer-padding-bottom);
+  }
+
+  .favrik-footer__inner {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    width: 100%;
+    max-width: var(--page-width);
+    margin-inline: auto;
+    padding-inline: var(--padding-md);
+  }
+
+  .favrik-footer__grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2rem;
+    width: 100%;
+  }
+
+  @media screen and (min-width: 750px) {
+    .favrik-footer__grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 2.5rem;
+      align-items: start;
+    }
+  }
+
+  .favrik-footer__column {
+    min-width: 0;
+  }
+
+  .favrik-footer__column--logo {
+    display: flex;
+    justify-content: center;
+  }
+
+  @media screen and (min-width: 750px) {
+    .favrik-footer__column--logo {
+      justify-content: flex-start;
+    }
+
+    .favrik-footer__column:not(.favrik-footer__column--logo) {
+      padding-top: 0.125rem;
+    }
+  }
+
+  .favrik-footer__logo {
+    display: block;
+    text-decoration: none;
+    line-height: 0;
+  }
+
+  .favrik-footer__logo-image {
+    display: block;
+    width: auto;
+    height: var(--favrik-footer-logo-height);
+    max-width: min(14rem, 60vw);
+    object-fit: contain;
+  }
+
+  .favrik-footer__link-list {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.625rem;
+    width: 100%;
+  }
+
+  .favrik-footer__link-item {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: baseline;
+    column-gap: 1rem;
+    width: 100%;
+  }
+
+  .favrik-footer__link {
+    justify-self: start;
+    font-family: var(--font-body--family);
+    font-size: var(--font-size--xs);
+    font-weight: var(--font-body--weight);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    text-decoration: none;
+    color: var(--favrik-footer-text);
+    transition: opacity 0.25s var(--ease-out-cubic, ease);
+  }
+
+  .favrik-footer__link:hover,
+  .favrik-footer__link:focus-visible {
+    opacity: 0.55;
+  }
+
+  .favrik-footer__link-ko {
+    justify-self: end;
+    text-align: right;
+    font-family: var(--font-korean--family);
+    font-size: 0.625rem;
+    font-weight: 400;
+    letter-spacing: 0.01em;
+    line-height: 1.35;
+    text-transform: none;
+    color: rgb(48 33 24 / 0.22);
+  }
+
+  .favrik-footer__meta {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr) minmax(0, 1fr);
+    align-items: center;
+    gap: 1rem;
+    width: 100%;
+    padding-top: 1.25rem;
+    border-top: 1px solid rgb(48 33 24 / 0.12);
+  }
+
+  .favrik-footer__credit,
+  .favrik-footer__legal-single,
+  .favrik-footer__tagline-ko {
+    margin: 0;
+    font-size: 0.625rem;
+    font-weight: var(--font-body--weight);
+    letter-spacing: 0.02em;
+    line-height: 1.4;
+    color: var(--favrik-footer-muted);
+  }
+
+  .favrik-footer__credit {
+    font-family: var(--font-body--family);
+    text-align: left;
+    white-space: nowrap;
+  }
+
+  .favrik-footer__legal-single {
+    min-width: 0;
+    font-family: var(--font-body--family);
+    text-align: center;
+  }
+
+  .favrik-footer__legal-single a {
+    color: inherit;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    transition: opacity 0.25s var(--ease-out-cubic, ease);
+  }
+
+  .favrik-footer__legal-single a:hover,
+  .favrik-footer__legal-single a:focus-visible {
+    opacity: 0.7;
+  }
+
+  .favrik-footer__tagline-ko {
+    font-family: var(--font-korean--family);
+    text-align: right;
+    white-space: nowrap;
+    justify-self: end;
+  }
+
+  @media screen and (max-width: 749px) {
+    .favrik-footer__meta {
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      gap: 0.75rem;
+    }
+
+    .favrik-footer__credit,
+    .favrik-footer__legal-single,
+    .favrik-footer__tagline-ko {
+      font-size: 0.5625rem;
+      line-height: 1.35;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Favrik footer",
+  "tag": "section",
+  "class": "favrik-footer-section",
+  "enabled_on": {
+    "groups": ["footer"]
+  },
+  "settings": [
+    {
+      "type": "header",
+      "content": "Column links"
+    },
+    {
+      "type": "url",
+      "id": "about_url",
+      "label": "About URL"
+    },
+    {
+      "type": "url",
+      "id": "collections_url",
+      "label": "Collections URL"
+    },
+    {
+      "type": "url",
+      "id": "returns_policy_url",
+      "label": "Returns policy URL"
+    },
+    {
+      "type": "url",
+      "id": "locations_url",
+      "label": "Locations URL"
+    },
+    {
+      "type": "url",
+      "id": "instagram_url",
+      "label": "Instagram URL"
+    },
+    {
+      "type": "url",
+      "id": "contact_url",
+      "label": "Contact URL"
+    },
+    {
+      "type": "header",
+      "content": "Legal notice"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_legal_notice",
+      "label": "Show legal notice",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "company_name",
+      "label": "Company name",
+      "default": "Favrik Pty Ltd",
+      "info": "Leave blank to use your store name."
+    },
+    {
+      "type": "text",
+      "id": "phone",
+      "label": "Phone",
+      "info": "Optional."
+    },
+    {
+      "type": "text",
+      "id": "email",
+      "label": "Email",
+      "info": "Leave blank to use your store contact email."
+    },
+    {
+      "type": "textarea",
+      "id": "address",
+      "label": "Business address",
+      "default": "Melbourne, VIC 3000, Australia",
+      "info": "Leave blank to use your store address from Shopify settings."
+    },
+    {
+      "type": "text",
+      "id": "abn",
+      "label": "ABN",
+      "info": "Optional. Shown when provided."
+    },
+    {
+      "type": "text",
+      "id": "copyright_name",
+      "label": "Copyright name",
+      "default": "Favrik"
+    },
+    {
+      "type": "header",
+      "content": "Appearance"
+    },
+    {
+      "type": "text",
+      "id": "designer_credit",
+      "label": "Designer credit",
+      "default": "Designed by RSD"
+    },
+    {
+      "type": "text",
+      "id": "tagline_ko",
+      "label": "Tagline (Korean)",
+      "default": "서울에서 영감받은. 일상의 품격"
+    },
+    {
+      "type": "range",
+      "id": "logo_height",
+      "label": "Logo height",
+      "min": 24,
+      "max": 80,
+      "step": 2,
+      "unit": "px",
+      "default": 56
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "t:settings.background_color",
+      "default": "#f0e8dc"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "t:settings.text_color",
+      "default": "#302118"
+    },
+    {
+      "type": "color",
+      "id": "muted_text_color",
+      "label": "Muted text color",
+      "default": "#8a7268"
+    },
+    {
+      "type": "select",
+      "id": "section_width",
+      "label": "t:settings.width",
+      "options": [
+        {
+          "value": "page-width",
+          "label": "t:options.page"
+        },
+        {
+          "value": "full-width",
+          "label": "t:options.full"
+        }
+      ],
+      "default": "page-width"
+    },
+    {
+      "type": "header",
+      "content": "t:content.padding"
+    },
+    {
+      "type": "range",
+      "id": "padding-block-start",
+      "label": "t:settings.top",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding-block-end",
+      "label": "t:settings.bottom",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    }
+  ],
+  "presets": [
+    {
+      "name": "Favrik footer",
+      "category": "t:categories.footer"
+    }
+  ]
+}
+{% endschema %}

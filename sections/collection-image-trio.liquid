@@ -1,0 +1,278 @@
+{% liquid
+  assign collection = section.settings.collection
+  assign candidate_limit = 24
+  assign candidates_rendered = 0
+
+  if section.settings.background_color != blank
+    render 'contrast-override', background_color: section.settings.background_color, section_id: section.id
+  endif
+
+  assign sizes = '(min-width: 750px) 33vw, 33vw'
+  assign widths = '352, 480, 640, 832, 960, 1200, 1600'
+%}
+
+<div
+  class="section-background{% if section.settings.background_color != blank %} color-custom-{{ section.id }}{% endif %}"
+></div>
+
+<div
+  class="section section--{{ section.settings.section_width }} spacing-style{% if section.settings.background_color != blank %} color-custom-{{ section.id }}{% endif %}"
+  style="{% render 'spacing-style', settings: section.settings %}"
+  data-testid="collection-image-trio"
+>
+  {% if collection != blank %}
+    <div
+      class="collection-image-trio"
+      data-random-image-trio
+    >
+      <div class="collection-image-trio__candidates" hidden aria-hidden="true">
+        {% for product in collection.products %}
+          {% if product.featured_image == blank %}
+            {% continue %}
+          {% endif %}
+
+          {% if candidates_rendered == 0 %}
+            {% assign slot_0_product = product %}
+          {% elsif candidates_rendered == 1 %}
+            {% assign slot_1_product = product %}
+          {% elsif candidates_rendered == 2 %}
+            {% assign slot_2_product = product %}
+          {% endif %}
+
+          <div
+            class="collection-image-trio__candidate"
+            data-trio-candidate
+            data-product-id="{{ product.id }}"
+            data-product-url="{{ product.url }}"
+          >
+            {{
+              product.featured_image
+              | image_url: width: 1600
+              | image_tag:
+                widths: widths,
+                sizes: sizes,
+                class: 'collection-image-trio__img',
+                loading: 'lazy'
+            }}
+          </div>
+
+          {% assign candidates_rendered = candidates_rendered | plus: 1 %}
+          {% if candidates_rendered >= candidate_limit %}
+            {% break %}
+          {% endif %}
+        {% endfor %}
+      </div>
+
+      <div class="collection-image-trio__grid">
+        {% for slot_index in (0..2) %}
+          {% liquid
+            case slot_index
+              when 0
+                assign fallback_product = slot_0_product
+              when 1
+                assign fallback_product = slot_1_product
+              when 2
+                assign fallback_product = slot_2_product
+            endcase
+          %}
+
+          <div class="collection-image-trio__item" data-trio-slot>
+            {% liquid
+              case slot_index
+                when 0
+                  assign caption_ko = section.settings.caption_1_ko | default: '형태'
+                when 1
+                  assign caption_ko = section.settings.caption_2_ko | default: '만남'
+                when 2
+                  assign caption_ko = section.settings.caption_3_ko | default: '따뜻함'
+              endcase
+            %}
+
+            {% if fallback_product != blank %}
+              <a
+                class="collection-image-trio__link"
+                href="{{ fallback_product.url }}"
+              >
+                <div class="collection-image-trio__media">
+                  {{
+                    fallback_product.featured_image
+                    | image_url: width: 1600
+                    | image_tag:
+                      widths: widths,
+                      sizes: sizes,
+                      class: 'collection-image-trio__img',
+                      loading: 'lazy'
+                  }}
+                  <span class="collection-image-trio__caption" lang="ko">{{ caption_ko | escape }}</span>
+                </div>
+              </a>
+            {% else %}
+              <div class="collection-image-trio__media collection-image-trio__media--placeholder">
+                {{ 'collection-apparel-1' | placeholder_svg_tag }}
+                <span class="collection-image-trio__caption" lang="ko">{{ caption_ko | escape }}</span>
+              </div>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  {% endif %}
+</div>
+
+{% stylesheet %}
+  .collection-image-trio {
+    width: 100%;
+  }
+
+  .collection-image-trio__grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    width: 100%;
+    gap: 0;
+  }
+
+  .collection-image-trio__item {
+    min-width: 0;
+  }
+
+  .collection-image-trio__link {
+    display: block;
+    width: 100%;
+    text-decoration: none;
+  }
+
+  .collection-image-trio__media {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 2 / 3;
+    overflow: hidden;
+    background-color: rgb(var(--color-foreground-rgb) / var(--opacity-5));
+  }
+
+  .collection-image-trio__img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center center;
+    display: block;
+  }
+
+  .collection-image-trio__caption {
+    position: absolute;
+    inset-inline: 0;
+    bottom: 0;
+    z-index: 1;
+    margin: 0;
+    padding: 1.25rem 1rem 1rem;
+    font-family: var(--font-korean--family);
+    font-size: clamp(0.8125rem, 1.6vw, 1rem);
+    font-weight: 400;
+    letter-spacing: 0.04em;
+    line-height: 1.2;
+    text-align: center;
+    color: rgb(255 247 236 / 0.92);
+    background: linear-gradient(to top, rgb(48 33 24 / 0.42) 0%, rgb(48 33 24 / 0) 100%);
+    pointer-events: none;
+  }
+
+  .collection-image-trio__media--placeholder svg {
+    width: 100%;
+    height: 100%;
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Collection image trio",
+  "tag": "section",
+  "class": "collection-image-trio-section",
+  "disabled_on": {
+    "groups": ["header", "footer"]
+  },
+  "settings": [
+    {
+      "type": "collection",
+      "id": "collection",
+      "label": "t:settings.collection"
+    },
+    {
+      "type": "header",
+      "content": "Image captions (Korean)"
+    },
+    {
+      "type": "text",
+      "id": "caption_1_ko",
+      "label": "First image caption",
+      "default": "형태"
+    },
+    {
+      "type": "text",
+      "id": "caption_2_ko",
+      "label": "Second image caption",
+      "default": "만남"
+    },
+    {
+      "type": "text",
+      "id": "caption_3_ko",
+      "label": "Third image caption",
+      "default": "따뜻함"
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "t:settings.background_color",
+      "placeholder": "t:settings.default"
+    },
+    {
+      "type": "select",
+      "id": "section_width",
+      "label": "t:settings.width",
+      "options": [
+        {
+          "value": "page-width",
+          "label": "t:options.page"
+        },
+        {
+          "value": "full-width",
+          "label": "t:options.full"
+        }
+      ],
+      "default": "full-width"
+    },
+    {
+      "type": "header",
+      "content": "t:content.padding"
+    },
+    {
+      "type": "range",
+      "id": "padding-block-start",
+      "label": "t:settings.top",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding-block-end",
+      "label": "t:settings.bottom",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    }
+  ],
+  "presets": [
+    {
+      "name": "Collection image trio",
+      "category": "t:categories.collections",
+      "settings": {
+        "collection": "fw2026",
+        "section_width": "full-width"
+      }
+    }
+  ]
+}
+{% endschema %}

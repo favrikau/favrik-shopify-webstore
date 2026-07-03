@@ -85,7 +85,7 @@
     --icon-offset: -3px;
 
     display: flex;
-    gap: var(--gap-sm);
+    gap: clamp(0.125rem, 0.5vw, var(--gap-sm));
     min-width: fit-content;
     justify-content: flex-end;
     height: var(--minimum-touch-target);
@@ -112,7 +112,7 @@
   .column-options {
     display: flex;
     flex-wrap: wrap;
-    gap: var(--gap-xs);
+    gap: clamp(0.125rem, 0.4vw, var(--gap-xs));
     margin: 0;
     padding: 0;
     border: none;
@@ -187,7 +187,7 @@
 
   .column-picker {
     color: rgb(var(--color-rgb, var(--color-foreground-rgb)) / var(--opacity-50));
-    padding: var(--padding-2xs);
+    padding: clamp(0.0625rem, 0.35vw, var(--padding-2xs));
     border-radius: var(--style-border-radius-xs);
     transition: background-color var(--animation-speed) ease, color var(--animation-speed) ease;
   }
