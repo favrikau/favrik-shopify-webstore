@@ -65,11 +65,15 @@
   assign rendered_colors = ''
 %}
 
-{% if unique_color_count > 0 %}
-  <div
-    class="product-card-color-indicators"
+<div
+  class="product-card-color-indicators{% if unique_color_count == 0 %} product-card-color-indicators--empty{% endif %}"
+  {% if unique_color_count > 0 %}
     aria-label="{{ variant_color_option.name | escape }}"
-  >
+  {% else %}
+    aria-hidden="true"
+  {% endif %}
+>
+  {% if unique_color_count > 0 %}
     {% for product_option_value in variant_color_option.values %}
       {% if shown_count >= max_colors %}
         {% break %}
@@ -109,32 +113,24 @@
     {% if hidden_color_count > 0 %}
       <span class="product-card-color-indicators__more">+{{ hidden_color_count }}</span>
     {% endif %}
-  </div>
-{% endif %}
+  {% endif %}
+</div>
 
 {% stylesheet %}
-  .product-card__meta .product-card-color-indicators {
-    position: absolute;
-    right: 10px;
-    bottom: calc(var(--product-card-meta-padding-bottom) + (var(--font-size--2xs) * 1.35 - 6px) / 2);
-    z-index: 2;
+  .product-card-color-indicators {
     display: flex;
     flex-direction: row;
     align-items: center;
+    justify-content: flex-end;
     gap: 3px;
+    width: 100%;
+    min-height: var(--product-card-color-row-height, 8px);
+    margin-block-start: var(--product-card-color-row-gap, 8px);
     pointer-events: none;
   }
 
-  .product-card__content:not(:has(.product-card__meta)) .product-card-color-indicators {
-    position: absolute;
-    right: 10px;
-    bottom: calc(var(--product-card-meta-padding-bottom) + (var(--font-size--2xs) * 1.35 - 6px) / 2);
-    z-index: 2;
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 3px;
-    pointer-events: none;
+  .product-card-color-indicators--empty {
+    visibility: hidden;
   }
 
   .product-card-color-indicators__chip {

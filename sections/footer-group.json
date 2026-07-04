@@ -13,23 +13,23 @@
   "sections": {
     "footer_colorway_rectangles": {
       "type": "colorway-rectangles",
-      "name": "Colorway rectangles",
+      "name": "Footer accent strip",
       "settings": {
-        "height": 28,
-        "mobile_height": 24,
-        "background_color": "{{ settings.color_palette.background }}"
+        "height": 8,
+        "mobile_height": 8,
+        "strip_color": "#5a5048"
       }
     },
     "favrik_footer": {
       "type": "favrik-footer",
       "name": "Favrik footer",
       "settings": {
-        "about_url": "shopify://pages/about",
-        "collections_url": "shopify://collections",
-        "returns_policy_url": "shopify://policies/refund-policy",
-        "locations_url": "shopify://pages/locations",
+        "about_url": "/pages/about",
+        "collections_url": "shopify://collections/all",
+        "returns_policy_url": "",
+        "locations_url": "/pages/locations",
         "instagram_url": "https://www.instagram.com/favrik__/?hl=en",
-        "contact_url": "shopify://pages/contact",
+        "contact_url": "/pages/contact",
         "designer_credit": "Designed by RSD",
         "tagline_ko": "서울에서 영감받은. 일상의 품격",
         "show_legal_notice": true,
@@ -39,6 +39,8 @@
         "address": "Melbourne, VIC 3000, Australia",
         "abn": "",
         "copyright_name": "Favrik",
+        "privacy_policy_url": "/pages/privacy-policy",
+        "terms_of_use_url": "/pages/terms-of-use",
         "logo_height": 64,
         "background_color": "#f0e8dc",
         "text_color": "#302118",

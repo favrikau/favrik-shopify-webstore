@@ -1,0 +1,279 @@
+{% liquid
+  assign background_color = section.settings.background_color | default: settings.color_palette.background
+  assign text_color = section.settings.text_color | default: settings.color_palette.foreground
+  assign muted_color = section.settings.muted_text_color | default: '#7e736a'
+  assign border_color = section.settings.border_color | default: '#d8cec3'
+
+  if background_color != blank
+    render 'contrast-override', background_color: background_color, text_color: text_color, section_id: section.id
+  endif
+%}
+
+<div
+  class="section-background{% if background_color != blank %} color-custom-{{ section.id }}{% endif %}"
+></div>
+
+<section
+  class="returns-policy-page section{% if background_color != blank %} color-custom-{{ section.id }}{% endif %}"
+  style="
+    --returns-policy-text: {{ text_color }};
+    --returns-policy-muted: {{ muted_color }};
+    --returns-policy-border: {{ border_color }};
+  "
+>
+  <div class="returns-policy-page__inner">
+    <header class="returns-policy-page__header">
+      <h1 class="returns-policy-page__title">Returns Policy</h1>
+    </header>
+
+    <div class="returns-policy-page__content">
+      <section class="returns-policy-page__group" aria-labelledby="returns-policy-shipping">
+        <h2 id="returns-policy-shipping" class="returns-policy-page__section-title">Shipping</h2>
+
+        <article class="returns-policy-page__item">
+          <h3 class="returns-policy-page__item-title">Sales And Promotional Event Orders</h3>
+          <div class="returns-policy-page__copy">
+            <p>
+              During popular sales and promotions Favrik may be unable to dispatch your order in full because one or
+              more products are out of stock as we prepare to dispatch your order. If this occurs, you will receive an
+              email notification about the out of stock product(s) and an automatic refund to your payment method(s)
+              used.
+            </p>
+            <p>
+              Favrik may experience delays of up to three (3) business days in dispatching your order for delivery to
+              you.
+            </p>
+          </div>
+        </article>
+
+        <article class="returns-policy-page__item">
+          <h3 class="returns-policy-page__item-title">Delivery Address Review Delay</h3>
+          <div class="returns-policy-page__copy">
+            <p>
+              Favrik orders require a valid delivery address which complies with Delivery Service requirements. We use a
+              real-time address validation service at checkout to assist you to enter and select a valid delivery
+              address.
+            </p>
+            <p>
+              If you do not use the address validation service at checkout or manually override and enter an invalid
+              delivery address, your order will be delayed until we can confirm a valid delivery address for your order.
+            </p>
+          </div>
+        </article>
+
+        <article class="returns-policy-page__item">
+          <h3 class="returns-policy-page__item-title">Lost Or Delay In-Transit Orders</h3>
+          <div class="returns-policy-page__copy">
+            <p>
+              If you have not received your Favrik order within 10 business days, please contact Customer Service, and
+              we will request an investigation with the responsible Delivery Service.
+            </p>
+          </div>
+        </article>
+      </section>
+
+      <section class="returns-policy-page__group" aria-labelledby="returns-policy-returns">
+        <h2 id="returns-policy-returns" class="returns-policy-page__section-title">Returns</h2>
+
+        <article class="returns-policy-page__item">
+          <h3 class="returns-policy-page__item-title returns-policy-page__item-title--caps">Change Of Mind Policy</h3>
+          <div class="returns-policy-page__copy">
+            <p>
+              While we do not offer a refund for change of mind, you may exchange the item or request a credit note
+              within 14 days from the date of purchase or delivery. The exchange can be made one time only, and credit
+              is valid for 1 year from the refund date and for single use only. Our policy does not exclude or replace
+              your rights under the Australian Consumer Law and regulations.
+            </p>
+          </div>
+        </article>
+
+        <article class="returns-policy-page__item">
+          <h3 class="returns-policy-page__item-title">Purchase In-store</h3>
+          <div class="returns-policy-page__copy">
+            <p>To be eligible for an exchange or credit note, the following conditions must be met:</p>
+            <ul>
+              <li>Proof of purchase is accompanied with the returned item.</li>
+              <li>The item is unworn, unwashed, unused, and in its original condition with all tags intact.</li>
+              <li>Any discounts received at the time of purchase will be carried over.</li>
+            </ul>
+          </div>
+        </article>
+
+        <article class="returns-policy-page__item">
+          <h3 class="returns-policy-page__item-title">Purchase Online</h3>
+          <div class="returns-policy-page__copy">
+            <p>
+              For online purchases, the in-store return option is available. You can exchange, but return postage and
+              re-delivery cost are at your cost. To be eligible for an exchange or credit note, the following conditions
+              must be met:
+            </p>
+            <ul>
+              <li>Proof of purchase is accompanied with the returned item.</li>
+              <li>The item is unworn, unwashed, unused, and in its original condition with all tags intact.</li>
+              <li>Any discounts received at the time of purchase will be carried over.</li>
+              <li>If the purchase included free shipping, the shipping fee will be deducted from the credit.</li>
+            </ul>
+          </div>
+        </article>
+
+        <article class="returns-policy-page__item">
+          <h3 class="returns-policy-page__item-title">Exceptions</h3>
+          <div class="returns-policy-page__copy">
+            <p>Our change of mind policy does not apply to the following items:</p>
+            <ul>
+              <li>Sale items</li>
+              <li>Accessories and home items</li>
+              <li>Swimwear and underwear</li>
+            </ul>
+          </div>
+        </article>
+      </section>
+    </div>
+  </div>
+</section>
+
+{% stylesheet %}
+  .returns-policy-page {
+    color: var(--returns-policy-text);
+    background: var(--color-background);
+    padding-block: clamp(3rem, 7vw, 6rem);
+  }
+
+  .returns-policy-page__inner {
+    width: min(100% - 2rem, 58rem);
+    margin-inline: auto;
+  }
+
+  .returns-policy-page__header {
+    display: grid;
+    gap: 0.75rem;
+    margin-block-end: clamp(2.5rem, 5vw, 4rem);
+  }
+
+  .returns-policy-page__title {
+    margin: 0;
+    font-family: var(--font-body--family);
+    font-size: clamp(2rem, 5vw, 4rem);
+    font-weight: var(--font-heading--weight);
+    line-height: 0.95;
+    letter-spacing: -0.04em;
+  }
+
+  .returns-policy-page__content {
+    display: grid;
+    gap: clamp(3rem, 6vw, 5rem);
+  }
+
+  .returns-policy-page__group {
+    display: grid;
+    gap: clamp(1.75rem, 4vw, 3rem);
+    padding-block-start: clamp(1.25rem, 2.5vw, 2rem);
+    border-block-start: 1px solid var(--returns-policy-border);
+  }
+
+  .returns-policy-page__section-title {
+    margin: 0;
+    font-family: var(--font-body--family);
+    font-size: clamp(1.2rem, 2vw, 1.6rem);
+    font-weight: var(--font-heading--weight);
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+  }
+
+  .returns-policy-page__item {
+    display: grid;
+    grid-template-columns: minmax(10rem, 0.38fr) minmax(0, 1fr);
+    gap: clamp(1.25rem, 3vw, 3rem);
+    align-items: start;
+  }
+
+  .returns-policy-page__item-title {
+    margin: 0;
+    color: var(--returns-policy-text);
+    font-family: var(--font-body--family);
+    font-size: var(--font-size--sm);
+    font-weight: var(--font-heading--weight);
+    line-height: 1.25;
+    letter-spacing: 0.01em;
+  }
+
+  .returns-policy-page__item-title--caps {
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .returns-policy-page__copy {
+    display: grid;
+    gap: 1rem;
+    color: var(--returns-policy-muted);
+    font-family: var(--font-body--family);
+    font-size: clamp(0.875rem, 1vw, 1rem);
+    font-weight: var(--font-body--weight);
+    line-height: 1.7;
+  }
+
+  .returns-policy-page__copy p,
+  .returns-policy-page__copy ul {
+    margin: 0;
+  }
+
+  .returns-policy-page__copy ul {
+    display: grid;
+    gap: 0.55rem;
+    padding-inline-start: 1.1rem;
+  }
+
+  .returns-policy-page__copy li::marker {
+    color: var(--returns-policy-text);
+  }
+
+  @media screen and (max-width: 749px) {
+    .returns-policy-page__item {
+      grid-template-columns: 1fr;
+      gap: 0.75rem;
+    }
+
+    .returns-policy-page__copy {
+      line-height: 1.6;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Returns policy page",
+  "tag": "section",
+  "class": "returns-policy-page-section",
+  "settings": [
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "t:settings.background_color",
+      "default": "#fff7ec"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "t:settings.text_color",
+      "default": "#302118"
+    },
+    {
+      "type": "color",
+      "id": "muted_text_color",
+      "label": "Muted text color",
+      "default": "#7e736a"
+    },
+    {
+      "type": "color",
+      "id": "border_color",
+      "label": "Divider color",
+      "default": "#d8cec3"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Returns policy page"
+    }
+  ]
+}
+{% endschema %}

@@ -1,143 +1,69 @@
 {% liquid
-  assign colorways = 'Cream:#f4f1ea|Sand:#c9b08f|Stone:#9a9590|Light Grey:#c9c9c9|Charcoal:#4a4a4a|Light Denim:#9eb5d4|Denim:#5578a8|Navy:#1e2a4a|Slate:#4a6670|Black:#1c1c1c'
-  assign colorway_items = colorways | split: '|'
-
-  if section.settings.background_color != blank
-    render 'contrast-override', background_color: section.settings.background_color, section_id: section.id
-  endif
+  assign strip_color = section.settings.strip_color | default: '#5a5048'
 %}
 
 <div
-  class="section-background{% if section.settings.background_color != blank %} color-custom-{{ section.id }}{% endif %}"
+  class="footer-accent-strip"
+  style="
+    --footer-accent-strip-color: {{ strip_color }};
+    --footer-accent-strip-height: {{ section.settings.height }}px;
+    --footer-accent-strip-mobile-height: {{ section.settings.mobile_height }}px;
+    background-color: {{ strip_color }};
+  "
+  aria-hidden="true"
 ></div>
 
-<div
-  class="colorway-rectangles{% if section.settings.background_color != blank %} color-custom-{{ section.id }}{% endif %}"
-  style="
-    --colorway-rectangles-height: {{ section.settings.height }}px;
-    --colorway-rectangles-mobile-height: {{ section.settings.mobile_height }}px;
-  "
-  aria-label="Favrik colorways"
->
-  {% for colorway in colorway_items %}
-    {% liquid
-      assign colorway_parts = colorway | split: ':'
-      assign colorway_name = colorway_parts.first
-      assign colorway_color = colorway_parts.last
-      assign reveal_delay = forloop.index0 | times: 70
-    %}
-    <span
-      class="colorway-rectangles__item"
-      style="--colorway-rectangle-color: {{ colorway_color }}; --colorway-reveal-delay: {{ reveal_delay }}ms;"
-      title="{{ colorway_name | escape }}"
-    >
-      <span class="visually-hidden">{{ colorway_name }}</span>
-    </span>
-  {% endfor %}
-</div>
-
-<script>
-  (() => {
-    const sections = document.querySelectorAll('.colorway-rectangles:not([data-colorway-reveal-ready])');
-    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-    sections.forEach((section) => {
-      section.dataset.colorwayRevealReady = 'true';
-    });
-
-    if (prefersReducedMotion || !('IntersectionObserver' in window)) {
-      sections.forEach((section) => section.classList.add('is-revealed'));
-      return;
-    }
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          entry.target.classList.toggle('is-revealed', entry.isIntersecting);
-        });
-      },
-      { rootMargin: '0px 0px -10% 0px', threshold: 0.01 }
-    );
-
-    sections.forEach((section) => observer.observe(section));
-  })();
-</script>
-
 {% stylesheet %}
-  .colorway-rectangles {
-    display: flex;
-    flex-direction: row;
-    align-items: stretch;
-    width: 100%;
-    height: var(--colorway-rectangles-height, 28px);
-    background: var(--color-background);
-    overflow: hidden;
-  }
-
-  .colorway-rectangles__item {
+  .footer-accent-strip {
     display: block;
-    flex: 1 1 0;
-    min-width: 0;
-    height: 100%;
-    background: #9a9590;
-    transition: background-color 1.1s var(--ease-out-cubic, cubic-bezier(0.33, 1, 0.68, 1));
-    transition-delay: var(--colorway-reveal-delay, 0s);
-  }
-
-  .colorway-rectangles.is-revealed .colorway-rectangles__item {
-    background: var(--colorway-rectangle-color);
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .colorway-rectangles__item {
-      background: var(--colorway-rectangle-color);
-      transition: none;
-    }
+    width: 100%;
+    height: var(--footer-accent-strip-height, 8px);
+    background-color: var(--footer-accent-strip-color, #5a5048);
   }
 
   @media screen and (max-width: 749px) {
-    .colorway-rectangles {
-      height: var(--colorway-rectangles-mobile-height, 24px);
+    .footer-accent-strip {
+      height: var(--footer-accent-strip-mobile-height, 8px);
     }
   }
 {% endstylesheet %}
 
 {% schema %}
 {
-  "name": "Colorway rectangles",
+  "name": "Footer accent strip",
   "tag": "section",
-  "class": "colorway-rectangles-section",
+  "class": "footer-accent-strip-section",
   "settings": [
     {
       "type": "range",
       "id": "height",
       "label": "Height",
       "min": 8,
-      "max": 120,
-      "step": 4,
+      "max": 24,
+      "step": 1,
       "unit": "px",
-      "default": 28
+      "default": 8
     },
     {
       "type": "range",
       "id": "mobile_height",
       "label": "Mobile height",
       "min": 8,
-      "max": 96,
-      "step": 4,
+      "max": 24,
+      "step": 1,
       "unit": "px",
-      "default": 24
+      "default": 8
     },
     {
       "type": "color",
-      "id": "background_color",
-      "label": "t:settings.background_color",
-      "placeholder": "t:settings.default"
+      "id": "strip_color",
+      "label": "Strip color",
+      "default": "#5a5048"
     }
   ],
   "presets": [
     {
-      "name": "Colorway rectangles"
+      "name": "Footer accent strip"
     }
   ]
 }

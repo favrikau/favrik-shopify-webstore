@@ -13,28 +13,34 @@
 
   assign collections_url = section.settings.collections_url
   if collections_url == blank
-    assign collections_url = routes.collections_url
+    assign collections_url = routes.all_products_collection_url
   endif
 
   assign returns_url = section.settings.returns_policy_url
-  if returns_url == blank and shop.refund_policy != blank
+  if returns_url == blank and pages['returns-policy'] != blank
+    assign returns_url = pages['returns-policy'].url
+  elsif returns_url == blank and shop.refund_policy != blank
     assign returns_url = shop.refund_policy.url
   elsif returns_url == blank
-    assign returns_url = '/policies/refund-policy'
+    assign returns_url = '/pages/returns-policy'
   endif
 
   assign privacy_url = section.settings.privacy_policy_url
-  if privacy_url == blank and shop.privacy_policy != blank
+  if privacy_url == blank and pages['privacy-policy'] != blank
+    assign privacy_url = pages['privacy-policy'].url
+  elsif privacy_url == blank and shop.privacy_policy != blank
     assign privacy_url = shop.privacy_policy.url
   elsif privacy_url == blank
-    assign privacy_url = '/policies/privacy-policy'
+    assign privacy_url = '/pages/privacy-policy'
   endif
 
   assign terms_url = section.settings.terms_of_use_url
-  if terms_url == blank and shop.terms_of_service != blank
+  if terms_url == blank and pages['terms-of-use'] != blank
+    assign terms_url = pages['terms-of-use'].url
+  elsif terms_url == blank and shop.terms_of_service != blank
     assign terms_url = shop.terms_of_service.url
   elsif terms_url == blank
-    assign terms_url = '/policies/terms-of-service'
+    assign terms_url = '/pages/terms-of-use'
   endif
 
   assign locations_url = section.settings.locations_url
@@ -125,7 +131,7 @@
             <span class="favrik-footer__link-ko" lang="ko">소개</span>
           </li>
           <li class="favrik-footer__link-item">
-            <a href="{{ collections_url }}" class="favrik-footer__link">Collections</a>
+            <a href="{{ collections_url }}" class="favrik-footer__link">Catalog</a>
             <span class="favrik-footer__link-ko" lang="ko">컬렉션</span>
           </li>
           <li class="favrik-footer__link-item">
@@ -404,7 +410,7 @@
     {
       "type": "url",
       "id": "collections_url",
-      "label": "Collections URL"
+      "label": "Catalog URL"
     },
     {
       "type": "url",
