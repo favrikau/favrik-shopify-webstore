@@ -49,6 +49,11 @@
   endunless
 
   assign layout_type = settings.layout_type | default: 'grid'
+  assign carousel_on_mobile = settings.carousel_on_mobile
+  if content_type == 'products'
+    assign layout_type = 'grid'
+    assign carousel_on_mobile = false
+  endif
   assign columns = settings.columns | default: 3
   assign mobile_columns = settings.mobile_columns | default: 2
   assign columns_gap = settings.columns_gap | default: 16
@@ -100,10 +105,13 @@
 <div
   class="
     resource-list
-    {% if settings.layout_type == 'carousel' %}
+    {% if content_type == 'products' %}
+      resource-list--product-cards
+    {% endif %}
+    {% if layout_type == 'carousel' %}
       force-full-width
     {% endif %}
-    {% if settings.carousel_on_mobile and settings.layout_type != 'carousel' %}
+    {% if carousel_on_mobile and layout_type != 'carousel' %}
       hidden--mobile
     {% endif %}
     {{ resource_list_classes }}
@@ -113,7 +121,7 @@
     data-testid="{{ test_id }}"
   {% endif %}
 >
-  {% case settings.layout_type %}
+  {% case layout_type %}
     {% when 'grid' %}
       {{ list_items }}
 
@@ -142,10 +150,10 @@
 </div>
 
 {% comment %} Mobile carousel for non-carousel layouts {% endcomment %}
-{% if settings.layout_type != 'carousel' and settings.carousel_on_mobile %}
+{% if layout_type != 'carousel' and carousel_on_mobile %}
   {% liquid
     assign mobile_carousel_gap = settings.columns_gap | default: 16
-    if settings.layout_type == 'bento'
+    if layout_type == 'bento'
       assign mobile_carousel_gap = settings.bento_gap | default: 16
     endif
   %}

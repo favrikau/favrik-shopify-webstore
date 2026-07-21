@@ -67,12 +67,26 @@
                 endif
               %}
               {% unless is_home_link or is_fw26_link or is_sale_link %}
+                {% liquid
+                  assign catalog_item_url = link.url
+                  assign catalog_item_current = link.current
+                  if is_catalog_link
+                    assign catalog_item_url = '#'
+                    assign catalog_item_current = false
+                  endif
+                %}
                 <li>
                   <a
-                    href="{{ link.url }}"
+                    href="{{ catalog_item_url }}"
                     id="MenuItem-{{ link.handle }}"
                     class="menu-list__item"
-                    {% if link.current %}
+                    {% if is_catalog_link %}
+                      data-catalog-nav-trigger
+                      aria-controls="catalog-nav-drawer"
+                      aria-expanded="false"
+                      role="button"
+                    {% endif %}
+                    {% if catalog_item_current %}
                       aria-current="page"
                     {% endif %}
                   >
@@ -172,6 +186,16 @@
           endif
         %}
         {% unless is_home_link or is_fw26_link or is_sale_link %}
+          {% liquid
+            assign catalog_item_url = link.url
+            assign catalog_item_active = link.active
+            assign catalog_item_current = link.current
+            if is_catalog_link
+              assign catalog_item_url = '#'
+              assign catalog_item_active = false
+              assign catalog_item_current = false
+            endif
+          %}
           <li
             role="presentation"
             class="menu-list__list-item"
@@ -181,22 +205,28 @@
             on:pointerleave="/deactivate"
           >
             <a
-              href="{{ link.url }}"
+              href="{{ catalog_item_url }}"
               data-skip-node-update="true"
-              class="menu-list__link{% if link.active %} menu-list__link--active{% endif %}"
-              {%- if link.links != blank -%}
+              class="menu-list__link{% if catalog_item_active %} menu-list__link--active{% endif %}"
+              {%- if link.links != blank and is_catalog_link == false -%}
                 aria-controls="submenu-{{ forloop.index }}"
                 aria-haspopup="true"
                 aria-expanded="false"
               {%- endif -%}
-              {% if link.current %}
+              {% if is_catalog_link %}
+                data-catalog-nav-trigger
+                aria-controls="catalog-nav-drawer"
+                aria-expanded="false"
+                role="button"
+              {% endif %}
+              {% if catalog_item_current %}
                 aria-current="page"
               {% endif %}
               ref="menuitem"
             >
               <span class="menu-list__link-title" data-text="{{ link.title | escape }}">{{- link.title -}}</span>
             </a>
-            {%- if link.links != blank -%}
+            {%- if link.links != blank and is_catalog_link == false -%}
               <div class="menu-list__submenu{{ background_color_classes }}" ref="submenu[]">
                 <div
                   id="submenu-{{ forloop.index }}"
@@ -375,11 +405,11 @@
     }
 
     & a {
-      color: #ffffff;
+      color: var(--color-foreground);
     }
 
     & a:is(:hover, :focus, [aria-current='page'], .menu-list__link--active) {
-      color: #ffffff;
+      color: var(--color-foreground);
     }
   }
 
@@ -420,7 +450,7 @@
   .menu-list {
     --menu-horizontal-gap: var(--gap-xl);
     --menu-vertical-gap: var(--gap-xl);
-    --header-menu-color: #ffffff;
+    --header-menu-color: var(--color-foreground);
     --header-link-hover-transition: 0.4s var(--ease-out-cubic);
 
     display: flex;

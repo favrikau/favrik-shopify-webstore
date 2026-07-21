@@ -16,19 +16,25 @@
   endif
 -%}
 
-{% capture product_card_size %}
-  {% render 'util-product-grid-card-size' section: section %}
-{% endcapture %}
-{% assign product_card_size = product_card_size | strip %}
-
 {% style %}
   @media screen and (min-width: 750px) {
     {% case section.settings.layout_type %}
       {% when 'grid' %}
         .product-grid--{{ section.id }}:is(.product-grid--grid) {
-          --product-grid-columns-desktop: repeat(auto-fill, minmax({{ product_card_size }}, 1fr));
+          --product-grid-columns-desktop: repeat(var(--product-card-columns-desktop), minmax(0, 1fr));
         }
 
+        @container product-grid (max-width: 999px) {
+          .product-grid--{{ section.id }}:is(.product-grid--grid) {
+            --product-grid-columns-desktop: repeat(var(--product-card-columns-tablet), minmax(0, 1fr));
+          }
+        }
+
+        @container product-grid (max-width: 699px) {
+          .product-grid--{{ section.id }}:is(.product-grid--grid) {
+            --product-grid-columns-desktop: repeat(var(--product-card-columns-mobile), minmax(0, 1fr));
+          }
+        }
 
       {% when 'organic' %}
         {% assign large_span = 2 %}
@@ -50,16 +56,6 @@
 
         .product-grid--{{ section.id }}:not([product-grid-view='zoom-out']):is(.product-grid--organic) {
           --product-grid-columns-desktop: repeat(4, 1fr);
-        }
-    {% endcase %}
-
-    /* This logic helps prevent displaying one column for an large or extra-large product card size on a small screen. We want it to display at least two columns. */
-    {% case section.settings.product_card_size %}
-      {% when 'extra-large' or 'large' %}
-        @container product-grid (max-width: calc({{ product_card_size }} * 3 + {{ section.settings.columns_gap_horizontal }}px * 2)) {
-          .product-grid--{{ section.id }}:is(.product-grid--grid) {
-            --product-grid-columns-desktop: repeat(2, 1fr);
-          }
         }
     {% endcase %}
 
@@ -270,10 +266,10 @@
 
   .content-for-layout[data-template='collection'] .product-grid,
   .content-for-layout[data-template='search'] .product-grid {
-    --product-grid-gap: 0px;
-    --product-grid-gap-mobile: 0px;
-    --product-grid-gap-desktop: 0px;
-    gap: 0;
+    --product-grid-gap: var(--product-card-grid-gap);
+    --product-grid-gap-mobile: var(--product-card-grid-gap);
+    --product-grid-gap-desktop: var(--product-card-grid-gap);
+    gap: var(--product-card-grid-gap);
   }
 
   .content-for-layout[data-template='collection'] .product-grid__item,

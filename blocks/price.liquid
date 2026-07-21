@@ -57,6 +57,10 @@
     show_sale_price_first: block_settings.show_sale_price_first
   %}
 
+  {% if template.name == 'product' %}
+    {% render 'product-collection-label', product: product_resource %}
+  {% endif %}
+
   {% if block_settings.show_tax_info %}
     <div class="tax-note">
       {%- if cart.duties_included and cart.taxes_included -%}
@@ -87,6 +91,25 @@
     </div>
   {%- endif -%}
 </product-price>
+
+{% stylesheet %}
+  .product-information .product-price__collection {
+    display: block;
+    width: fit-content;
+    margin-block-start: 0.3rem;
+    color: rgb(48 33 24 / 0.45);
+    font-family: var(--font-body--family);
+    font-size: 0.75rem;
+    font-weight: var(--font-body--weight);
+    line-height: 1.35;
+    text-decoration: none;
+    text-transform: uppercase;
+  }
+
+  .product-information .product-price__collection:is(:hover, :focus-visible) {
+    color: rgb(48 33 24 / 0.7);
+  }
+{% endstylesheet %}
 
 {% schema %}
 {

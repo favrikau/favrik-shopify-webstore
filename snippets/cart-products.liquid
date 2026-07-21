@@ -18,7 +18,7 @@
 {%- if block_settings.input_style == 'custom' -%}
   {%- capture custom_style -%}
     {%- render 'input-custom-styles', block_settings: block_settings -%}
-    --style-border-width-inputs: {{ block_settings.border_width }}px;
+    --style-border-width-inputs: {% if block_settings.border_width > 0 %}0.5px{% else %}0px{% endif %};
     --style-border-radius-inputs: {{ block_settings.border_radius }}px;
     --style-border-radius-buttons-primary: {{ block_settings.border_radius }}px;
     --style-border-radius-buttons-secondary: {{ block_settings.border_radius }}px;
@@ -590,7 +590,7 @@
   }
 
   .cart-items--dividers .cart-items__table-row {
-    border-bottom: 1px solid rgb(var(--color-foreground-rgb) / var(--opacity-10-25));
+    border-bottom: 0.5px solid rgb(var(--color-foreground-rgb) / var(--opacity-10-25));
     margin-bottom: var(--cart-items-gap);
   }
 

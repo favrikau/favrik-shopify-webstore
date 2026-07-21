@@ -15,8 +15,8 @@
       "type": "colorway-rectangles",
       "name": "Footer accent strip",
       "settings": {
-        "height": 8,
-        "mobile_height": 8,
+        "height": 0.5,
+        "mobile_height": 0.5,
         "strip_color": "#5a5048"
       }
     },
@@ -36,13 +36,13 @@
         "company_name": "Favrik Pty Ltd",
         "phone": "",
         "email": "",
-        "address": "Melbourne, VIC 3000, Australia",
+        "address": "Emporium, Lower Ground, Shop 27a/287 Lonsdale St, Melbourne VIC 3000",
+        "opening_hours": "Mon–Wed, Sat–Sun 11am–7pm\nThu–Fri 11am–8pm",
         "abn": "",
         "copyright_name": "Favrik",
         "privacy_policy_url": "/pages/privacy-policy",
         "terms_of_use_url": "/pages/terms-of-use",
-        "logo_height": 64,
-        "background_color": "#f0e8dc",
+        "background_color": "#f3eee7",
         "text_color": "#302118",
         "muted_text_color": "#8a7268",
         "section_width": "page-width",

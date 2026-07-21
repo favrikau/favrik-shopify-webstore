@@ -55,6 +55,12 @@
       assign products_with_images = collection.products | where: 'featured_image'
       if products_with_images.size > 0
         assign image_resource = products_with_images.first.featured_image
+        for product in products_with_images
+          if product.featured_image.aspect_ratio >= 1.2
+            assign image_resource = product.featured_image
+            break
+          endif
+        endfor
       endif
     endif
 
@@ -95,8 +101,12 @@
   if section_settings.layout_type
     case section_settings.layout_type
       when 'grid', 'carousel'
-        assign calculated_width = 100 | divided_by: section_settings.columns | append: 'vw'
-        assign sizes = '(min-width: 750px) [calc-width], 100vw' | replace: '[calc-width]', calculated_width
+        if section_settings.columns == 1
+          assign sizes = '100vw'
+        else
+          assign calculated_width = 100 | divided_by: section_settings.columns | append: 'vw'
+          assign sizes = '(min-width: 750px) [calc-width], 100vw' | replace: '[calc-width]', calculated_width
+        endif
       when 'editorial', 'bento'
         assign loading = 'lazy'
         assign sizes = lazy_sizes
@@ -167,11 +177,16 @@
       <div
         class="resource-image__random-pool"
         data-random-collection-image
+        data-prefer-landscape="true"
       >
-        {% for product in products_with_images limit: 12 %}
+        {% assign landscape_pool_count = 0 %}
+        {% for product in products_with_images limit: 24 %}
+          {% if product.featured_image.aspect_ratio < 1.2 %}
+            {% continue %}
+          {% endif %}
           {% liquid
             assign random_image_loading = 'lazy'
-            if forloop.first
+            if landscape_pool_count == 0
               assign random_image_loading = loading
             endif
           %}
@@ -183,9 +198,36 @@
               class: 'resource-image__image resource-image__random-image',
               sizes: sizes,
               loading: random_image_loading,
-              data-random-image: forloop.index0
+              data-random-image: landscape_pool_count,
+              data-image-aspect: product.featured_image.aspect_ratio
           }}
+          {% assign landscape_pool_count = landscape_pool_count | plus: 1 %}
+          {% if landscape_pool_count >= 12 %}
+            {% break %}
+          {% endif %}
         {% endfor %}
+
+        {% if landscape_pool_count == 0 %}
+          {% for product in products_with_images limit: 12 %}
+            {% liquid
+              assign random_image_loading = 'lazy'
+              if forloop.first
+                assign random_image_loading = loading
+              endif
+            %}
+            {{
+              product.featured_image
+              | image_url: width: 3840
+              | image_tag:
+                widths: widths,
+                class: 'resource-image__image resource-image__random-image',
+                sizes: sizes,
+                loading: random_image_loading,
+                data-random-image: forloop.index0,
+                data-image-aspect: product.featured_image.aspect_ratio
+            }}
+          {% endfor %}
+        {% endif %}
       </div>
     {% else %}
       {{

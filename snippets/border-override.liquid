@@ -1,11 +1,15 @@
 {%- comment -%}
-  Renders border override CSS
+  Renders border override CSS.
+  All visible borders use a consistent 0.5px hairline weight.
 {%- endcomment -%}
 
 {% liquid
-
+  assign border_width_value = 0
+  if settings.border_width > 0
+    assign border_width_value = 0.5
+  endif
 %}
---border-width: {{ settings.border_width }}px; --border-style: {{ settings.border }}; --border-color:
+--border-width: {{ border_width_value }}px; --border-style: {{ settings.border }}; --border-color:
 {% if settings.border_color != blank -%}
   rgb({{ settings.border_color.rgba }})
 {%- else -%}

@@ -180,30 +180,38 @@
       %}
     </a>
   {% elsif product != blank and product.media.size == 0 %}
-    <div class="product-card-gallery__title-placeholder">
-      <a
-        class="contents"
-        ref="cardGalleryLink"
-        href="{{ product.selected_or_first_available_variant.url }}"
-      >
-        <span class="title-text">{{- product_titlecase -}}</span>
-      </a>
-    </div>
+    <a
+      class="product-card-gallery__coming-soon"
+      ref="cardGalleryLink"
+      href="{{ product.selected_or_first_available_variant.url }}"
+      aria-label="{{- product_titlecase -}}"
+    >
+      <span class="product-card-gallery__coming-soon-inner">
+        <img
+          src="{{ 'favrik_logo.png' | asset_url }}"
+          class="product-card-gallery__coming-soon-logo"
+          alt=""
+          width="56"
+          height="36"
+          loading="lazy"
+        >
+        <span class="product-card-gallery__coming-soon-text">Coming soon</span>
+      </span>
+    </a>
   {% elsif product == blank %}
-    {% liquid
-      capture placeholder_image
-        # Extract index from block ID (e.g., "product-card-3" -> "3")
-        assign block_parts = block.id | split: '-'
-        assign placeholder_index = block_parts.last | default: 0
-        assign variant = placeholder_index | modulo: 3 | plus: 1
-        assign placeholder_name = 'product-apparel-' | append: variant
-        echo placeholder_name | placeholder_svg_tag
-      endcapture
-      capture placeholder_slide
-        render 'slideshow-slide', index: 1, children: placeholder_image, class: 'product-media-container card-gallery__placeholder'
-      endcapture
-      render 'slideshow', ref: 'slideshow', slides: placeholder_slide, slide_count: 1, attributes: 'disabled="true"'
-    %}
+    <div class="product-card-gallery__coming-soon product-card-gallery__coming-soon--placeholder" aria-hidden="true">
+      <span class="product-card-gallery__coming-soon-inner">
+        <img
+          src="{{ 'favrik_logo.png' | asset_url }}"
+          class="product-card-gallery__coming-soon-logo"
+          alt=""
+          width="56"
+          height="36"
+          loading="lazy"
+        >
+        <span class="product-card-gallery__coming-soon-text">Coming soon</span>
+      </span>
+    </div>
   {%- endif -%}
   {{ children }}
 </div>
@@ -222,6 +230,55 @@
 
   .card-gallery svg {
     aspect-ratio: var(--gallery-aspect-ratio, var(--ratio));
+  }
+
+  .product-card-gallery__coming-soon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    aspect-ratio: var(--gallery-aspect-ratio, 1);
+    background: #4a3728;
+    text-decoration: none;
+    color: #ffffff;
+  }
+
+  .product-card-gallery__coming-soon-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    width: 100%;
+    height: 100%;
+    padding: 1rem;
+    box-sizing: border-box;
+  }
+
+  .product-card-gallery__coming-soon-logo,
+  :is(.product-grid__item, .resource-list__item)
+    .product-card
+    .card-gallery
+    .product-card-gallery__coming-soon-logo {
+    width: 3.5rem !important;
+    max-width: 3.5rem !important;
+    height: auto !important;
+    max-height: 2.25rem !important;
+    object-fit: contain !important;
+    object-position: center !important;
+    filter: brightness(0) invert(1);
+    opacity: 0.95;
+  }
+
+  .product-card-gallery__coming-soon-text {
+    font-family: var(--font-body--family);
+    font-size: 0.5625rem;
+    font-weight: 400;
+    letter-spacing: 0.1em;
+    line-height: 1.2;
+    text-align: center;
+    text-transform: uppercase;
+    color: #ffffff;
   }
 
   .product-card-gallery__title-placeholder {

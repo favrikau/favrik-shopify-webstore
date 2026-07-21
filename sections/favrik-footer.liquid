@@ -57,8 +57,7 @@
     assign contact_url = '/pages/contact'
   endif
 
-  assign logo_height = section.settings.logo_height
-  assign background_color = section.settings.background_color | default: '#f0e8dc'
+  assign background_color = section.settings.background_color | default: '#f3eee7'
   assign text_color = section.settings.text_color | default: '#302118'
   assign muted_color = section.settings.muted_text_color | default: '#8a7268'
 
@@ -76,13 +75,15 @@
     assign legal_email = shop.email
   endif
 
-  assign legal_address = section.settings.address
-  if legal_address == blank and shop.address != blank
-    assign legal_address = shop.address | format_address | strip_html | strip_newlines
+  assign store_address = section.settings.address
+  if store_address == blank and shop.address != blank
+    assign store_address = shop.address | format_address | strip_html | strip_newlines
   endif
-  if legal_address == blank
-    assign legal_address = 'Melbourne, VIC 3000, Australia'
+  if store_address == blank
+    assign store_address = 'Emporium, Lower Ground, Shop 27a/287 Lonsdale St, Melbourne VIC 3000'
   endif
+
+  assign opening_hours = section.settings.opening_hours
 
   assign copyright_name = section.settings.copyright_name
   if copyright_name == blank
@@ -100,28 +101,26 @@
     --favrik-footer-bg: {{ background_color }};
     --favrik-footer-text: {{ text_color }};
     --favrik-footer-muted: {{ muted_color }};
-    --favrik-footer-logo-height: {{ logo_height }}px;
     {% render 'spacing-style', settings: section.settings %}
   "
   data-testid="favrik-footer"
 >
   <div class="favrik-footer__inner">
     <div class="favrik-footer__grid">
-      <div class="favrik-footer__column favrik-footer__column--logo">
-        <a
-          href="{{ routes.root_url }}"
-          class="favrik-footer__logo"
-          aria-label="{{ shop.name | escape }}"
-        >
-          <img
-            src="{{ 'favrik_logo.png' | asset_url }}"
-            class="favrik-footer__logo-image"
-            alt="{{ shop.name | escape }}"
-            width="180"
-            height="{{ logo_height }}"
-            loading="lazy"
-          >
-        </a>
+      <div class="favrik-footer__column favrik-footer__column--info">
+        {% if store_address != blank %}
+          <div class="favrik-footer__info-block">
+            <p class="favrik-footer__info-label">Store address</p>
+            <p class="favrik-footer__info-text">{{ store_address | escape | newline_to_br }}</p>
+          </div>
+        {% endif %}
+
+        {% if opening_hours != blank %}
+          <div class="favrik-footer__info-block">
+            <p class="favrik-footer__info-label">Opening hours</p>
+            <p class="favrik-footer__info-text">{{ opening_hours | escape | newline_to_br }}</p>
+          </div>
+        {% endif %}
       </div>
 
       <nav class="favrik-footer__column" aria-label="Company">
@@ -131,7 +130,16 @@
             <span class="favrik-footer__link-ko" lang="ko">소개</span>
           </li>
           <li class="favrik-footer__link-item">
-            <a href="{{ collections_url }}" class="favrik-footer__link">Catalog</a>
+            <a
+              href="#"
+              class="favrik-footer__link"
+              data-catalog-nav-trigger
+              aria-controls="catalog-nav-drawer"
+              aria-expanded="false"
+              role="button"
+            >
+              Catalog
+            </a>
             <span class="favrik-footer__link-ko" lang="ko">컬렉션</span>
           </li>
           <li class="favrik-footer__link-item">
@@ -180,7 +188,6 @@
           {%- if legal_email != blank -%}
             · <a href="mailto:{{ legal_email | escape }}">{{ legal_email | escape }}</a>
           {%- endif -%}
-          · {{ legal_address | escape }}
           {%- if section.settings.abn != blank -%}
             · ABN {{ section.settings.abn | escape }}
           {%- endif -%}
@@ -242,33 +249,42 @@
     min-width: 0;
   }
 
-  .favrik-footer__column--logo {
+  .favrik-footer__column--info {
     display: flex;
-    justify-content: center;
+    flex-direction: column;
+    gap: 1.25rem;
   }
 
   @media screen and (min-width: 750px) {
-    .favrik-footer__column--logo {
-      justify-content: flex-start;
-    }
-
-    .favrik-footer__column:not(.favrik-footer__column--logo) {
+    .favrik-footer__column:not(.favrik-footer__column--info) {
       padding-top: 0.125rem;
     }
   }
 
-  .favrik-footer__logo {
-    display: block;
-    text-decoration: none;
-    line-height: 0;
+  .favrik-footer__info-block {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
   }
 
-  .favrik-footer__logo-image {
-    display: block;
-    width: auto;
-    height: var(--favrik-footer-logo-height);
-    max-width: min(14rem, 60vw);
-    object-fit: contain;
+  .favrik-footer__info-label {
+    margin: 0;
+    font-family: var(--font-body--family);
+    font-size: var(--font-size--xs);
+    font-weight: var(--font-body--weight);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--favrik-footer-text);
+  }
+
+  .favrik-footer__info-text {
+    margin: 0;
+    font-family: var(--font-body--family);
+    font-size: 0.75rem;
+    font-weight: var(--font-body--weight);
+    letter-spacing: 0.02em;
+    line-height: 1.5;
+    color: var(--favrik-footer-muted);
   }
 
   .favrik-footer__link-list {
@@ -323,7 +339,7 @@
     gap: 1rem;
     width: 100%;
     padding-top: 1.25rem;
-    border-top: 1px solid rgb(48 33 24 / 0.12);
+    border-top: 0.5px solid rgb(48 33 24 / 0.12);
   }
 
   .favrik-footer__credit,
@@ -444,6 +460,24 @@
     },
     {
       "type": "header",
+      "content": "Store details"
+    },
+    {
+      "type": "textarea",
+      "id": "address",
+      "label": "Store address",
+      "default": "Emporium, Lower Ground, Shop 27a/287 Lonsdale St, Melbourne VIC 3000",
+      "info": "Shown in the first footer column. Leave blank to use your store address from Shopify settings."
+    },
+    {
+      "type": "textarea",
+      "id": "opening_hours",
+      "label": "Opening hours",
+      "default": "Mon–Wed, Sat–Sun 11am–7pm\nThu–Fri 11am–8pm",
+      "info": "Shown under the store address. Use a new line for each day or time."
+    },
+    {
+      "type": "header",
       "content": "Legal notice"
     },
     {
@@ -470,13 +504,6 @@
       "id": "email",
       "label": "Email",
       "info": "Leave blank to use your store contact email."
-    },
-    {
-      "type": "textarea",
-      "id": "address",
-      "label": "Business address",
-      "default": "Melbourne, VIC 3000, Australia",
-      "info": "Leave blank to use your store address from Shopify settings."
     },
     {
       "type": "text",
@@ -507,20 +534,10 @@
       "default": "서울에서 영감받은. 일상의 품격"
     },
     {
-      "type": "range",
-      "id": "logo_height",
-      "label": "Logo height",
-      "min": 24,
-      "max": 80,
-      "step": 2,
-      "unit": "px",
-      "default": 56
-    },
-    {
       "type": "color",
       "id": "background_color",
       "label": "t:settings.background_color",
-      "default": "#f0e8dc"
+      "default": "#f3eee7"
     },
     {
       "type": "color",

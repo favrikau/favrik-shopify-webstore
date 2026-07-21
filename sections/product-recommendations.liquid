@@ -6,7 +6,10 @@
 ></script>
 
 {% liquid
-  case section.settings.layout_type
+  assign product_card_layout = section.settings.layout_type | default: 'carousel'
+  assign product_card_carousel_on_mobile = section.settings.carousel_on_mobile
+
+  case product_card_layout
     when 'grid'
       assign classes = 'resource-list--grid'
     when 'carousel'
@@ -22,6 +25,9 @@
     echo '--resource-list-column-gap-desktop: ' | append: section.settings.columns_gap | append: 'px;'
     echo '--column-count: ' | append: section.settings.columns | append: ';'
     echo '--column-count-mobile: ' | append: section.settings.mobile_columns | append: ';'
+    echo '--product-card-columns-desktop: ' | append: section.settings.columns | append: ';'
+    echo '--product-card-columns-tablet: ' | append: section.settings.columns | append: ';'
+    echo '--product-card-columns-mobile: ' | append: section.settings.mobile_columns | append: ';'
   endcapture
 %}
 
@@ -124,39 +130,41 @@
       <div
         class="
           resource-list
-          {% if section.settings.layout_type == 'carousel' %}
+          resource-list--product-cards
+          {% if product_card_layout == 'carousel' %}
             force-full-width
           {% endif %}
-          {% if section.settings.carousel_on_mobile and section.settings.layout_type != 'carousel' %}
+          {% if product_card_carousel_on_mobile and product_card_layout != 'carousel' %}
             hidden--mobile
           {% endif %}
           {{ classes }}
         "
-        {% if section.settings.layout_type == 'grid' %}
+        {% if product_card_layout == 'grid' %}
           data-testid="resource-list-grid"
         {% endif %}
         data-has-recommendations="{{ has_recommendations }}"
       >
-        {% case section.settings.layout_type %}
+        {% case product_card_layout %}
           {% when 'grid' %}
             {{ list_items }}
           {% when 'carousel' %}
             {% render 'resource-list-carousel',
               ref: 'resourceListCarousel',
               slides: slides,
-              slide_count: recommendations.products.size,
+              slide_count: slides.size,
               settings: section.settings
             %}
         {% endcase %}
       </div>
 
-      {% if section.settings.carousel_on_mobile and section.settings.layout_type != 'carousel' %}
+      {% if product_card_carousel_on_mobile and product_card_layout != 'carousel' %}
         {% liquid
           assign mobile_carousel_gap = section.settings.columns_gap
         %}
         <div
           class="
             resource-list
+            resource-list--product-cards
             hidden--desktop
             force-full-width
           "
@@ -175,7 +183,7 @@
       {% endif %}
     {%- else -%}
       <div
-        class="resource-list resource-list--grid"
+        class="resource-list resource-list--grid resource-list--product-cards"
       >
         {% for i in (1..section.settings.columns) %}
           <div
@@ -187,6 +195,102 @@
     {%- endif -%}
   </div>
 </product-recommendations>
+
+{% stylesheet %}
+  /* Match header page-width inset; show exactly 4 cards (no peek). */
+  .product-recommendations {
+    --peek-next-slide-size: 0px;
+    max-width: 100%;
+    overflow-x: clip;
+  }
+
+  .product-recommendations .section,
+  .product-recommendations .resource-list,
+  .product-recommendations .resource-list__carousel,
+  .product-recommendations .resource-list__carousel slideshow-component,
+  .product-recommendations .resource-list__carousel slideshow-container {
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .product-recommendations .section--page-width > .section-resource-list__content,
+  .product-recommendations .section--page-width > .resource-list:not(.force-full-width) {
+    width: 100%;
+  }
+
+  /* More to Explore only: prevent carousel height-stretching from adding
+     empty space between the gallery and the card metadata. */
+  .product-recommendations
+    .resource-list__carousel
+    > slideshow-container
+    > slideshow-slides {
+    align-items: flex-start;
+    /* Keep horizontal scrolling inside the track — never widen the page. */
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+
+  .product-recommendations
+    .resource-list__carousel
+    > slideshow-container
+    > slideshow-slides
+    > .resource-list__slide,
+  .product-recommendations .resource-list__carousel .resource-list__slide > .resource-list__item,
+  .product-recommendations .resource-list__carousel .resource-list__slide > .resource-list__item > product-card,
+  .product-recommendations
+    .resource-list__carousel
+    .resource-list__slide
+    > .resource-list__item
+    > product-card
+    > .product-card__content {
+    height: auto;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .product-recommendations .resource-list__carousel .product-card__meta {
+    flex: 0 0 auto;
+  }
+
+  /* Keep layout gaps collapsed; metadata supplies the intended chip spacing. */
+  .product-recommendations product-card .product-card__content {
+    --gap: 0px;
+    --product-card-gap: 0px;
+    gap: 0 !important;
+    row-gap: 0 !important;
+  }
+
+  .product-recommendations product-card .product-card__content > .card-gallery {
+    margin-block-end: 0;
+  }
+
+  /* More to Explore only: no gap above the color picker. */
+  .product-recommendations product-card .product-card__content > .product-card-color-indicators,
+  .product-recommendations product-card .product-card__meta > .product-card-color-indicators {
+    margin-block-start: 0;
+  }
+
+  /* The carousel adds margin-block: -16px / padding-block: 16px to
+     slideshow-slides for hover-effect clipping, but the descendant selector
+     also hits the nested slideshow inside each card gallery, shrinking the
+     image 32px inside its fixed-ratio box. Reset it for the gallery only. */
+  .product-recommendations .resource-list__carousel .card-gallery slideshow-slides {
+    margin-block: 0;
+    padding-block: 0;
+  }
+
+  /* Avoid negative margins that push cards past the viewport edge. */
+  .product-recommendations .resource-list__item:has(.product-card__content.border-style) {
+    margin-right: 0;
+    margin-bottom: 0;
+  }
+
+  @media screen and (max-width: 749px) {
+    .product-recommendations .resource-list__carousel .resource-list__slide {
+      --slide-width: calc((100% - var(--resource-list-column-gap, 0px)) / 2);
+    }
+  }
+{% endstylesheet %}
 
 {% schema %}
 {
@@ -270,7 +374,7 @@
           "label": "t:options.carousel"
         }
       ],
-      "default": "grid"
+      "default": "carousel"
     },
     {
       "type": "checkbox",
@@ -286,7 +390,7 @@
       "min": 3,
       "max": 10,
       "step": 1,
-      "default": 4
+      "default": 10
     },
     {
       "type": "range",
@@ -322,7 +426,7 @@
       "max": 100,
       "step": 1,
       "unit": "px",
-      "default": 16,
+      "default": 0,
       "visible_if": "{{ section.settings.layout_type == 'grid' or section.settings.layout_type == 'carousel' }}"
     },
     {
@@ -333,7 +437,7 @@
       "max": 100,
       "step": 1,
       "unit": "px",
-      "default": 16,
+      "default": 0,
       "visible_if": "{{ section.settings.layout_type == 'grid' }}"
     },
     {
@@ -459,13 +563,13 @@
       "settings": {
         "product": "{{ closest.product }}",
         "recommendation_type": "related",
-        "layout_type": "grid",
+        "layout_type": "carousel",
         "carousel_on_mobile": false,
-        "max_products": 4,
+        "max_products": 10,
         "columns": 4,
         "mobile_columns": "2",
-        "columns_gap": 12,
-        "rows_gap": 24,
+        "columns_gap": 0,
+        "rows_gap": 0,
         "icons_style": "arrow",
         "icons_shape": "none",
         "section_width": "page-width",
@@ -487,7 +591,16 @@
           "name": "t:names.product_card",
           "static": true,
           "settings": {
-            "product_card_gap": 4
+            "product_card_gap": 4,
+            "border": "solid",
+            "border_width": 1,
+            "border_opacity": 100,
+            "border_color": "#ddd4cb",
+            "border_radius": 0,
+            "padding-block-start": 0,
+            "padding-block-end": 0,
+            "padding-inline-start": 0,
+            "padding-inline-end": 0
           },
           "blocks": {
             "product-card-gallery": {
@@ -509,15 +622,15 @@
               "type": "product-title",
               "name": "t:names.product_title",
               "settings": {
-                "width": "fit-content",
+                "width": "100%",
                 "max_width": "normal",
                 "alignment": "left",
-                "type_preset": "paragraph",
+                "type_preset": "rte",
                 "font": "var(--font-body--family)",
                 "font_size": "1rem",
                 "line_height": "normal",
                 "letter_spacing": "normal",
-                "case": "none",
+                "case": "uppercase",
                 "wrap": "pretty",
                 "background": false,
                 "background_color": "#00000026",

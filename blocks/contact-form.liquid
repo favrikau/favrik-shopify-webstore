@@ -12,7 +12,7 @@
     {% if block.settings.background_color != blank %}background-color: {{ block.settings.background_color }};{% endif %}
     {% if block.settings.input_style == 'custom' %}
       {% render 'input-custom-styles', block_settings: block.settings %}
-      --style-border-width-inputs: {{ block.settings.border_width }}px;
+      --style-border-width-inputs: {% if block.settings.border_width > 0 %}0.5px{% else %}0px{% endif %};
       --style-border-radius-inputs: {{ block.settings.border_radius }}px;
     {% endif %}
   "

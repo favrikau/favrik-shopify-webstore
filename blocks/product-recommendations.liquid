@@ -14,7 +14,9 @@
 
 {% liquid
   assign block_settings = block.settings
-  case block_settings.layout_type
+  assign product_card_layout = 'grid'
+  assign product_card_carousel_on_mobile = false
+  case product_card_layout
     when 'grid'
       assign classes = 'resource-list--grid'
     when 'carousel'
@@ -124,17 +126,18 @@
       <div
         class="
           resource-list
-          {% if block_settings.carousel_on_mobile and block_settings.layout_type != 'carousel' %}
+          resource-list--product-cards
+          {% if product_card_carousel_on_mobile and product_card_layout != 'carousel' %}
             hidden--mobile
           {% endif %}
           {{ classes }}
         "
-        {% if block_settings.layout_type == 'grid' %}
+        {% if product_card_layout == 'grid' %}
           data-testid="resource-list-grid"
         {% endif %}
         data-has-recommendations="{{ has_recommendations }}"
       >
-        {% case block_settings.layout_type %}
+        {% case product_card_layout %}
           {% when 'grid' %}
             {{ list_items }}
           {% when 'carousel' %}
@@ -147,13 +150,14 @@
         {% endcase %}
       </div>
 
-      {% if block_settings.carousel_on_mobile and block_settings.layout_type != 'carousel' %}
+      {% if product_card_carousel_on_mobile and product_card_layout != 'carousel' %}
         {% liquid
           assign mobile_carousel_gap = block_settings.columns_gap
         %}
         <div
           class="
             resource-list
+            resource-list--product-cards
             hidden--desktop
             force-full-width
           "
@@ -168,7 +172,7 @@
         </div>
       {% endif %}
     {%- else -%}
-      <div class="resource-list resource-list--grid">
+      <div class="resource-list resource-list--grid resource-list--product-cards">
         {% for i in (1..block_settings.max_products) %}
           <div
             class="resource-list__item product-recommendations__skeleton-item"
@@ -262,7 +266,7 @@
       "type": "checkbox",
       "id": "carousel_on_mobile",
       "label": "t:settings.carousel_on_mobile",
-      "default": true,
+      "default": false,
       "visible_if": "{{ block.settings.layout_type == 'grid' }}"
     },
     {
@@ -282,7 +286,7 @@
       "max": 100,
       "step": 1,
       "unit": "px",
-      "default": 16,
+      "default": 0,
       "visible_if": "{{ block.settings.layout_type == 'grid' or block.settings.layout_type == 'carousel' }}"
     },
     {
@@ -293,7 +297,7 @@
       "max": 100,
       "step": 1,
       "unit": "px",
-      "default": 16,
+      "default": 0,
       "visible_if": "{{ block.settings.layout_type == 'grid' }}"
     },
     {
@@ -432,6 +436,10 @@
       "category": "t:categories.product",
       "settings": {
         "recommendation_type": "related",
+        "layout_type": "grid",
+        "carousel_on_mobile": false,
+        "columns_gap": 0,
+        "rows_gap": 0,
         "border_radius": 0,
         "padding-inline-start": 0,
         "padding-inline-end": 0
@@ -447,7 +455,16 @@
           "type": "_product-card",
           "static": true,
           "settings": {
-            "product_card_gap": 4
+            "product_card_gap": 4,
+            "border": "solid",
+            "border_width": 1,
+            "border_opacity": 100,
+            "border_color": "#ddd4cb",
+            "border_radius": 0,
+            "padding-block-start": 0,
+            "padding-block-end": 0,
+            "padding-inline-start": 0,
+            "padding-inline-end": 0
           },
           "blocks": {
             "product-card-gallery": {
@@ -468,15 +485,15 @@
               "type": "product-title",
               "name": "t:names.product_title",
               "settings": {
-                "width": "fit-content",
+                "width": "100%",
                 "max_width": "normal",
                 "alignment": "left",
-                "type_preset": "paragraph",
+                "type_preset": "rte",
                 "font": "var(--font-body--family)",
                 "font_size": "1rem",
                 "line_height": "normal",
                 "letter_spacing": "normal",
-                "case": "none",
+                "case": "uppercase",
                 "wrap": "pretty",
                 "background": false,
                 "background_color": "#00000026",

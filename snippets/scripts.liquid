@@ -27,6 +27,7 @@
       "@theme/variant-picker": "{{ 'variant-picker.js' | asset_url }}",
       "@theme/media-gallery": "{{ 'media-gallery.js' | asset_url }}",
       "@theme/quick-add": "{{ 'quick-add.js' | asset_url }}",
+      "@theme/sku-search": "{{ 'sku-search.js' | asset_url }}",
       "@theme/paginated-list-aspect-ratio": "{{ 'paginated-list-aspect-ratio.js' | asset_url }}",
       "@theme/popover-polyfill": "{{ 'popover-polyfill.js' | asset_url }}",
       "@theme/component-quantity-selector": "{{ 'component-quantity-selector.js' | asset_url }}",
@@ -78,6 +79,11 @@
     defer
   ></script>
 {% endif %}
+<script
+  src="{{ 'sku-search.js' | asset_url }}"
+  type="module"
+  fetchpriority="low"
+></script>
 {% if template.name == 'collection' %}
   <script
     src="{{ 'collection-sticky-facets.js' | asset_url }}"

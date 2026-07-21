@@ -84,4 +84,18 @@
     color: var(--color-foreground);
     text-decoration: none;
   }
+
+  /* Product cards use the same responsive track in every resource-list section. */
+  .resource-list--product-cards.resource-list--grid {
+    gap: var(--product-card-grid-gap);
+    grid-template-columns: repeat(var(--product-card-columns-mobile), minmax(0, 1fr));
+
+    @container resource-list (min-width: 700px) {
+      grid-template-columns: repeat(var(--product-card-columns-tablet), minmax(0, 1fr));
+    }
+
+    @container resource-list (min-width: 1000px) {
+      grid-template-columns: repeat(var(--product-card-columns-desktop), minmax(0, 1fr));
+    }
+  }
 {% endstylesheet %}

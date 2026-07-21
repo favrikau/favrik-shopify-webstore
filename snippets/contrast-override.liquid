@@ -133,7 +133,7 @@
         --input-disabled-background-color: rgb({{ effective_text_color_rgb }} / var(--opacity-10));
         --input-disabled-border-color: rgb({{ effective_text_color_rgb }} / var(--opacity-5));
         --input-disabled-text-color: rgb({{ effective_text_color_rgb }} / var(--opacity-50));
-        --checkbox-border: 1px solid rgb({{ effective_text_color_rgb }} / var(--opacity-35-55));
+        --checkbox-border: 0.5px solid rgb({{ effective_text_color_rgb }} / var(--opacity-35-55));
       }
     {% endunless %}
 
@@ -174,7 +174,7 @@
       --input-disabled-background-color: rgb({{ text_color.rgb }} / var(--opacity-10));
       --input-disabled-border-color: rgb({{ text_color.rgb }} / var(--opacity-5));
       --input-disabled-text-color: rgb({{ text_color.rgb }} / var(--opacity-50));
-      --checkbox-border: 1px solid rgb({{ text_color.rgb }} / var(--opacity-35-55));
+      --checkbox-border: 0.5px solid rgb({{ text_color.rgb }} / var(--opacity-35-55));
     }
 
     {% if preset == 'ui' %}

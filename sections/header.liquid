@@ -389,37 +389,6 @@
   {%- if request.page_type == 'index' -%}
     <h1 class="visually-hidden">{{ shop.name }}</h1>
   {%- endif -%}
-  {% if template.name == 'collection' %}
-    <button
-      type="button"
-      class="header-collection-expand button-unstyled"
-      data-collection-header-expand
-      aria-label="Expand header"
-    >
-      <span class="header-collection-expand__marquee" aria-hidden="true">
-        <span>새로운 계절의 데일리 스타일</span>
-        <span>편안한 실루엣과 차분한 색감</span>
-        <span>오늘을 위한 자연스러운 룩</span>
-        <span>부드러운 톤의 에브리데이 웨어</span>
-        <span>가볍게 입는 감각적인 스타일</span>
-        <span>계절을 닮은 은은한 무드</span>
-        <span>일상 속 작은 취향을 담아</span>
-        <span>천천히 고르는 나만의 컬렉션</span>
-        <span>새로운 계절의 데일리 스타일</span>
-        <span>편안한 실루엣과 차분한 색감</span>
-        <span>오늘을 위한 자연스러운 룩</span>
-        <span>부드러운 톤의 에브리데이 웨어</span>
-        <span>가볍게 입는 감각적인 스타일</span>
-        <span>계절을 닮은 은은한 무드</span>
-        <span>일상 속 작은 취향을 담아</span>
-        <span>천천히 고르는 나만의 컬렉션</span>
-      </span>
-      <span class="header-collection-expand__label">
-        <span>Expand</span>
-        <span class="header-collection-expand__icon" aria-hidden="true">+</span>
-      </span>
-    </button>
-  {% endif %}
   {% for row in rows %}
     {% liquid
       assign background = 'background_color_' | append: row
@@ -452,7 +421,11 @@
           assign border_bottom_color_setting_id = 'bottom_border_color'
       endcase
 
-      assign style = '--border-bottom-width: [width]px; ' | replace: '[width]', section.settings[border_bottom_setting_id]
+      assign border_bottom_px = 0
+      if section.settings[border_bottom_setting_id] > 0
+        assign border_bottom_px = 0.5
+      endif
+      assign style = '--border-bottom-width: [width]px; ' | replace: '[width]', border_bottom_px
 
       assign border_bottom_color_value = section.settings[border_bottom_color_setting_id]
       if border_bottom_color_value != blank
@@ -462,7 +435,11 @@
       if row == 'top'
         assign custom_color_styles = true
         assign class = class | append: row_class
-        assign style = style | append: '--border-bottom-width-mobile: [width]px; ' | replace: '[width]', section.settings.border_width
+        assign border_bottom_mobile_px = 0
+        if section.settings.border_width > 0
+          assign border_bottom_mobile_px = 0.5
+        endif
+        assign style = style | append: '--border-bottom-width-mobile: [width]px; ' | replace: '[width]', border_bottom_mobile_px
 
         assign mobile_border_color = section.settings.bottom_border_color | default: 'var(--color-border)'
         assign style = style | append: '--border-bottom-color-mobile: [color]; ' | replace: '[color]', mobile_border_color
@@ -533,11 +510,30 @@
     --font-paragraph--line-height: 1;
     --header-content-transition-timing: 0s;
     --closed-underlay-blur: 0;
+    --closed-underlay-opacity: 1;
+    --closed-underlay-background: #f3eee7;
     --header-link-hover-transition: 0.4s var(--ease-out-cubic);
+    --color-foreground: #302118;
+    --color-foreground-rgb: 48 33 24;
+    --color-border: #302118;
+    --color-border-rgb: 48 33 24;
+    --color-primary-button-background: #302118;
+    --color-primary-button-text: #f3eee7;
+    --color-account-icon: #302118;
+    --button-color: #302118;
+    --menu-top-level-font-weight: 300;
+    --menu-parent-font-weight: 300;
+    --menu-child-font-weight: 300;
+    --header-actions-font-weight: 300;
+    --icon-stroke-width: 1px;
+    font-weight: 300;
 
     display: block;
     contain: layout style;
-    background: transparent;
+    background: #f3eee7;
+    border-bottom: 0;
+    /* Hairline flush to the bottom edge — avoids the subpixel cream gap border-bottom can leave */
+    box-shadow: 0 0.5px 0 rgb(48 33 24 / 0.18);
 
     a,
     .button,
@@ -546,6 +542,29 @@
       /* reset style from base.css */
       transition: color var(--header-content-transition-timing), border-color var(--header-content-transition-timing);
     }
+  }
+
+  #header-component,
+  #header-component :is(
+    .menu-list__link,
+    .menu-list__link-title,
+    .menu-list__bold-hover-label,
+    .menu-list__item,
+    .header-actions__action,
+    .header-actions__text-style,
+    .account-button__text,
+    .dropdown-localization__button,
+    .search-action,
+    .header-logo,
+    .header-sku-search__input,
+    .facets__sku-search-input,
+    .cart-bubble__text
+  ) {
+    font-weight: 300;
+  }
+
+  #header-component :is(svg, .svg-wrapper svg, .account-button__icon) {
+    stroke-width: 1px;
   }
 
   #header-component :is(.header-menu, .dropdown-localization) {
@@ -675,23 +694,38 @@
     --color-primary-button-text: inherit;
   }
 
-  /* Non-transparent pages: keep header colors stable on hover/focus */
+  /* Static header: always beige background with dark text */
   .header:not([transparent]) .header__row,
-  .header:not([transparent]):is(:hover, :focus-within) .header__row {
-    --color-foreground: #ffffff;
-    --color-foreground-rgb: 255 255 255;
-    --color-border: #ffffff;
-    --color-border-rgb: 255 255 255;
-    --color-primary-button-background: #ffffff;
+  .header:not([transparent]):is(:hover, :focus-within) .header__row,
+  .header .header__row {
+    --color-foreground: #302118;
+    --color-foreground-rgb: 48 33 24;
+    --color-border: #302118;
+    --color-border-rgb: 48 33 24;
+    --color-primary-button-background: #302118;
+    --color-primary-button-text: #f3eee7;
+    --color-account-icon: #302118;
   }
 
   .header:not([transparent]) {
     --closed-underlay-opacity: 1;
+    --closed-underlay-blur: 0;
+    --closed-underlay-background: #f3eee7;
   }
 
   .header:not([transparent]) :is(.header__underlay-open, .header__underlay-closed) {
-    --color-background-top-row: var(--closed-underlay-background);
-    --color-background-bottom-row: var(--closed-underlay-background);
+    --color-background-top-row: #f3eee7;
+    --color-background-bottom-row: #f3eee7;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  .header-section,
+  #header-component,
+  .header {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
   }
 
   .header-section {
@@ -724,7 +758,7 @@
   }
 
   .header[data-sticky-state='active'] {
-    --closed-underlay-blur: 6px;
+    --closed-underlay-blur: 0;
     view-transition-name: none;
   }
 
@@ -736,15 +770,6 @@
 
   .header[data-sticky-state='idle'] {
     opacity: 1;
-  }
-
-  .header .header__row {
-    --color-foreground: #ffffff;
-    --color-foreground-rgb: 255 255 255;
-    --color-border: #ffffff;
-    --color-border-rgb: 255 255 255;
-    --color-primary-button-background: #ffffff;
-    --color-primary-button-text: var(--color-transparent-text-contrast, var(--palette-darkest));
   }
 
   .header[data-sticky-state][data-scroll-direction='down'] {
@@ -775,26 +800,18 @@
 
   .header__underlay-closed {
     height: var(--closed-underlay-height, 100%);
-    opacity: var(--closed-underlay-opacity, 1);
-    backdrop-filter: blur(var(--closed-underlay-blur, 0));
-    -webkit-backdrop-filter: blur(var(--closed-underlay-blur, 0));
+    opacity: 1;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
     z-index: var(--layer-lowest);
-    background: linear-gradient(
-      var(--color-background-top-row) 0 var(--top-row-height),
-      var(--color-background-bottom-row) var(--top-row-height) var(--header-height)
-    );
-    transition: opacity var(--animation-speed-slow) var(--ease-out-cubic);
+    background: #f3eee7;
+    transition: none;
   }
 
   .header__underlay-open {
     height: var(--full-open-header-height);
-    background: linear-gradient(
-      var(--color-background-top-row) 0 var(--top-row-height),
-      var(--color-background-bottom-row) var(--top-row-height) var(--header-height),
-      var(--color-submenu) var(--header-height) 100%
-    );
-    /* header-height is updated via js, the transition works automagically */
-    transition: height var(--submenu-animation-speed) var(--ease-out-cubic);
+    background: #f3eee7;
+    transition: none;
   }
 
   .header__underlay-open::after {
@@ -803,7 +820,7 @@
     inset: 0;
     box-shadow: none;
     clip-path: inset(var(--header-height) 0 -100px 0); /* stylelint-disable-line */
-    transition: height var(--submenu-animation-speed) var(--ease-out-cubic);
+    transition: none;
   }
 
   /* Transparent header only: swap underlay to solid background on hover/focus */
@@ -923,31 +940,17 @@
   }
 
   .header-scroll-search {
-    display: none;
+    display: none !important;
   }
 
   @media screen and (min-width: 990px) {
     .header-scroll-search {
-      display: block;
-      width: clamp(11rem, 18vw, 17rem);
-      max-width: 0;
-      opacity: 0;
-      overflow: hidden;
-      pointer-events: none;
-      transform: translateX(-0.6rem) scale(0.98);
-      transform-origin: left center;
-      transition:
-        max-width 0.38s var(--ease-out-cubic, ease),
-        opacity 0.24s var(--ease-out-cubic, ease),
-        transform 0.38s var(--ease-out-cubic, ease);
+      display: none !important;
     }
 
     #header-component[data-scroll-direction='down'] .header-scroll-search,
     #header-component[data-sticky-state='active'] .header-scroll-search {
-      max-width: clamp(11rem, 18vw, 17rem);
-      opacity: 1;
-      pointer-events: auto;
-      transform: translateX(0) scale(1);
+      display: none !important;
     }
   }
 
@@ -1128,11 +1131,16 @@
 
   /* Header action button styles */
   .header-actions__action {
-    --button-color: #ffffff;
+    --button-color: #302118;
     color: var(--button-color);
     cursor: pointer;
     display: flex;
     justify-content: center;
+    text-transform: uppercase;
+  }
+
+  #header-component :is(.header-menu, .dropdown-localization, header-actions, .search-action) {
+    text-transform: uppercase;
   }
 
   .header-actions__action:not(.account-button) .svg-wrapper {
@@ -1153,142 +1161,10 @@
     --header-padding: 4px;
   }
 
-  .header-collection-expand {
-    display: none;
-  }
-
-  #header-component[data-collection-facets-affixed]:not([data-collection-header-expanded]) {
-    min-height: 24px;
-    background: rgb(48 33 24 / 0.34);
-    backdrop-filter: blur(6px);
-    -webkit-backdrop-filter: blur(6px);
-    box-shadow: 0 1px 0 rgb(255 247 236 / 0.08);
-  }
-
-  #header-component[data-collection-facets-affixed]:not([data-collection-header-expanded]) :is(.header__underlay, .header__row, .header__navigation-bar-row) {
-    display: none;
-  }
-
-  #header-component[data-collection-facets-affixed]:not([data-collection-header-expanded]) .header-collection-expand {
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 24px;
-    width: 100%;
-    padding: 0.2rem var(--padding-lg);
-    color: #ffffff;
-    font-family: var(--font-body--family);
-    font-size: clamp(0.625rem, 0.59rem + 0.12vw, 0.72rem);
-    line-height: 1;
-    letter-spacing: 0.04em;
-    text-align: center;
-    text-transform: none;
-    cursor: pointer;
-    overflow: hidden;
-  }
-
-  .header-collection-expand__marquee {
-    position: absolute;
-    inset-block: 0;
-    left: 0;
-    z-index: 1;
-    display: flex;
-    align-items: center;
-    justify-content: space-around;
-    gap: 0;
-    width: 200%;
-    color: rgb(255 255 255 / 0.36);
-    font-size: 0.9em;
-    letter-spacing: 0.04em;
-    white-space: nowrap;
-    pointer-events: none;
-    animation: header-collection-expand-marquee 72s linear infinite;
-    -webkit-mask-image: linear-gradient(
-      to right,
-      #000 0,
-      #000 calc(50% - 6rem),
-      transparent calc(50% - 2.8rem),
-      transparent calc(50% + 2.8rem),
-      #000 calc(50% + 6rem),
-      #000 100%
-    );
-    mask-image: linear-gradient(
-      to right,
-      #000 0,
-      #000 calc(50% - 6rem),
-      transparent calc(50% - 2.8rem),
-      transparent calc(50% + 2.8rem),
-      #000 calc(50% + 6rem),
-      #000 100%
-    );
-  }
-
-  .header-collection-expand__marquee span {
-    position: relative;
-    flex: 0 0 calc(100% / 16);
-    padding-inline: 0.28rem 0.95rem;
-    text-align: center;
-  }
-
-  .header-collection-expand__marquee span::after {
-    content: '•';
-    position: absolute;
-    right: 0.18rem;
-    top: 50%;
-    color: rgb(255 255 255 / 0.42);
-    transform: translateY(-50%);
-  }
-
-  .header-collection-expand__label {
-    position: relative;
-    z-index: 2;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.28rem;
-    padding-inline: 1.1rem;
-  }
-
-  .header-collection-expand__label::before {
-    content: '';
-    position: absolute;
-    inset: -0.3rem -1.45rem;
-    z-index: -1;
-    background: transparent;
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    -webkit-mask-image: linear-gradient(to right, transparent, #000 28%, #000 72%, transparent);
-    mask-image: linear-gradient(to right, transparent, #000 28%, #000 72%, transparent);
-    pointer-events: none;
-  }
-
-  .header-collection-expand__icon {
-    display: inline-block;
-    font-size: 1.1em;
-    line-height: 0.8;
-    transform: translateY(-0.02em);
-  }
-
-  @keyframes header-collection-expand-marquee {
-    from {
-      transform: translateX(0);
-    }
-
-    to {
-      transform: translateX(-50%);
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .header-collection-expand__marquee {
-      animation: none;
-      transform: translateX(0);
-    }
-  }
-
-  #header-component[data-collection-facets-affixed]:not([data-collection-header-expanded]) .header-collection-expand:hover,
-  #header-component[data-collection-facets-affixed]:not([data-collection-header-expanded]) .header-collection-expand:focus-visible {
-    color: rgb(255 255 255 / 0.84);
+  /* Affixed compact header disabled for now — never show, even when rested. */
+  .header-collection-expand,
+  #header-component[data-collection-facets-affixed] .header-collection-expand {
+    display: none !important;
   }
 
   .header__columns {

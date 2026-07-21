@@ -1,0 +1,45 @@
+{%- doc -%}
+  Displays the most relevant collection associated with a product.
+
+  @param {product} product - Product whose collection should be displayed.
+{%- enddoc -%}
+
+{%- liquid
+  assign product_collection = collection
+
+  if product_collection.handle == 'all' or product_collection.handle == 'frontpage'
+    assign product_collection = blank
+  endif
+
+  if product_collection == blank
+    assign preferred_handles = 'fw2026,on-sale' | split: ','
+
+    for preferred_handle in preferred_handles
+      for associated_collection in product.collections
+        if associated_collection.handle == preferred_handle
+          assign product_collection = associated_collection
+          break
+        endif
+      endfor
+
+      if product_collection != blank
+        break
+      endif
+    endfor
+  endif
+
+  if product_collection == blank
+    for associated_collection in product.collections
+      unless associated_collection.handle == 'all' or associated_collection.handle == 'frontpage'
+        assign product_collection = associated_collection
+        break
+      endunless
+    endfor
+  endif
+-%}
+
+{%- if product_collection != blank -%}
+  <a class="product-price__collection" href="{{ product_collection.url }}">
+    {{- product_collection.title | escape -}}
+  </a>
+{%- endif -%}

@@ -49,19 +49,40 @@
   /* Container styles */
   .product-details {
     display: flex;
-    align-self: start;
-    justify-content: center;
+    align-self: stretch;
+    justify-content: stretch;
+    width: 100%;
+    min-width: 0;
+    padding: 0;
+  }
+
+  .product-details > .group-block {
+    width: 100%;
+    max-width: none;
+    padding: 0;
   }
 
   @media screen and (min-width: 750px) {
-    .product-details > .group-block {
-      height: min-content;
+    /* Independent pane scrolling replaces sticky details. */
+    .product-information__grid:not(.product-information--media-none) .product-details.sticky-content--desktop,
+    .product-information__grid:not(.product-information--media-none)
+      .product-details.sticky-content--desktop
+      > .group-block {
+      position: static;
+      top: auto;
+    }
+
+    /* Pane scrolling is owned by product-information-content; keep content filling the pane. */
+    .product-information__grid:not(.product-information--media-none) .product-details > .group-block,
+    .product-information__grid:not(.product-information--media-none) .product-details > .group-block > .group-block-content {
+      height: auto;
+      min-height: 100%;
     }
 
     .full-height--desktop {
       height: 100%;
-      max-height: calc(100vh - var(--header-group-height, 0));
-      min-height: fit-content;
+      max-height: 100%;
+      min-height: 0;
     }
 
     .full-height--desktop .group-block {

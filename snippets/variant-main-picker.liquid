@@ -57,6 +57,15 @@
         {%- liquid
           assign swatch_count = product_option.values | map: 'swatch' | compact | size
           assign variant_style = block_settings.variant_style
+          assign option_name_downcase = product_option.name | downcase
+          assign is_color_option = false
+          assign is_size_option = false
+          if option_name_downcase contains 'color' or option_name_downcase contains 'colour' or option_name_downcase contains '컬러' or option_name_downcase contains '색상'
+            assign is_color_option = true
+          endif
+          if option_name_downcase contains 'size' or option_name_downcase contains '사이즈'
+            assign is_size_option = true
+          endif
 
           if swatch_count > 0 and block_settings.show_swatches
             if block_settings.variant_style == 'dropdown'
@@ -73,30 +82,23 @@
           endif
         -%}
 
-        {%- if product_option.values.size == 1 and variant_style != 'swatch' -%}
-          <div
-            class="variant-option"
-            data-testid="variant-option-single"
-          >
-            {{- product_option.name | escape -}}
-            <span
-              class="variant-option__swatch-value"
-              data-testid="variant-option-single-value"
-            >
-              {{- product_option.selected_value -}}
-            </span>
-          </div>
+        {%- if product_option.values.size == 1 and variant_style != 'swatch' and is_color_option == false -%}
+          {%- comment -%}Single-value non-color options do not require a picker.{%- endcomment -%}
         {%- elsif variant_style == 'swatch' or block_settings.variant_style == 'buttons' -%}
           <fieldset
-            class="variant-option variant-option--buttons{% if variant_style == 'swatch' %} variant-option--swatches{% else %} variant-option--{{ settings.variant_button_width }}{% endif %}"
+            class="variant-option variant-option--buttons{% if is_color_option %} variant-option--color{% endif %}{% if is_size_option %} variant-option--size{% endif %}{% if variant_style == 'swatch' %} variant-option--swatches{% else %} variant-option--{{ settings.variant_button_width }}{% endif %}"
             data-fieldset-index="{{ fieldset_index }}"
             ref="fieldsets[]"
             {{ option_id_attribute }}
           >
-            <legend class="visually-hidden">
-              {{ product_option.name | escape -}}
-              {%- if variant_style == 'swatch' -%}
+            <legend class="{% if variant_style == 'swatch' and is_color_option == false %}visually-hidden{% else %}variant-option__label{% endif %}">
+              {%- if is_color_option -%}
+                COLOR
+              {%- elsif variant_style == 'swatch' -%}
+                {{ product_option.name | escape -}}
                 <span class="variant-option__swatch-value">{{ product_option.selected_value }}</span>
+              {%- else -%}
+                {{- product_option.name | upcase | escape -}}
               {%- endif %}
             </legend>
             {%- for product_option_value in product_option.values -%}
@@ -104,7 +106,7 @@
                 {% assign longest_value = product_option_value.size %}
               {% endif %}
               <label
-                class="variant-option__button-label{% if variant_style == 'swatch' %} variant-option__button-label--has-swatch{% endif %}"
+                class="variant-option__button-label{% if is_color_option %} variant-option__button-label--color{% endif %}{% if is_size_option %} variant-option__button-label--size{% endif %}{% if variant_style == 'swatch' %} variant-option__button-label--has-swatch{% endif %}{% if product_option_value.available == false %} variant-option__button-label--unavailable{% endif %}"
               >
                 <input
                   type="radio"
@@ -113,6 +115,9 @@
                   aria-label="{{ product_option_value.name | escape }}{% if product_option_value.available == false %} - {{ 'products.product.sold_out' | t }}{% endif %}"
                   {% if product_option_value.available == false %}
                     aria-disabled="true"
+                    {% if is_color_option %}
+                      disabled
+                    {% endif %}
                   {% endif %}
                   data-previous-checked="false"
                   data-fieldset-index="{{ fieldset_index }}"
@@ -153,6 +158,12 @@
                     {% render 'product-color-from-name', color_name: product_option_value.name %}
                   {% endcapture %}
                   {% assign variant_chip_color = variant_chip_color | strip %}
+                  {% if variant_chip_color == blank and product_option_value.swatch.color != blank %}
+                    {% assign variant_chip_color = product_option_value.swatch.color %}
+                  {% endif %}
+                  {% if variant_chip_color == blank and is_color_option %}
+                    {% assign variant_chip_color = '#d8d0c7' %}
+                  {% endif %}
                   {% if variant_chip_color != blank %}
                     <span
                       class="variant-option__color-chip{% if variant_chip_color == '#f4f1ea' or variant_chip_color == '#c9c9c9' or variant_chip_color == '#9eb5d4' %} variant-option__color-chip--light{% endif %}"
@@ -160,7 +171,7 @@
                       aria-hidden="true"
                     ></span>
                   {% endif %}
-                  {% if product_option_value.available == true %}
+                  {% if product_option_value.available == true and is_color_option == false and is_size_option == false %}
                     <span
                       class="variant-option__button-label__pill"
                       data-key="variant-option-pill"
@@ -173,7 +184,9 @@
                     {{- product_option_value | escape -}}
                   </span>
                 {% endif %}
-                {% render 'strikethrough-variant', product_option: product_option_value %}
+                {% unless is_color_option and product_option_value.available == false %}
+                  {% render 'strikethrough-variant', product_option: product_option_value %}
+                {% endunless %}
               </label>
             {%- endfor -%}
             {% if option_id_attribute %}

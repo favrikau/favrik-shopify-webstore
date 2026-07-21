@@ -253,15 +253,6 @@ class HeaderComponent extends Component {
     });
   };
 
-  #handleCollectionHeaderExpand = (event) => {
-    const target = event.target;
-    if (!(target instanceof HTMLElement)) return;
-    if (!target.closest('[data-collection-header-expand]')) return;
-
-    this.dataset.collectionHeaderExpanded = 'true';
-    window.dispatchEvent(new CustomEvent('collection:header-expanded'));
-  };
-
   #updateScrollState = () => {
     const stickyMode = this.getAttribute('sticky');
     if (!this.#offscreen && stickyMode !== 'always') return;
@@ -328,7 +319,6 @@ class HeaderComponent extends Component {
     super.connectedCallback();
     this.#resizeObserver.observe(this);
     this.addEventListener('overflowMinimum', this.#handleOverflowMinimum);
-    this.addEventListener('click', this.#handleCollectionHeaderExpand);
 
     const stickyMode = this.getAttribute('sticky');
     if (stickyMode) {
@@ -348,7 +338,6 @@ class HeaderComponent extends Component {
     this.#resizeObserver.disconnect();
     this.#intersectionObserver?.disconnect();
     this.removeEventListener('overflowMinimum', this.#handleOverflowMinimum);
-    this.removeEventListener('click', this.#handleCollectionHeaderExpand);
     scrollContainerMediaQuery.removeEventListener('change', this.#handleBreakpointChange);
     this.#scrollContainer?.removeEventListener('scroll', this.#handleWindowScroll);
     this.#scrollContainer = null;

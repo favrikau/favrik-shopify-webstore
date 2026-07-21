@@ -1,9 +1,9 @@
 {%- doc -%}
-  Bilingual section heading — English left, Korean right.
+  Bilingual section heading — English left, Korean right (when provided).
   Typography matches homepage collection titles (Poppins + Nanum Gothic).
 
   @param {string} heading_en - English heading text
-  @param {string} heading_ko - Korean heading text
+  @param {string} [heading_ko] - Optional Korean heading text
   @param {string} [color] - Text color, defaults to #302118
 {%- enddoc -%}
 
@@ -16,5 +16,7 @@
   style="--favrik-bilingual-heading-color: {{ heading_color }};"
 >
   <p class="favrik-bilingual-heading__en">{{ heading_en | escape }}</p>
-  <p class="favrik-bilingual-heading__ko">{{ heading_ko | escape }}</p>
+  {% if heading_ko != blank %}
+    <p class="favrik-bilingual-heading__ko">{{ heading_ko | escape }}</p>
+  {% endif %}
 </div>

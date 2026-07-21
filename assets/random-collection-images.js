@@ -26,9 +26,21 @@ const randomImagePools = document.querySelectorAll('[data-random-collection-imag
 
 randomImagePools.forEach((pool) => {
   const images = [...pool.querySelectorAll('.resource-image__random-image')];
-  if (images.length < 2) return;
+  if (images.length < 2) {
+    images[0]?.classList.add('is-active');
+    return;
+  }
 
-  const activeImage = images[Math.floor(Math.random() * images.length)];
+  const preferLandscape = pool.getAttribute('data-prefer-landscape') === 'true';
+  const landscapeImages = preferLandscape
+    ? images.filter((image) => {
+        const aspect = Number.parseFloat(image.getAttribute('data-image-aspect') ?? '');
+        return Number.isFinite(aspect) && aspect >= 1.2;
+      })
+    : [];
+
+  const poolImages = landscapeImages.length > 0 ? landscapeImages : images;
+  const activeImage = poolImages[Math.floor(Math.random() * poolImages.length)];
 
   images.forEach((image) => image.classList.remove('is-active'));
   activeImage.classList.add('is-active');
@@ -38,8 +50,48 @@ randomImagePools.forEach((pool) => {
  * @param {unknown[]} array
  */
 function shuffleArray(array) {
-  return [...array].sort(() => Math.random() - 0.5);
+  const shuffled = [...array];
+
+  for (let index = shuffled.length - 1; index > 0; index -= 1) {
+    const randomIndex = Math.floor(Math.random() * (index + 1));
+    [shuffled[index], shuffled[randomIndex]] = [shuffled[randomIndex], shuffled[index]];
+  }
+
+  return shuffled;
 }
+
+/**
+ * Randomly selects the visible cards in homepage product lists marked as random.
+ * The first configured set remains visible as a no-JavaScript fallback.
+ *
+ * @param {Document | Element} root
+ */
+function initRandomProductLists(root = document) {
+  const lists = [
+    ...(root instanceof Element && root.matches('[data-random-product-list]') ? [root] : []),
+    ...root.querySelectorAll('[data-random-product-list]'),
+  ];
+
+  lists.forEach((list) => {
+    if (!(list instanceof HTMLElement) || list.dataset.randomProductsInitialized === 'true') return;
+
+    const cards = [...list.querySelectorAll('[data-random-product-card]')];
+    const requestedLimit = Number.parseInt(list.dataset.randomProductLimit ?? '8', 10);
+    const limit = Number.isFinite(requestedLimit) ? Math.max(1, requestedLimit) : 8;
+    const selectedCards = new Set(shuffleArray(cards).slice(0, limit));
+
+    cards.forEach((card) => {
+      card.toggleAttribute('hidden', !selectedCards.has(card));
+    });
+
+    list.dataset.randomProductsInitialized = 'true';
+  });
+}
+
+initRandomProductLists();
+document.addEventListener('shopify:section:load', (event) => {
+  if (event.target instanceof Element) initRandomProductLists(event.target);
+});
 
 /** @type {Set<string>} */
 const usedProductUrls = new Set();

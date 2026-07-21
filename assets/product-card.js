@@ -136,7 +136,8 @@ export class ProductCard extends ProductCardLink {
   };
 
   /**
-   * Groups title, price, and color chips into a single footer block below the gallery.
+   * Groups title and price into a footer below the gallery.
+   * Color bars sit between the gallery and meta so they stay flush under the image.
    */
   #organizeMetaFooter() {
     const content = this.querySelector('.product-card__content');
@@ -157,7 +158,12 @@ export class ProductCard extends ProductCardLink {
 
     if (meta.childElementCount === 0) return;
 
+    const colorIndicators = meta.querySelector('.product-card-color-indicators');
     content.appendChild(meta);
+
+    if (colorIndicators instanceof HTMLElement) {
+      content.insertBefore(colorIndicators, meta);
+    }
   }
 
   /**

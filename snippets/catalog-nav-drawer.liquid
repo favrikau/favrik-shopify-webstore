@@ -1,0 +1,326 @@
+{% doc %}
+  Catalog overlay — blur backdrop with white category links on the left
+  (same visual language as the header search overlay).
+{% enddoc %}
+
+{% liquid
+  assign catalog_menu = linklists['catalog-nav']
+  if catalog_menu == blank or catalog_menu.links.size == 0
+    assign catalog_menu = linklists['catalog']
+  endif
+
+  # Prefer child links under the Catalog item in the main menu
+  if catalog_menu == blank or catalog_menu.links.size == 0
+    assign main_menu = linklists['main-menu']
+    if main_menu != blank
+      for link in main_menu.links
+        assign link_title_downcase = link.title | strip | downcase
+        if link.handle == 'catalog' or link_title_downcase == 'catalog' or link.url contains '/collections/all'
+          if link.links.size > 0
+            assign catalog_menu = link
+            break
+          endif
+        endif
+      endfor
+    endif
+  endif
+
+  assign all_url = routes.all_products_collection_url
+  assign current_handle = collection.handle | default: ''
+%}
+
+<div
+  class="catalog-nav-drawer__backdrop"
+  data-catalog-nav-backdrop
+  hidden
+  aria-hidden="true"
+></div>
+
+<aside
+  class="catalog-nav-drawer"
+  id="catalog-nav-drawer"
+  data-catalog-nav-drawer
+  hidden
+  aria-hidden="true"
+>
+  <nav class="catalog-nav-drawer__panel" aria-label="Catalog">
+    <ul class="catalog-nav-drawer__list list-unstyled">
+      {% if catalog_menu != blank and catalog_menu.links.size > 0 %}
+        {% for link in catalog_menu.links %}
+          {% liquid
+            assign link_title_upcase = link.title | strip | upcase
+            assign is_active = false
+            if link.current or link.active
+              assign is_active = true
+            elsif link.url contains '/collections/all' and current_handle == 'all'
+              assign is_active = true
+            endif
+          %}
+          <li>
+            <a
+              href="{{ link.url }}"
+              class="catalog-nav-drawer__link{% if is_active %} catalog-nav-drawer__link--active{% endif %}"
+              {% if is_active %}
+                aria-current="page"
+              {% endif %}
+            >
+              {{ link_title_upcase }}
+            </a>
+          </li>
+        {% endfor %}
+      {% else %}
+        {% liquid
+          assign signature_collection = collections['signature']
+          assign outer_collection = collections['outer']
+          assign top_collection = collections['top']
+          assign bottom_collection = collections['bottom']
+          assign dress_collection = collections['dress']
+          assign bag_shoes_collection = collections['bag-shoes']
+          if bag_shoes_collection == blank
+            assign bag_shoes_collection = collections['bags-shoes']
+          endif
+          if bag_shoes_collection == blank
+            assign bag_shoes_collection = collections['bag-and-shoes']
+          endif
+          if bag_shoes_collection == blank
+            assign bag_shoes_collection = collections['bags-and-shoes']
+          endif
+          assign acc_collection = collections['acc']
+          if acc_collection == blank
+            assign acc_collection = collections['accessories']
+          endif
+          assign homme_collection = collections['homme']
+        %}
+
+        {% if signature_collection != blank %}
+          <li>
+            <a
+              href="{{ signature_collection.url }}"
+              class="catalog-nav-drawer__link{% if current_handle == signature_collection.handle %} catalog-nav-drawer__link--active{% endif %}"
+              {% if current_handle == signature_collection.handle %}aria-current="page"{% endif %}
+            >
+              SIGNATURE
+            </a>
+          </li>
+        {% endif %}
+
+        <li>
+          <a
+            href="{{ all_url }}"
+            class="catalog-nav-drawer__link{% if current_handle == 'all' %} catalog-nav-drawer__link--active{% endif %}"
+            {% if current_handle == 'all' %}aria-current="page"{% endif %}
+          >
+            VIEW ALL
+          </a>
+        </li>
+
+        {% if outer_collection != blank %}
+          <li>
+            <a
+              href="{{ outer_collection.url }}"
+              class="catalog-nav-drawer__link{% if current_handle == outer_collection.handle %} catalog-nav-drawer__link--active{% endif %}"
+              {% if current_handle == outer_collection.handle %}aria-current="page"{% endif %}
+            >
+              OUTER
+            </a>
+          </li>
+        {% endif %}
+
+        {% if top_collection != blank %}
+          <li>
+            <a
+              href="{{ top_collection.url }}"
+              class="catalog-nav-drawer__link{% if current_handle == top_collection.handle %} catalog-nav-drawer__link--active{% endif %}"
+              {% if current_handle == top_collection.handle %}aria-current="page"{% endif %}
+            >
+              TOP
+            </a>
+          </li>
+        {% endif %}
+
+        {% if bottom_collection != blank %}
+          <li>
+            <a
+              href="{{ bottom_collection.url }}"
+              class="catalog-nav-drawer__link{% if current_handle == bottom_collection.handle %} catalog-nav-drawer__link--active{% endif %}"
+              {% if current_handle == bottom_collection.handle %}aria-current="page"{% endif %}
+            >
+              BOTTOM
+            </a>
+          </li>
+        {% endif %}
+
+        {% if dress_collection != blank %}
+          <li>
+            <a
+              href="{{ dress_collection.url }}"
+              class="catalog-nav-drawer__link{% if current_handle == dress_collection.handle %} catalog-nav-drawer__link--active{% endif %}"
+              {% if current_handle == dress_collection.handle %}aria-current="page"{% endif %}
+            >
+              DRESS
+            </a>
+          </li>
+        {% endif %}
+
+        {% if bag_shoes_collection != blank %}
+          <li>
+            <a
+              href="{{ bag_shoes_collection.url }}"
+              class="catalog-nav-drawer__link{% if current_handle == bag_shoes_collection.handle %} catalog-nav-drawer__link--active{% endif %}"
+              {% if current_handle == bag_shoes_collection.handle %}aria-current="page"{% endif %}
+            >
+              BAG &amp; SHOES
+            </a>
+          </li>
+        {% endif %}
+
+        {% if acc_collection != blank %}
+          <li>
+            <a
+              href="{{ acc_collection.url }}"
+              class="catalog-nav-drawer__link{% if current_handle == acc_collection.handle %} catalog-nav-drawer__link--active{% endif %}"
+              {% if current_handle == acc_collection.handle %}aria-current="page"{% endif %}
+            >
+              ACC
+            </a>
+          </li>
+        {% endif %}
+
+        {% if homme_collection != blank %}
+          <li>
+            <a
+              href="{{ homme_collection.url }}"
+              class="catalog-nav-drawer__link{% if current_handle == homme_collection.handle %} catalog-nav-drawer__link--active{% endif %}"
+              {% if current_handle == homme_collection.handle %}aria-current="page"{% endif %}
+            >
+              HOMME
+            </a>
+          </li>
+        {% endif %}
+      {% endif %}
+    </ul>
+  </nav>
+</aside>
+
+<script
+  type="module"
+  src="{{ 'catalog-nav-drawer.js' | asset_url }}"
+  fetchpriority="low"
+></script>
+
+{% stylesheet %}
+  .catalog-nav-drawer__backdrop {
+    position: fixed;
+    top: var(--header-group-height, var(--header-height, 0px));
+    right: 0;
+    bottom: 0;
+    left: 0;
+    width: auto;
+    z-index: calc(var(--layer-menu-drawer) - 1);
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: rgb(48 33 24 / 0.42);
+    background-color: rgb(48 33 24 / 0.42);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    cursor: default;
+    transition:
+      opacity 0.32s var(--ease-out-cubic, cubic-bezier(0.33, 1, 0.68, 1)),
+      visibility 0.32s var(--ease-out-cubic, cubic-bezier(0.33, 1, 0.68, 1));
+  }
+
+  .catalog-nav-drawer__backdrop.is-visible,
+  .catalog-nav-drawer__backdrop.is-visible:hover,
+  .catalog-nav-drawer__backdrop.is-visible:focus {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    background: rgb(48 33 24 / 0.42);
+    background-color: rgb(48 33 24 / 0.42);
+  }
+
+  .catalog-nav-drawer {
+    position: fixed;
+    top: var(--header-group-height, var(--header-height, 0px));
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: var(--layer-menu-drawer);
+    width: auto;
+    max-width: none;
+    padding: clamp(1.5rem, 4vw, 3rem) clamp(1rem, 4vw, 3rem);
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+    pointer-events: none;
+    opacity: 0;
+    visibility: hidden;
+    transition:
+      opacity 0.32s var(--ease-out-cubic, cubic-bezier(0.33, 1, 0.68, 1)),
+      visibility 0.32s var(--ease-out-cubic, cubic-bezier(0.33, 1, 0.68, 1));
+  }
+
+  .catalog-nav-drawer.is-open {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: none;
+  }
+
+  .catalog-nav-drawer__panel {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    width: min(20rem, 100%);
+    max-height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow-y: auto;
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+    pointer-events: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .catalog-nav-drawer__panel::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    height: 0;
+  }
+
+  .catalog-nav-drawer__list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    margin: 0;
+    padding: 0;
+  }
+
+  .catalog-nav-drawer__link {
+    display: block;
+    padding: 0.45rem 0;
+    color: #ffffff;
+    font-family: var(--font-body--family);
+    font-size: 0.9375rem;
+    font-weight: 300;
+    letter-spacing: 0.1em;
+    line-height: 1.3;
+    text-decoration: none;
+    text-transform: uppercase;
+    transition: opacity 0.2s ease;
+  }
+
+  .catalog-nav-drawer__link:hover {
+    opacity: 0.62;
+  }
+
+  .catalog-nav-drawer__link--active {
+    font-weight: 400;
+    opacity: 1;
+  }
+{% endstylesheet %}

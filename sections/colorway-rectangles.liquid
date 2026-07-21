@@ -17,13 +17,13 @@
   .footer-accent-strip {
     display: block;
     width: 100%;
-    height: var(--footer-accent-strip-height, 8px);
+    height: var(--footer-accent-strip-height, 0.5px);
     background-color: var(--footer-accent-strip-color, #5a5048);
   }
 
   @media screen and (max-width: 749px) {
     .footer-accent-strip {
-      height: var(--footer-accent-strip-mobile-height, 8px);
+      height: var(--footer-accent-strip-mobile-height, 0.5px);
     }
   }
 {% endstylesheet %}
@@ -38,21 +38,21 @@
       "type": "range",
       "id": "height",
       "label": "Height",
-      "min": 8,
+      "min": 0.5,
       "max": 24,
-      "step": 1,
+      "step": 0.5,
       "unit": "px",
-      "default": 8
+      "default": 0.5
     },
     {
       "type": "range",
       "id": "mobile_height",
       "label": "Mobile height",
-      "min": 8,
+      "min": 0.5,
       "max": 24,
-      "step": 1,
+      "step": 0.5,
       "unit": "px",
-      "default": 8
+      "default": 0.5
     },
     {
       "type": "color",

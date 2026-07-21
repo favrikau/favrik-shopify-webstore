@@ -52,7 +52,7 @@
           <h2
             class="hotspot-dialog__product-title {{ section.settings.product_title_preset | default: 'h5' }}"
           >
-            {{ hotspot_product_title }}
+            {% render 'product-titlecase', title: hotspot_product_title %}
           </h2>
           <div
             class="hotspot-dialog__product-price {{ section.settings.product_price_preset | default: 'h6' }}"

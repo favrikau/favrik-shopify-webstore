@@ -18,6 +18,8 @@
     "type_subheading_font": "inter_n5",
     "type_heading_font": "inter_n7",
     "type_accent_font": "inter_n7",
+    "type_letter_spacing_global": 2,
+    "product_title_case": "uppercase",
     "type_size_paragraph": "14",
     "type_line_height_paragraph": "body-loose",
     "type_font_h1": "heading",
@@ -106,7 +108,7 @@
     "variant_button_radius": 14,
     "variant_button_width": "equal-width-buttons",
     "color_palette": {
-      "background": "#fff7ec",
+      "background": "#f3eee7",
       "foreground": "#000000",
       "color1": "#333333",
       "color2": "#DFDFDF"
@@ -142,7 +144,7 @@
       "palette_selected_variant_text": "{{ settings.color_palette.background }}",
       "palette_selected_variant_border": "{{ settings.color_palette.foreground }}",
       "color_palette": {
-        "background": "#fff7ec",
+        "background": "#f3eee7",
         "foreground": "#000000",
         "color1": "#333333",
         "color2": "#DFDFDF"

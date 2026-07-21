@@ -6,6 +6,7 @@
   @param {object} [section] - The section object providing settings such as actions_font.
   @param {block} [block] - The block object, used for Shopify editor attributes.
   @param {string} [display_style] - Controls display mode for header actions: 'icon' or 'text'.
+  @param {string} [customer_account_menu] - The menu handle passed to the shopify-account component.
 
   @example
   {% render 'header-actions', section: section %}
@@ -37,6 +38,25 @@
   </cart-icon>
 {% endcapture %}
 
+{% capture account_icon %}
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="15"
+    height="17"
+    viewBox="0 0 15 17"
+    fill="none"
+    slot="signed-out-avatar"
+    class="account-button__icon"
+  >
+    <path
+      stroke="currentColor"
+      stroke-linejoin="round"
+      stroke-width="var(--icon-stroke-width)"
+      d="M10.375 3.813a3.063 3.063 0 1 1-6.125 0 3.063 3.063 0 0 1 6.125 0ZM7.313 9.5c-3.667 0-6.24 2.691-6.563 6.125h13.125C13.552 12.191 10.979 9.5 7.312 9.5Z"
+    />
+  </svg>
+{% endcapture %}
+
 <header-actions
   {% if display_style == 'text' %}
     class="header-actions--text"
@@ -53,14 +73,99 @@
     <span class="svg-wrapper" aria-hidden="true">
       <svg
         viewBox="0 0 20 20"
-        fill="currentColor"
+        fill="none"
         focusable="false"
         class="icon icon-instagram"
+        aria-hidden="true"
       >
-        {% render 'icon', icon: 'instagram' %}
+        <rect
+          x="3.25"
+          y="3.25"
+          width="13.5"
+          height="13.5"
+          rx="3.75"
+          ry="3.75"
+          stroke="currentColor"
+          stroke-width="var(--icon-stroke-width)"
+        />
+        <circle
+          cx="10"
+          cy="10"
+          r="3.35"
+          stroke="currentColor"
+          stroke-width="var(--icon-stroke-width)"
+        />
+        <circle
+          cx="14.35"
+          cy="5.65"
+          r="0.85"
+          fill="currentColor"
+        />
       </svg>
     </span>
   </a>
+
+  {% render 'header-sku-search', section: section %}
+
+  {% if shop.customer_accounts_enabled %}
+    {% liquid
+      assign account_actions_style = ''
+      if display_style == 'text' and section
+        assign actions_font = section.settings.actions_font | default: 'body'
+        assign font_obj = settings.type_heading_font
+        case actions_font
+          when 'body'
+            assign font_obj = settings.type_body_font
+          when 'subheading'
+            assign font_obj = settings.type_subheading_font
+          when 'accent'
+            assign font_obj = settings.type_accent_font
+        endcase
+        assign font_family = font_obj.family | append: ', ' | append: font_obj.fallback_families
+        assign font_family_safe = font_family | replace: '"', "'"
+        assign account_actions_style = '--header-actions-font-family: ' | append: font_family_safe | append: '; --header-actions-font-weight: ' | append: font_obj.weight | append: ';'
+      endif
+    %}
+    <div
+      class="account-button header-actions__action{% if display_style == 'text' %} account-button--text{% endif %} color-custom-popover"
+    >
+      <shopify-account
+        menu="{{ customer_account_menu }}"
+        {% if account_actions_style != blank %}
+          style="{{ account_actions_style }}"
+        {% endif %}
+      >
+        {% if customer %}
+          <div class="account-button__fallback"></div>
+        {% else %}
+          <span
+            slot="signed-out-avatar"
+            class="account-button__text header-actions__text-style {% if display_style == 'icon' %}hidden{% else %}mobile:hidden{% endif %}"
+          >
+            Log in
+          </span>
+
+          <span
+            slot="signed-out-avatar"
+            class="{% if display_style != 'icon' %}desktop:hidden{% endif %}"
+            aria-hidden="true"
+          >
+            {{ account_icon }}
+          </span>
+        {% endif %}
+      </shopify-account>
+    </div>
+  {% else %}
+    <a
+      href="{{ routes.account_login_url }}"
+      class="header-actions__action header-actions__login{% if display_style == 'text' %} header-actions__text-style{% endif %}"
+    >
+      <span class="{% if display_style == 'icon' %}hidden{% else %}mobile:hidden{% endif %}">Log in</span>
+      <span class="svg-wrapper {% if display_style != 'icon' %}desktop:hidden{% endif %}" aria-hidden="true">
+        {{ account_icon }}
+      </span>
+    </a>
+  {% endif %}
 
   {% if settings.cart_type == 'drawer' and template.name != 'cart' %}
     <button
@@ -101,6 +206,66 @@
 ></script>
 
 {% stylesheet %}
+  .header {
+    --account-offset-top: calc(
+      var(--header-group-height) + (var(--header-height) * var(--transparent-header-offset-boolean))
+    );
+
+    &[data-sticky-state='active'] {
+      --account-offset-top: calc(var(--header-height) - 1px);
+    }
+  }
+
+  .account-button {
+    background: transparent;
+  }
+
+  .account-button__icon,
+  .account-button__text,
+  .header-actions__login {
+    color: var(--color-account-icon);
+    transition: color var(--header-content-transition-timing);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  shopify-account {
+    --shopify-account-font-heading: var(--font-body--family);
+    --shopify-account-font-heading-weight: var(--font-body--weight);
+    --shopify-account-font-heading-transform: uppercase;
+    --shopify-account-font-body: var(--font-body--family);
+    --shopify-account-font-body-weight: var(--font-body--weight);
+    --shopify-account-radius-base: 0px;
+    --shopify-account-radius-dialog: 0px;
+    --shopify-account-radius-button: 0px;
+    --shopify-account-radius-button-small: 0px;
+    --shopify-account-radius-input: 0px;
+    --shopify-account-color-background: var(--color-background);
+    --shopify-account-color-text: var(--color-foreground);
+    --shopify-account-color-accent: var(--color-primary-button-background);
+    --shopify-account-color-accent-text: var(--color-primary-button-text);
+    --shopify-account-dialog-position-top: var(--account-offset-top);
+
+    &:not(:defined) {
+      min-width: 44px;
+      height: 44px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      line-height: normal;
+    }
+  }
+
+  .account-button__fallback {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background-color: var(--shopify-account-color-accent, #0a142f);
+  }
+
+  .account-button--text shopify-account {
+    color: inherit;
+  }
+
   .cart-actions summary {
     padding-inline: 0;
     padding-block: var(--padding-sm);
@@ -140,11 +305,11 @@
   }
 
   .header-actions__action.header-actions__instagram {
-    color: #ffffff;
+    color: var(--color-foreground);
   }
 
   .header-actions__action.header-actions__instagram:hover {
-    color: #ffffff;
+    color: var(--color-foreground);
   }
 
   .header-actions__cart-icon {

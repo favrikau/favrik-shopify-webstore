@@ -176,8 +176,95 @@
     max-width: 100%;
   }
 
-  #shopify-section-collection_list_showcase .collection-card__image :is(.resource-image__image, .resource-image__random-image) {
-    object-position: top center;
+  [id*='collection_list_showcase'] .collection-card__image :is(.resource-image__image, .resource-image__random-image),
+  .collection-list-showcase .collection-card__image :is(.resource-image__image, .resource-image__random-image) {
+    object-position: center center;
+  }
+
+  /* Homepage heroes: stack full-width */
+  [id*='collection_list_showcase'] .resource-list--grid,
+  .collection-list-showcase .resource-list--grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  [id*='collection_list_showcase'] .resource-list__item,
+  .collection-list-showcase .resource-list__item {
+    width: 100%;
+  }
+
+  [id*='collection_list_showcase'] .collection-card,
+  [id*='collection_list_showcase'] .collection-card.collection-card--image-bg,
+  .collection-list-showcase .collection-card,
+  .collection-list-showcase .collection-card.collection-card--image-bg {
+    --ratio: 16 / 9;
+    width: 100%;
+  }
+
+  /*
+    First hero must fit below the sticky header in the opening viewport.
+    Use --header-height (not --header-group-height, which is 0 for non-transparent headers).
+  */
+  [id*='collection_list_showcase'] .resource-list__item:first-child,
+  .collection-list-showcase .resource-list__item:first-child {
+    height: calc(100svh - var(--header-height, 60px));
+    max-height: calc(100svh - var(--header-height, 60px));
+  }
+
+  [id*='collection_list_showcase'] .resource-list__item:first-child .collection-card,
+  [id*='collection_list_showcase'] .resource-list__item:first-child .collection-card.collection-card--image-bg,
+  .collection-list-showcase .resource-list__item:first-child .collection-card,
+  .collection-list-showcase .resource-list__item:first-child .collection-card.collection-card--image-bg {
+    aspect-ratio: unset !important;
+    height: 100% !important;
+    max-height: 100%;
+    min-height: 0;
+  }
+
+  [id*='collection_list_showcase'] .resource-list__item:first-child .collection-card .resource-image,
+  [id*='collection_list_showcase'] .resource-list__item:first-child .collection-card .collection-card__image,
+  .collection-list-showcase .resource-list__item:first-child .collection-card .resource-image,
+  .collection-list-showcase .resource-list__item:first-child .collection-card .collection-card__image {
+    aspect-ratio: unset !important;
+    width: 100%;
+    height: 100%;
+    max-height: none;
+  }
+
+  [id*='collection_list_showcase'] .resource-list__item:first-child .collection-card__inner,
+  [id*='collection_list_showcase'] .resource-list__item:first-child .collection-card__content,
+  .collection-list-showcase .resource-list__item:first-child .collection-card__inner,
+  .collection-list-showcase .resource-list__item:first-child .collection-card__content {
+    height: 100%;
+  }
+
+  [id*='collection_list_showcase'] .collection-card.collection-card--image-bg .collection-card__content,
+  .collection-list-showcase .collection-card.collection-card--image-bg .collection-card__content {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    justify-content: flex-end;
+    padding: clamp(1rem, 3vw, 1.75rem);
+    box-sizing: border-box;
+  }
+
+  /* Later heroes stay landscape but never taller than the remaining viewport */
+  [id*='collection_list_showcase'] .resource-list__item:not(:first-child) .collection-card.collection-card--image-bg,
+  .collection-list-showcase .resource-list__item:not(:first-child) .collection-card.collection-card--image-bg {
+    aspect-ratio: 16 / 9;
+    max-height: calc(100svh - var(--header-height, 60px));
+  }
+
+  [id*='collection_list_showcase'] .resource-list__item:not(:first-child) .collection-card .resource-image,
+  .collection-list-showcase .resource-list__item:not(:first-child) .collection-card .resource-image {
+    aspect-ratio: unset;
+    width: 100%;
+    height: 100%;
+  }
+
+  [id*='collection_list_showcase'] .collection-card .collection-hero-button,
+  .collection-list-showcase .collection-card .collection-hero-button {
+    position: relative;
+    z-index: 2;
   }
 
   .collection-card--image-bg .collection-card__image {

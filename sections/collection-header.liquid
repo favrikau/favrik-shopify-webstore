@@ -1,4 +1,3 @@
-
 {% liquid
   if section.settings.background_color != blank
     render 'contrast-override', background_color: section.settings.background_color, section_id: section.id
@@ -7,37 +6,18 @@
   if collection.handle == 'all'
     assign title_en = section.settings.heading_en
     if title_en == blank
-      assign title_en = 'Catalog'
-    endif
-
-    assign title_ko = section.settings.heading_ko
-    if title_ko == blank
-      assign title_ko = '카탈로그'
+      assign title_en = 'ALL'
     endif
   else
     assign title_en = section.settings.heading_en
     if title_en == blank
       assign title_en = collection.title
     endif
-
-    assign title_ko = section.settings.heading_ko
-    if title_ko == blank
-      assign title_ko = collection.metafields.custom.korean_title.value | default: collection.metafields.custom.korean_title
-
-      if title_ko == blank
-        case collection.handle
-          when 'fw2026'
-            assign title_ko = '2026 가을/겨울 컬렉션'
-          when 'on-sale'
-            assign title_ko = '세일'
-        endcase
-      endif
-    endif
-
-    assign title_ko = title_ko | default: collection.title
   endif
 
   assign heading_color = section.settings.heading_color | default: '#302118'
+  assign label_color = section.settings.label_color | default: '#8a7268'
+  assign products_count = collection.products_count | default: 0
 %}
 
 <div
@@ -48,13 +28,26 @@
 >
   <div
     class="collection-page-header spacing-style"
-    style="{% render 'spacing-style', settings: section.settings %}"
+    style="
+      {% render 'spacing-style', settings: section.settings %}
+      --collection-header-title-color: {{ heading_color }};
+      --collection-header-label-color: {{ label_color }};
+    "
   >
-    {% render 'bilingual-section-heading',
-      heading_en: title_en,
-      heading_ko: title_ko,
-      color: heading_color
-    %}
+    <div class="collection-page-header__row">
+      <h1 class="collection-page-header__heading">
+        <span class="collection-page-header__label">COLLECTION</span>
+        <span class="collection-page-header__title">{{ title_en | escape }}</span>
+      </h1>
+
+      <p class="collection-page-header__count" role="status" data-testid="products-count">
+        {% if products_count > 25000 %}
+          {{- 'content.item_count_cutoff' | t: count: 25000 -}}
+        {% else %}
+          {{- 'content.item_count' | t: count: products_count -}}
+        {% endif %}
+      </p>
+    </div>
 
     {% if section.settings.show_description and collection.description != blank and collection.handle != 'on-sale' %}
       <div class="collection-page-header__description rte">
@@ -67,52 +60,59 @@
 {% stylesheet %}
   .collection-page-header {
     width: 100%;
+    /* Extra top breathing room under the header on all collection pages */
+    padding-block-start: calc(var(--padding-block-start, 0px) + var(--section-top-offset, 0px) + 8px);
   }
 
-  .collection-page-header .favrik-bilingual-heading {
+  .collection-page-header__row {
     display: flex;
-    flex-direction: row;
-    justify-content: space-between;
     align-items: baseline;
-    gap: 1rem;
+    justify-content: space-between;
+    gap: 1rem 1.5rem;
     width: 100%;
-    color: var(--favrik-bilingual-heading-color, #302118);
-    font-size: var(--font-h4--size);
-    line-height: var(--font-h4--line-height);
-    letter-spacing: var(--font-h4--letter-spacing);
   }
 
-  .collection-page-header .favrik-bilingual-heading__en,
-  .collection-page-header .favrik-bilingual-heading__ko {
+  .collection-page-header__heading {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.45rem;
     margin: 0;
-  }
-
-  .collection-page-header .favrik-bilingual-heading__en {
+    min-width: 0;
     font-family: var(--font-body--family);
     font-style: var(--font-body--style);
-    font-weight: var(--font-body--weight);
-    line-height: var(--font-h4--line-height);
-    letter-spacing: var(--font-h4--letter-spacing);
+    font-size: 0.75rem;
+    font-weight: 300;
+    line-height: 1.2;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
   }
 
-  .collection-page-header .favrik-bilingual-heading__ko {
-    margin-inline-start: auto;
-    text-align: right;
-    font-family: var(--font-korean--family);
-    font-size: 0.72em;
-    font-weight: 400;
-    line-height: 1.25;
+  .collection-page-header__label {
+    color: var(--collection-header-label-color, #8a7268);
+    font-weight: 300;
+  }
+
+  .collection-page-header__title {
+    color: var(--collection-header-title-color, #302118);
+    font-weight: 300;
+  }
+
+  .collection-page-header__count {
+    margin: 0;
+    flex-shrink: 0;
+    color: var(--collection-header-title-color, #302118);
+    font-family: var(--font-body--family);
+    font-size: 0.75rem;
+    font-weight: 300;
+    line-height: 1.2;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
   }
 
   .collection-page-header__description {
     margin-block-start: 12px;
     max-width: 65ch;
-  }
-
-  @media screen and (max-width: 1200px) {
-    .collection-page-header .favrik-bilingual-heading {
-      font-size: max(1rem, var(--font-h4--size));
-    }
   }
 {% endstylesheet %}
 
@@ -126,20 +126,20 @@
     {
       "type": "text",
       "id": "heading_en",
-      "label": "Heading override (English)",
+      "label": "Heading override",
       "info": "Leave blank to use the collection name."
-    },
-    {
-      "type": "text",
-      "id": "heading_ko",
-      "label": "Heading override (Korean)",
-      "info": "Leave blank to use the collection Korean title metafield or a default translation."
     },
     {
       "type": "color",
       "id": "heading_color",
       "label": "Heading color",
       "default": "#302118"
+    },
+    {
+      "type": "color",
+      "id": "label_color",
+      "label": "COLLECTION label color",
+      "default": "#8a7268"
     },
     {
       "type": "checkbox",
@@ -165,7 +165,7 @@
       "max": 100,
       "step": 1,
       "unit": "px",
-      "default": 48
+      "default": 16
     },
     {
       "type": "range",
@@ -175,7 +175,7 @@
       "max": 100,
       "step": 1,
       "unit": "px",
-      "default": 48
+      "default": 12
     }
   ],
   "presets": [
