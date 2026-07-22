@@ -6,74 +6,27 @@
  * or related systems. Please exercise caution as any changes
  * made to this file may be overwritten.
  * ------------------------------------------------------------
- */{
+ */
+{
   "sections": {
-    "main": {
-      "type": "main-page",
-      "blocks": {
-        "title": {
-          "type": "text",
-          "name": "Title",
-          "settings": {
-            "text": "<h1>Locations</h1>",
-            "width": "100%",
-            "max_width": "normal",
-            "alignment": "left",
-            "type_preset": "h2",
-            "font": "var(--font-body--family)",
-            "line_height": "normal",
-            "letter_spacing": "normal",
-            "case": "none",
-            "wrap": "pretty",
-            "background": false,
-            "background_color": "#00000026",
-            "corner_radius": 0,
-            "padding-block-start": 0,
-            "padding-block-end": 0,
-            "padding-inline-start": 0,
-            "padding-inline-end": 0
-          },
-          "blocks": {}
-        },
-        "content": {
-          "type": "text",
-          "name": "Locations content",
-          "settings": {
-            "text": "<p>Visit Favrik in Melbourne.</p><p>Store location details, opening hours, and appointment information will be updated here.</p><p>For current enquiries, please contact us through the contact page or Instagram.</p>",
-            "width": "100%",
-            "max_width": "normal",
-            "alignment": "left",
-            "type_preset": "rte",
-            "font": "var(--font-body--family)",
-            "line_height": "normal",
-            "letter_spacing": "normal",
-            "case": "none",
-            "wrap": "pretty",
-            "background": false,
-            "background_color": "#00000026",
-            "corner_radius": 0,
-            "padding-block-start": 0,
-            "padding-block-end": 0,
-            "padding-inline-start": 0,
-            "padding-inline-end": 0
-          },
-          "blocks": {}
-        }
-      },
-      "block_order": [
-        "title",
-        "content"
-      ],
+    "locations": {
+      "type": "locations-page",
       "settings": {
-        "content_direction": "column",
-        "gap": 32,
+        "heading": "Locations",
+        "subheading": "Visit Favrik at Emporium Melbourne.",
+        "address": "Emporium, Lower Ground, Shop 27a/287 Lonsdale St, Melbourne VIC 3000",
+        "opening_hours": "Monday 11am–7pm\nTuesday 11am–7pm\nWednesday 11am–7pm\nThursday 11am–8pm\nFriday 11am–8pm\nSaturday 11am–7pm\nSunday 11am–7pm",
+        "note": "For appointments or enquiries, please get in touch.",
+        "contact_url": "",
+        "map_query": "Emporium Melbourne, Shop 27a, 287 Lonsdale St, Melbourne VIC 3000",
+        "section_width": "full-width",
         "background_color": "{{ settings.color_palette.background }}",
-        "padding-block-start": 40,
-        "padding-block-end": 80
+        "padding-block-start": 0,
+        "padding-block-end": 0
       }
     }
   },
   "order": [
-    "main"
+    "locations"
   ]
 }

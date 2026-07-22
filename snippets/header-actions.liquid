@@ -280,6 +280,32 @@
 
     @media screen and (max-width: 749px) {
       justify-self: flex-end;
+      gap: 0;
+      margin-inline-end: 2px;
+    }
+  }
+
+  @media screen and (max-width: 749px) {
+    .header__column--right header-actions {
+      margin-inline-start: 0;
+    }
+
+    .header-actions__action {
+      --button-size: 40px;
+    }
+
+    .header-actions__action:not(.account-button) .svg-wrapper {
+      height: var(--button-size);
+      width: var(--button-size);
+    }
+
+    .header-actions__action:not(.account-button) svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    .header-sku-search {
+      flex-shrink: 0;
     }
   }
 

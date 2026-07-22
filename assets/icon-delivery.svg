@@ -1,0 +1,23 @@
+<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="none">
+  <path
+    stroke="currentColor"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    stroke-width="var(--icon-stroke-width)"
+    d="M1.75 12.25h9.5V6.5H1.75v5.75ZM11.25 9h3.1l2.15 2.4v.85h-5.25V9Z"
+  />
+  <path
+    stroke="currentColor"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    stroke-width="var(--icon-stroke-width)"
+    d="M5.25 15.25a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3ZM14.25 15.25a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z"
+  />
+  <path
+    stroke="currentColor"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    stroke-width="var(--icon-stroke-width)"
+    d="M6.75 12.25h5.5"
+  />
+</svg>

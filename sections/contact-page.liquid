@@ -1,0 +1,335 @@
+{% liquid
+  assign collection = section.settings.collection
+  if collection == blank
+    assign collection = collections['fw2026']
+  endif
+  if collection == blank
+    assign collection = collections['dw2026']
+  endif
+
+  assign image_limit = 24
+  assign images_rendered = 0
+  assign fallback_product = null
+  assign fallback_image = null
+
+  if section.settings.background_color != blank
+    render 'contrast-override', background_color: section.settings.background_color, section_id: section.id
+  endif
+%}
+
+<div
+  class="section-background{% if section.settings.background_color != blank %} color-custom-{{ section.id }}{% endif %}"
+></div>
+
+<section
+  class="section section--{{ section.settings.section_width }} spacing-style contact-page{% if section.settings.background_color != blank %} color-custom-{{ section.id }}{% endif %}"
+  style="{% render 'spacing-style', settings: section.settings %}"
+>
+  <div class="contact-page__layout">
+    <div class="contact-page__content">
+      <header class="contact-page__header">
+        <h1 class="contact-page__title">
+          {{ section.settings.heading | default: page.title | default: 'Contact' | escape }}
+        </h1>
+        {% if section.settings.subheading != blank %}
+          <p class="contact-page__subheading">{{ section.settings.subheading | escape }}</p>
+        {% endif %}
+      </header>
+
+      <div class="contact-page__form">
+        {% content_for 'block', type: 'contact-form', id: 'contact-form' %}
+      </div>
+    </div>
+
+    <div class="contact-page__media" aria-hidden="true">
+      {% if collection != blank %}
+        <div
+          class="contact-page__image-pool"
+          data-random-collection-image
+        >
+          {% for product in collection.products %}
+            {% if product.featured_image == blank %}
+              {% continue %}
+            {% endif %}
+
+            {% if fallback_image == blank %}
+              {% assign fallback_product = product %}
+              {% assign fallback_image = product.featured_image %}
+            {% endif %}
+
+            {{
+              product.featured_image
+              | image_url: width: 2000
+              | image_tag:
+                widths: '600, 900, 1200, 1600, 2000',
+                sizes: '(min-width: 750px) 50vw, 100vw',
+                class: 'contact-page__image resource-image__random-image',
+                loading: 'lazy',
+                alt: '',
+                data-random-image: images_rendered,
+                data-image-aspect: product.featured_image.aspect_ratio
+            }}
+
+            {% assign images_rendered = images_rendered | plus: 1 %}
+            {% if images_rendered >= image_limit %}
+              {% break %}
+            {% endif %}
+          {% endfor %}
+        </div>
+
+        {% if images_rendered == 0 and fallback_image != blank %}
+          {{
+            fallback_image
+            | image_url: width: 2000
+            | image_tag:
+              widths: '600, 900, 1200, 1600, 2000',
+              sizes: '(min-width: 750px) 50vw, 100vw',
+              class: 'contact-page__image',
+              loading: 'lazy',
+              alt: ''
+          }}
+        {% endif %}
+      {% endif %}
+
+      {% if images_rendered == 0 %}
+        <div class="contact-page__placeholder">
+          {{ 'product-apparel-1' | placeholder_svg_tag: 'contact-page__placeholder-svg' }}
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</section>
+
+{% stylesheet %}
+  .contact-page {
+    width: 100%;
+    min-height: calc(100dvh - var(--header-group-height, 0px));
+  }
+
+  .contact-page__layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: stretch;
+    gap: 0;
+    width: 100%;
+    min-height: calc(100dvh - var(--header-group-height, 0px));
+  }
+
+  .contact-page__content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 1.5rem;
+    padding: clamp(2rem, 5vw, 4rem) clamp(1.25rem, 4vw, 3.5rem);
+    min-width: 0;
+  }
+
+  .contact-page__header {
+    display: grid;
+    gap: 0.75rem;
+  }
+
+  .contact-page__title,
+  .contact-page__subheading {
+    margin: 0;
+    font-family: var(--font-body--family);
+    font-size: 0.75rem;
+    font-weight: 300;
+    line-height: 1.4;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .contact-page__title {
+    color: #302118;
+  }
+
+  .contact-page__subheading {
+    color: rgb(48 33 24 / 0.62);
+    max-width: 36rem;
+  }
+
+  .contact-page__form {
+    width: 100%;
+    max-width: 28rem;
+  }
+
+  .contact-page__form .contact-form,
+  .contact-page__form .contact-form.size-style {
+    width: 100% !important;
+    max-width: 100%;
+  }
+
+  .contact-page__media {
+    position: relative;
+    min-width: 0;
+    min-height: 22rem;
+    overflow: hidden;
+    background: rgb(48 33 24 / 0.06);
+  }
+
+  .contact-page__image-pool {
+    position: absolute;
+    inset: 0;
+  }
+
+  .contact-page__image,
+  .contact-page__placeholder-svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center center;
+  }
+
+  .contact-page__image-pool .resource-image__random-image {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    visibility: hidden;
+  }
+
+  .contact-page__image-pool .resource-image__random-image.is-active,
+  .contact-page__image-pool .resource-image__random-image:first-child {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .contact-page__image-pool:has(.resource-image__random-image.is-active)
+    .resource-image__random-image:first-child:not(.is-active) {
+    opacity: 0;
+    visibility: hidden;
+  }
+
+  .contact-page__placeholder {
+    width: 100%;
+    height: 100%;
+    min-height: 22rem;
+  }
+
+  @media screen and (max-width: 749px) {
+    .contact-page__layout {
+      grid-template-columns: 1fr;
+      min-height: calc(100dvh - var(--header-group-height, 0px));
+    }
+
+    .contact-page__content {
+      order: 1;
+      padding: 2rem 1.25rem 1.5rem;
+    }
+
+    .contact-page__media {
+      order: 2;
+      min-height: 18rem;
+      aspect-ratio: 3 / 4;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Contact page",
+  "tag": "section",
+  "class": "contact-page-section",
+  "enabled_on": {
+    "templates": ["page"]
+  },
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Contact"
+    },
+    {
+      "type": "textarea",
+      "id": "subheading",
+      "label": "Subheading",
+      "default": "Have a question about an order, product, return, or store visit? Send us a message and we will get back to you as soon as possible."
+    },
+    {
+      "type": "collection",
+      "id": "collection",
+      "label": "Image collection",
+      "info": "A random product image from this collection is shown on the right."
+    },
+    {
+      "type": "select",
+      "id": "section_width",
+      "label": "t:settings.width",
+      "options": [
+        {
+          "value": "page-width",
+          "label": "t:options.page"
+        },
+        {
+          "value": "full-width",
+          "label": "t:options.full"
+        }
+      ],
+      "default": "full-width"
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "t:settings.background_color",
+      "placeholder": "t:settings.default"
+    },
+    {
+      "type": "header",
+      "content": "t:content.padding"
+    },
+    {
+      "type": "range",
+      "id": "padding-block-start",
+      "label": "t:settings.top",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding-block-end",
+      "label": "t:settings.bottom",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    }
+  ],
+  "presets": [
+    {
+      "name": "Contact page",
+      "category": "t:categories.forms",
+      "blocks": {
+        "contact-form": {
+          "type": "contact-form",
+          "static": true,
+          "settings": {
+            "width": "custom",
+            "custom_width": 100,
+            "width_mobile": "custom",
+            "custom_width_mobile": 100,
+            "input_style": "custom",
+            "border_width": 0.5,
+            "border_radius": 0
+          },
+          "blocks": {
+            "submit-button": {
+              "type": "contact-form-submit-button",
+              "static": true,
+              "settings": {
+                "label": "Submit",
+                "style_class": "button"
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}
+{% endschema %}

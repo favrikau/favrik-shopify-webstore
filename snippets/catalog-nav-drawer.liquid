@@ -4,29 +4,12 @@
 {% enddoc %}
 
 {% liquid
-  assign catalog_menu = linklists['catalog-nav']
-  if catalog_menu == blank or catalog_menu.links.size == 0
-    assign catalog_menu = linklists['catalog']
-  endif
-
-  # Prefer child links under the Catalog item in the main menu
-  if catalog_menu == blank or catalog_menu.links.size == 0
-    assign main_menu = linklists['main-menu']
-    if main_menu != blank
-      for link in main_menu.links
-        assign link_title_downcase = link.title | strip | downcase
-        if link.handle == 'catalog' or link_title_downcase == 'catalog' or link.url contains '/collections/all'
-          if link.links.size > 0
-            assign catalog_menu = link
-            break
-          endif
-        endif
-      endfor
-    endif
-  endif
-
   assign all_url = routes.all_products_collection_url
   assign current_handle = collection.handle | default: ''
+  assign fw2026_collection = collections['fw2026']
+  assign sale_collection = collections['on-sale']
+  assign locations_url = pages['locations'].url | default: '/pages/locations'
+  assign contact_url = pages['contact'].url | default: '/pages/contact'
 %}
 
 <div
@@ -43,161 +26,106 @@
   hidden
   aria-hidden="true"
 >
-  <nav class="catalog-nav-drawer__panel" aria-label="Catalog">
+  <nav class="catalog-nav-drawer__panel" aria-label="Shop">
     <ul class="catalog-nav-drawer__list list-unstyled">
-      {% if catalog_menu != blank and catalog_menu.links.size > 0 %}
-        {% for link in catalog_menu.links %}
-          {% liquid
-            assign link_title_upcase = link.title | strip | upcase
-            assign is_active = false
-            if link.current or link.active
-              assign is_active = true
-            elsif link.url contains '/collections/all' and current_handle == 'all'
-              assign is_active = true
-            endif
-          %}
+      <li>
+        <a
+          href="{{ all_url }}"
+          class="catalog-nav-drawer__link{% if current_handle == 'all' %} catalog-nav-drawer__link--active{% endif %}"
+          {% if current_handle == 'all' %}aria-current="page"{% endif %}
+        >
+          ALL PRODUCTS
+        </a>
+      </li>
+
+      <li>
+        <a
+          href="{% if fw2026_collection != blank %}{{ fw2026_collection.url }}{% else %}/collections/fw2026{% endif %}"
+          class="catalog-nav-drawer__link catalog-nav-drawer__link--secondary{% if current_handle == 'fw2026' %} catalog-nav-drawer__link--active{% endif %}"
+          {% if current_handle == 'fw2026' %}aria-current="page"{% endif %}
+        >
+          FW2026
+        </a>
+      </li>
+
+      <li>
+        <a
+          href="{% if sale_collection != blank %}{{ sale_collection.url }}{% else %}/collections/on-sale{% endif %}"
+          class="catalog-nav-drawer__link catalog-nav-drawer__link--secondary{% if current_handle == 'on-sale' %} catalog-nav-drawer__link--active{% endif %}"
+          {% if current_handle == 'on-sale' %}aria-current="page"{% endif %}
+        >
+          SHOP SALE
+        </a>
+      </li>
+
+      <li class="catalog-nav-drawer__divider" aria-hidden="true"></li>
+
+      {% liquid
+        assign promo_types = ''
+        assign promo_separator = '|||'
+      %}
+
+      {% for product_type in shop.types %}
+        {% if product_type == blank %}
+          {% continue %}
+        {% endif %}
+
+        {% liquid
+          assign type_normalized = product_type | strip
+          assign type_normalized = type_normalized | replace: '𝗔', 'A' | replace: '𝗕', 'B' | replace: '𝗖', 'C' | replace: '𝗗', 'D' | replace: '𝗘', 'E' | replace: '𝗙', 'F' | replace: '𝗚', 'G' | replace: '𝗛', 'H' | replace: '𝗜', 'I' | replace: '𝗝', 'J' | replace: '𝗞', 'K' | replace: '𝗟', 'L' | replace: '𝗠', 'M' | replace: '𝗡', 'N' | replace: '𝗢', 'O' | replace: '𝗣', 'P' | replace: '𝗤', 'Q' | replace: '𝗥', 'R' | replace: '𝗦', 'S' | replace: '𝗧', 'T' | replace: '𝗨', 'U' | replace: '𝗩', 'V' | replace: '𝗪', 'W' | replace: '𝗫', 'X' | replace: '𝗬', 'Y' | replace: '𝗭', 'Z'
+          assign type_normalized = type_normalized | replace: '𝗮', 'A' | replace: '𝗯', 'B' | replace: '𝗰', 'C' | replace: '𝗱', 'D' | replace: '𝗲', 'E' | replace: '𝗳', 'F' | replace: '𝗴', 'G' | replace: '𝗵', 'H' | replace: '𝗶', 'I' | replace: '𝗷', 'J' | replace: '𝗸', 'K' | replace: '𝗹', 'L' | replace: '𝗺', 'M' | replace: '𝗻', 'N' | replace: '𝗼', 'O' | replace: '𝗽', 'P' | replace: '𝗾', 'Q' | replace: '𝗿', 'R' | replace: '𝘀', 'S' | replace: '𝘁', 'T' | replace: '𝘂', 'U' | replace: '𝘃', 'V' | replace: '𝘄', 'W' | replace: '𝘅', 'X' | replace: '𝘆', 'Y' | replace: '𝘇', 'Z'
+          assign type_label = type_normalized | upcase
+          assign type_key = type_label | downcase
+          assign is_promo_type = false
+          if type_key == 'coat collection' or type_key == 'eofy sale' or type_key == 'look five'
+            assign is_promo_type = true
+          endif
+        %}
+
+        {% if is_promo_type %}
+          {% assign promo_types = promo_types | append: promo_separator | append: product_type | append: '::' | append: type_label %}
+        {% else %}
           <li>
             <a
-              href="{{ link.url }}"
-              class="catalog-nav-drawer__link{% if is_active %} catalog-nav-drawer__link--active{% endif %}"
-              {% if is_active %}
-                aria-current="page"
-              {% endif %}
+              href="{{ product_type | url_for_type }}"
+              class="catalog-nav-drawer__link"
             >
-              {{ link_title_upcase }}
+              {{ type_label }}
+            </a>
+          </li>
+        {% endif %}
+      {% endfor %}
+
+      {% if promo_types != blank %}
+        <li class="catalog-nav-drawer__divider" aria-hidden="true"></li>
+
+        {% assign promo_entries = promo_types | split: promo_separator %}
+        {% for entry in promo_entries %}
+          {% if entry == blank %}
+            {% continue %}
+          {% endif %}
+          {% assign entry_parts = entry | split: '::' %}
+          {% assign promo_type_raw = entry_parts[0] %}
+          {% assign promo_type_label = entry_parts[1] %}
+          <li>
+            <a
+              href="{{ promo_type_raw | url_for_type }}"
+              class="catalog-nav-drawer__link"
+            >
+              {{ promo_type_label }}
             </a>
           </li>
         {% endfor %}
-      {% else %}
-        {% liquid
-          assign signature_collection = collections['signature']
-          assign outer_collection = collections['outer']
-          assign top_collection = collections['top']
-          assign bottom_collection = collections['bottom']
-          assign dress_collection = collections['dress']
-          assign bag_shoes_collection = collections['bag-shoes']
-          if bag_shoes_collection == blank
-            assign bag_shoes_collection = collections['bags-shoes']
-          endif
-          if bag_shoes_collection == blank
-            assign bag_shoes_collection = collections['bag-and-shoes']
-          endif
-          if bag_shoes_collection == blank
-            assign bag_shoes_collection = collections['bags-and-shoes']
-          endif
-          assign acc_collection = collections['acc']
-          if acc_collection == blank
-            assign acc_collection = collections['accessories']
-          endif
-          assign homme_collection = collections['homme']
-        %}
-
-        {% if signature_collection != blank %}
-          <li>
-            <a
-              href="{{ signature_collection.url }}"
-              class="catalog-nav-drawer__link{% if current_handle == signature_collection.handle %} catalog-nav-drawer__link--active{% endif %}"
-              {% if current_handle == signature_collection.handle %}aria-current="page"{% endif %}
-            >
-              SIGNATURE
-            </a>
-          </li>
-        {% endif %}
-
-        <li>
-          <a
-            href="{{ all_url }}"
-            class="catalog-nav-drawer__link{% if current_handle == 'all' %} catalog-nav-drawer__link--active{% endif %}"
-            {% if current_handle == 'all' %}aria-current="page"{% endif %}
-          >
-            VIEW ALL
-          </a>
-        </li>
-
-        {% if outer_collection != blank %}
-          <li>
-            <a
-              href="{{ outer_collection.url }}"
-              class="catalog-nav-drawer__link{% if current_handle == outer_collection.handle %} catalog-nav-drawer__link--active{% endif %}"
-              {% if current_handle == outer_collection.handle %}aria-current="page"{% endif %}
-            >
-              OUTER
-            </a>
-          </li>
-        {% endif %}
-
-        {% if top_collection != blank %}
-          <li>
-            <a
-              href="{{ top_collection.url }}"
-              class="catalog-nav-drawer__link{% if current_handle == top_collection.handle %} catalog-nav-drawer__link--active{% endif %}"
-              {% if current_handle == top_collection.handle %}aria-current="page"{% endif %}
-            >
-              TOP
-            </a>
-          </li>
-        {% endif %}
-
-        {% if bottom_collection != blank %}
-          <li>
-            <a
-              href="{{ bottom_collection.url }}"
-              class="catalog-nav-drawer__link{% if current_handle == bottom_collection.handle %} catalog-nav-drawer__link--active{% endif %}"
-              {% if current_handle == bottom_collection.handle %}aria-current="page"{% endif %}
-            >
-              BOTTOM
-            </a>
-          </li>
-        {% endif %}
-
-        {% if dress_collection != blank %}
-          <li>
-            <a
-              href="{{ dress_collection.url }}"
-              class="catalog-nav-drawer__link{% if current_handle == dress_collection.handle %} catalog-nav-drawer__link--active{% endif %}"
-              {% if current_handle == dress_collection.handle %}aria-current="page"{% endif %}
-            >
-              DRESS
-            </a>
-          </li>
-        {% endif %}
-
-        {% if bag_shoes_collection != blank %}
-          <li>
-            <a
-              href="{{ bag_shoes_collection.url }}"
-              class="catalog-nav-drawer__link{% if current_handle == bag_shoes_collection.handle %} catalog-nav-drawer__link--active{% endif %}"
-              {% if current_handle == bag_shoes_collection.handle %}aria-current="page"{% endif %}
-            >
-              BAG &amp; SHOES
-            </a>
-          </li>
-        {% endif %}
-
-        {% if acc_collection != blank %}
-          <li>
-            <a
-              href="{{ acc_collection.url }}"
-              class="catalog-nav-drawer__link{% if current_handle == acc_collection.handle %} catalog-nav-drawer__link--active{% endif %}"
-              {% if current_handle == acc_collection.handle %}aria-current="page"{% endif %}
-            >
-              ACC
-            </a>
-          </li>
-        {% endif %}
-
-        {% if homme_collection != blank %}
-          <li>
-            <a
-              href="{{ homme_collection.url }}"
-              class="catalog-nav-drawer__link{% if current_handle == homme_collection.handle %} catalog-nav-drawer__link--active{% endif %}"
-              {% if current_handle == homme_collection.handle %}aria-current="page"{% endif %}
-            >
-              HOMME
-            </a>
-          </li>
-        {% endif %}
       {% endif %}
+
+      <li class="catalog-nav-drawer__divider" aria-hidden="true"></li>
+
+      <li>
+        <a href="{{ locations_url }}" class="catalog-nav-drawer__link">STORE LOCATIONS</a>
+      </li>
+      <li>
+        <a href="{{ contact_url }}" class="catalog-nav-drawer__link">CONTACT US</a>
+      </li>
     </ul>
   </nav>
 </aside>
@@ -220,10 +148,10 @@
     margin: 0;
     padding: 0;
     border: 0;
-    background: rgb(48 33 24 / 0.42);
-    background-color: rgb(48 33 24 / 0.42);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
+    background: rgb(48 33 24 / 0.62);
+    background-color: rgb(48 33 24 / 0.62);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
@@ -239,8 +167,8 @@
     opacity: 1;
     visibility: visible;
     pointer-events: auto;
-    background: rgb(48 33 24 / 0.42);
-    background-color: rgb(48 33 24 / 0.42);
+    background: rgb(48 33 24 / 0.62);
+    background-color: rgb(48 33 24 / 0.62);
   }
 
   .catalog-nav-drawer {
@@ -296,9 +224,17 @@
   .catalog-nav-drawer__list {
     display: flex;
     flex-direction: column;
-    gap: 0.2rem;
+    gap: 0.15rem;
     margin: 0;
     padding: 0;
+  }
+
+  .catalog-nav-drawer__divider {
+    width: 4.5rem;
+    height: 0;
+    margin-block: 0.85rem 0.7rem;
+    border: 0;
+    border-block-start: 0.5px solid rgb(255 255 255 / 0.35);
   }
 
   .catalog-nav-drawer__link {
@@ -315,12 +251,22 @@
     transition: opacity 0.2s ease;
   }
 
+  .catalog-nav-drawer__link--secondary {
+    color: rgb(255 255 255 / 0.58);
+  }
+
   .catalog-nav-drawer__link:hover {
     opacity: 0.62;
+  }
+
+  .catalog-nav-drawer__link--secondary:hover {
+    opacity: 1;
+    color: rgb(255 255 255 / 0.82);
   }
 
   .catalog-nav-drawer__link--active {
     font-weight: 400;
     opacity: 1;
+    color: #ffffff;
   }
 {% endstylesheet %}

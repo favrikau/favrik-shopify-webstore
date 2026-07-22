@@ -603,27 +603,6 @@
     pointer-events: none;
   }
 
-  .collection-image-duo__landscape-logo::before {
-    content: '';
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    z-index: 3;
-    width: 144%;
-    height: 142%;
-    border: 0.5px solid rgb(255 247 236 / 0.82);
-    border-radius: 50%;
-    box-shadow:
-      0 0 0 1px rgb(48 33 24 / 0.12),
-      0 0.35rem 1.6rem rgb(48 33 24 / 0.24);
-    opacity: 0;
-    transform: translate(-50%, -50%) scale(0.94);
-    transform-origin: center;
-    transition:
-      opacity 0.32s cubic-bezier(0.16, 1, 0.3, 1),
-      transform 0.42s cubic-bezier(0.2, 1.35, 0.34, 1);
-  }
-
   .collection-image-duo__landscape-logo-mask {
     position: relative;
     display: block;
@@ -647,12 +626,6 @@
     transition-delay: 0.04s, 0.04s, 0.04s, 0.04s;
   }
 
-  .collection-image-duo__landscape.is-logo-revealed .collection-image-duo__landscape-logo::before {
-    opacity: 1;
-    transform: translate(-50%, -50%) scale(1);
-    transition-delay: 0.08s;
-  }
-
   .collection-image-duo__landscape-logo-image {
     width: 100%;
     height: auto;
@@ -660,24 +633,14 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .collection-image-duo__landscape-logo-mask,
-    .collection-image-duo__landscape-logo::before {
+    .collection-image-duo__landscape-logo-mask {
       animation: none;
       transition: none;
-    }
-
-    .collection-image-duo__landscape-logo-mask {
       clip-path: inset(0);
       opacity: 1;
       transform: none;
       filter: none;
     }
-
-    .collection-image-duo__landscape-logo::before {
-      opacity: 1;
-      transform: translate(-50%, -50%);
-    }
-
   }
 
   .collection-image-duo__img {

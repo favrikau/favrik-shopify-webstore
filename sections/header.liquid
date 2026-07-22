@@ -1079,6 +1079,18 @@
       header-actions {
         grid-area: rightB;
       }
+
+      /* Native search is off — give all right icons room instead of a 44px cell. */
+      &:not(:has(.search-action)) {
+        --header-template-columns: var(--header-mobile-bookend) var(--header-mobile-bookend) 1fr max-content;
+
+        grid-template-areas: 'leftA leftB center right';
+
+        header-actions {
+          grid-area: right;
+          justify-self: end;
+        }
+      }
     }
   }
 
@@ -1113,6 +1125,18 @@
 
     header-actions {
       grid-area: rightB;
+    }
+
+    /* Native search is off — give all right icons room instead of a 44px cell. */
+    &:not(:has(.search-action)) {
+      --header-template-columns: var(--header-mobile-bookend) var(--header-mobile-bookend) 1fr max-content;
+
+      grid-template-areas: 'leftA leftB center right';
+
+      header-actions {
+        grid-area: right;
+        justify-self: end;
+      }
     }
   }
 

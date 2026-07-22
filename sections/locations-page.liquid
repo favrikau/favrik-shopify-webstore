@@ -1,0 +1,343 @@
+{% liquid
+  assign store_address = section.settings.address
+  if store_address == blank and shop.address != blank
+    assign store_address = shop.address | format_address | strip_html | strip_newlines
+  endif
+  if store_address == blank
+    assign store_address = 'Emporium, Lower Ground, Shop 27a/287 Lonsdale St, Melbourne VIC 3000'
+  endif
+
+  assign opening_hours = section.settings.opening_hours
+
+  assign map_query = section.settings.map_query
+  if map_query == blank
+    assign map_query = store_address
+  endif
+
+  assign map_query_encoded = map_query | url_encode
+
+  assign map_embed_url = section.settings.map_embed_url
+  if map_embed_url == blank
+    assign map_embed_url = 'https://www.google.com/maps?q=' | append: map_query_encoded | append: '&z=16&output=embed'
+  endif
+
+  assign map_directions_url = 'https://www.google.com/maps/search/?api=1&query=' | append: map_query_encoded
+
+  assign contact_url = section.settings.contact_url
+  if contact_url == blank and pages['contact'] != blank
+    assign contact_url = pages['contact'].url
+  elsif contact_url == blank
+    assign contact_url = '/pages/contact'
+  endif
+
+  if section.settings.background_color != blank
+    render 'contrast-override', background_color: section.settings.background_color, section_id: section.id
+  endif
+%}
+
+<div
+  class="section-background{% if section.settings.background_color != blank %} color-custom-{{ section.id }}{% endif %}"
+></div>
+
+<section
+  class="section section--{{ section.settings.section_width }} spacing-style locations-page{% if section.settings.background_color != blank %} color-custom-{{ section.id }}{% endif %}"
+  style="{% render 'spacing-style', settings: section.settings %}"
+>
+  <div class="locations-page__layout">
+    <div class="locations-page__content">
+      <header class="locations-page__header">
+        <h1 class="locations-page__title">
+          {{ section.settings.heading | default: page.title | default: 'Locations' | escape }}
+        </h1>
+        {% if section.settings.subheading != blank %}
+          <p class="locations-page__subheading">{{ section.settings.subheading | escape }}</p>
+        {% endif %}
+      </header>
+
+      <div class="locations-page__details">
+        <div class="locations-page__detail">
+          <p class="locations-page__detail-label">Store address</p>
+          <p class="locations-page__detail-text">{{ store_address | escape | newline_to_br }}</p>
+          <p class="locations-page__note">
+            <a
+              href="{{ map_directions_url }}"
+              class="locations-page__link"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Get directions
+            </a>
+          </p>
+        </div>
+
+        <div class="locations-page__detail">
+          <p class="locations-page__detail-label">Opening hours</p>
+          <p class="locations-page__detail-text">{{ opening_hours | escape | newline_to_br }}</p>
+        </div>
+
+        {% if section.settings.note != blank %}
+          <p class="locations-page__note">{{ section.settings.note | escape }}</p>
+        {% endif %}
+
+        {% if contact_url != blank %}
+          <p class="locations-page__note">
+            <a href="{{ contact_url }}" class="locations-page__link">Contact us</a>
+          </p>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="locations-page__media">
+      <iframe
+        class="locations-page__map"
+        title="Favrik store location on Google Maps"
+        loading="lazy"
+        allowfullscreen
+        referrerpolicy="no-referrer-when-downgrade"
+        src="{{ map_embed_url }}"
+      ></iframe>
+    </div>
+  </div>
+</section>
+
+{% stylesheet %}
+  .locations-page {
+    width: 100%;
+    min-height: calc(100dvh - var(--header-group-height, 0px));
+  }
+
+  .locations-page__layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: stretch;
+    gap: 0;
+    width: 100%;
+    min-height: calc(100dvh - var(--header-group-height, 0px));
+  }
+
+  .locations-page__content {
+    grid-column: 1;
+    grid-row: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 1.5rem;
+    padding: clamp(2rem, 5vw, 4rem) clamp(1.25rem, 4vw, 3.5rem);
+    min-width: 0;
+  }
+
+  .locations-page__media {
+    grid-column: 2;
+    grid-row: 1;
+    position: relative;
+    min-width: 0;
+    min-height: 22rem;
+    overflow: hidden;
+    background: rgb(48 33 24 / 0.06);
+  }
+
+  .locations-page__map {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
+
+  .locations-page__header {
+    display: grid;
+    gap: 0.75rem;
+  }
+
+  .locations-page__title,
+  .locations-page__subheading,
+  .locations-page__detail-label,
+  .locations-page__detail-text,
+  .locations-page__note {
+    margin: 0;
+    font-family: var(--font-body--family);
+    font-size: 0.75rem;
+    font-weight: 300;
+    line-height: 1.4;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .locations-page__title {
+    color: #302118;
+  }
+
+  .locations-page__subheading,
+  .locations-page__detail-text,
+  .locations-page__note {
+    color: rgb(48 33 24 / 0.62);
+    max-width: 36rem;
+  }
+
+  .locations-page__details {
+    display: grid;
+    gap: 1.25rem;
+    width: 100%;
+    max-width: 28rem;
+  }
+
+  .locations-page__detail {
+    display: grid;
+    gap: 0.45rem;
+  }
+
+  .locations-page__detail-label {
+    color: #302118;
+  }
+
+  .locations-page__link {
+    color: inherit;
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+
+  .locations-page__link:hover {
+    color: #302118;
+  }
+
+  @media screen and (max-width: 749px) {
+    .locations-page__layout {
+      grid-template-columns: 1fr;
+      min-height: calc(100dvh - var(--header-group-height, 0px));
+    }
+
+    .locations-page__content {
+      grid-column: 1;
+      grid-row: 1;
+      order: 1;
+      padding: 2rem 1.25rem 1.5rem;
+    }
+
+    .locations-page__media {
+      grid-column: 1;
+      grid-row: 2;
+      order: 2;
+      min-height: 18rem;
+      aspect-ratio: 3 / 4;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Locations page",
+  "tag": "section",
+  "class": "locations-page-section",
+  "enabled_on": {
+    "templates": ["page"]
+  },
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Locations"
+    },
+    {
+      "type": "textarea",
+      "id": "subheading",
+      "label": "Subheading",
+      "default": "Visit Favrik at Emporium Melbourne."
+    },
+    {
+      "type": "textarea",
+      "id": "address",
+      "label": "Store address",
+      "default": "Emporium, Lower Ground, Shop 27a/287 Lonsdale St, Melbourne VIC 3000"
+    },
+    {
+      "type": "textarea",
+      "id": "opening_hours",
+      "label": "Opening hours",
+      "default": "Monday 11am–7pm\nTuesday 11am–7pm\nWednesday 11am–7pm\nThursday 11am–8pm\nFriday 11am–8pm\nSaturday 11am–7pm\nSunday 11am–7pm",
+      "info": "Use a new line for each day or time."
+    },
+    {
+      "type": "textarea",
+      "id": "note",
+      "label": "Note",
+      "default": "For appointments or enquiries, please get in touch."
+    },
+    {
+      "type": "url",
+      "id": "contact_url",
+      "label": "Contact page URL"
+    },
+    {
+      "type": "header",
+      "content": "Map"
+    },
+    {
+      "type": "text",
+      "id": "map_query",
+      "label": "Map search query",
+      "default": "Emporium Melbourne, Shop 27a, 287 Lonsdale St, Melbourne VIC 3000",
+      "info": "Used to locate the store on Google Maps. Leave blank to use the store address."
+    },
+    {
+      "type": "textarea",
+      "id": "map_embed_url",
+      "label": "Custom map embed URL",
+      "info": "Optional. Paste a Google Maps embed URL to override the automatic map."
+    },
+    {
+      "type": "select",
+      "id": "section_width",
+      "label": "t:settings.width",
+      "options": [
+        {
+          "value": "page-width",
+          "label": "t:options.page"
+        },
+        {
+          "value": "full-width",
+          "label": "t:options.full"
+        }
+      ],
+      "default": "full-width"
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "t:settings.background_color",
+      "placeholder": "t:settings.default"
+    },
+    {
+      "type": "header",
+      "content": "t:content.padding"
+    },
+    {
+      "type": "range",
+      "id": "padding-block-start",
+      "label": "t:settings.top",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding-block-end",
+      "label": "t:settings.bottom",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    }
+  ],
+  "presets": [
+    {
+      "name": "Locations page",
+      "category": "t:categories.forms"
+    }
+  ]
+}
+{% endschema %}

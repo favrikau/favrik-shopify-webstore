@@ -937,6 +937,52 @@ body:has(.header[transparent]) .content-for-layout[data-template='index']
   text-transform: uppercase;
 }
 
+/* Contact page: match site section heading typography */
+.content-for-layout[data-template='page.contact'] .contact-page__title,
+.content-for-layout[data-template='page.contact'] .contact-page__subheading {
+  margin: 0;
+  font-family: var(--font-body--family);
+  font-size: 0.75rem;
+  font-weight: 300;
+  line-height: 1.4;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.content-for-layout[data-template='page.contact'] .contact-page__title {
+  color: #302118;
+}
+
+.content-for-layout[data-template='page.contact'] .contact-page__subheading {
+  color: rgb(48 33 24 / 0.62);
+}
+
+/* Locations page: match contact page typography */
+.content-for-layout[data-template='page.locations'] .locations-page__title,
+.content-for-layout[data-template='page.locations'] .locations-page__subheading,
+.content-for-layout[data-template='page.locations'] .locations-page__detail-label,
+.content-for-layout[data-template='page.locations'] .locations-page__detail-text,
+.content-for-layout[data-template='page.locations'] .locations-page__note {
+  margin: 0;
+  font-family: var(--font-body--family);
+  font-size: 0.75rem;
+  font-weight: 300;
+  line-height: 1.4;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.content-for-layout[data-template='page.locations'] .locations-page__title,
+.content-for-layout[data-template='page.locations'] .locations-page__detail-label {
+  color: #302118;
+}
+
+.content-for-layout[data-template='page.locations'] .locations-page__subheading,
+.content-for-layout[data-template='page.locations'] .locations-page__detail-text,
+.content-for-layout[data-template='page.locations'] .locations-page__note {
+  color: rgb(48 33 24 / 0.62);
+}
+
 /* Product page: never allow document-level horizontal scroll from carousels/full-bleed. */
 .content-for-layout[data-template='product'] {
   overflow-x: clip;

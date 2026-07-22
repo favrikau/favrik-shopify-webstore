@@ -11,6 +11,7 @@
     "returns_policy": {
       "type": "returns-policy-page",
       "settings": {
+        "collection": "fw2026",
         "background_color": "{{ settings.color_palette.background }}",
         "text_color": "#302118",
         "muted_text_color": "#7e736a",

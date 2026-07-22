@@ -1,0 +1,92 @@
+{% doc %}
+  Infinite scrolling delivery promo banner for product pages.
+{% enddoc %}
+
+<script
+  src="{{ 'marquee.js' | asset_url }}"
+  type="module"
+  fetchpriority="low"
+></script>
+
+<marquee-component
+  class="product-delivery-banner"
+  style="--marquee-gap: 2.5rem; --marquee-direction: normal;"
+  data-speed-factor="20"
+  data-movement-direction="normal"
+  aria-label="Free delivery promotion"
+>
+  <div class="marquee__wrapper" ref="wrapper">
+    <div class="marquee__content" ref="content">
+      <div class="marquee__repeated-items" ref="marqueeItems[]">
+        <span class="product-delivery-banner__message product-delivery-banner__message--en">
+          Free delivery on orders over $150
+        </span>
+        <span class="product-delivery-banner__message product-delivery-banner__message--ko" lang="ko">
+          $150 이상 주문 시 무료 배송
+        </span>
+      </div>
+    </div>
+  </div>
+</marquee-component>
+
+{% stylesheet %}
+  .product-delivery-banner {
+    display: block;
+    width: 100%;
+    overflow: hidden;
+    background: rgb(48 33 24 / 0.78);
+    backdrop-filter: blur(14px) saturate(120%);
+    -webkit-backdrop-filter: blur(14px) saturate(120%);
+    color: rgb(255 247 236 / 0.92);
+    border-block: 0.5px solid rgb(48 33 24 / 0.42);
+  }
+
+  .product-delivery-banner .marquee__wrapper {
+    display: flex;
+    gap: var(--marquee-gap);
+    width: fit-content;
+    white-space: nowrap;
+  }
+
+  .product-delivery-banner .marquee__content {
+    min-width: max-content;
+    display: flex;
+    gap: var(--marquee-gap);
+  }
+
+  .product-delivery-banner .marquee__repeated-items {
+    min-width: max-content;
+    display: flex;
+    gap: var(--marquee-gap);
+    align-items: center;
+    padding-block: 0.625rem;
+  }
+
+  .product-delivery-banner__message {
+    font-family: var(--font-body--family);
+    font-size: 0.6875rem;
+    font-weight: 300;
+    line-height: 1.2;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .product-delivery-banner__message--ko {
+    font-family: var(--font-korean--family);
+    text-transform: none;
+    letter-spacing: 0.04em;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .product-delivery-banner:not([data-disabled]) .marquee__wrapper {
+      animation: product-delivery-banner-motion var(--marquee-speed) linear infinite var(--marquee-direction);
+    }
+  }
+
+  @keyframes product-delivery-banner-motion {
+    to {
+      transform: translate3d(calc(-50% - (var(--marquee-gap) / 2)), 0, 0);
+    }
+  }
+{% endstylesheet %}

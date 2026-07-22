@@ -325,16 +325,29 @@
   :root { --gallery-media-border-radius: {{ block_settings.media_radius }}px; }
 {% endstyle %}
 
-{% if closest.product == blank %}
+{% if closest.product == blank or selected_product == blank or selected_product.media.size == 0 %}
   <div
     class="
+      product-media-gallery__placeholder
       {% if block_settings.extend_media %}
         media-gallery--extend
       {% endif %}
     "
     {{ block_shopify_attributes }}
   >
-    {{ 'product-apparel-1' | placeholder_svg_tag: 'product-media-gallery__placeholder-image' }}
+    <div class="product-media-gallery__coming-soon" aria-hidden="true">
+      <span class="product-media-gallery__coming-soon-inner">
+        <img
+          src="{{ 'favrik_logo.png' | asset_url }}"
+          class="product-media-gallery__coming-soon-logo"
+          alt=""
+          width="120"
+          height="40"
+          loading="lazy"
+        >
+        <span class="product-media-gallery__coming-soon-text">Coming soon</span>
+      </span>
+    </div>
   </div>
 {% else %}
   <media-gallery

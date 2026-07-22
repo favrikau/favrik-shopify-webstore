@@ -32,14 +32,22 @@ randomImagePools.forEach((pool) => {
   }
 
   const preferLandscape = pool.getAttribute('data-prefer-landscape') === 'true';
-  const landscapeImages = preferLandscape
-    ? images.filter((image) => {
-        const aspect = Number.parseFloat(image.getAttribute('data-image-aspect') ?? '');
-        return Number.isFinite(aspect) && aspect >= 1.2;
-      })
-    : [];
+  const preferPortrait = pool.getAttribute('data-prefer-portrait') === 'true';
 
-  const poolImages = landscapeImages.length > 0 ? landscapeImages : images;
+  let preferredImages = [];
+  if (preferLandscape) {
+    preferredImages = images.filter((image) => {
+      const aspect = Number.parseFloat(image.getAttribute('data-image-aspect') ?? '');
+      return Number.isFinite(aspect) && aspect >= 1.2;
+    });
+  } else if (preferPortrait) {
+    preferredImages = images.filter((image) => {
+      const aspect = Number.parseFloat(image.getAttribute('data-image-aspect') ?? '');
+      return Number.isFinite(aspect) && aspect <= 0.9;
+    });
+  }
+
+  const poolImages = preferredImages.length > 0 ? preferredImages : images;
   const activeImage = poolImages[Math.floor(Math.random() * poolImages.length)];
 
   images.forEach((image) => image.classList.remove('is-active'));

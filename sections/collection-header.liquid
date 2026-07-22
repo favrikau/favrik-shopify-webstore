@@ -15,6 +15,17 @@
     endif
   endif
 
+  # Normalize mathematical bold product-type glyphs to regular letters (same visual weight).
+  assign title_en = title_en | strip
+  assign title_en = title_en | replace: '𝗔', 'A' | replace: '𝗕', 'B' | replace: '𝗖', 'C' | replace: '𝗗', 'D' | replace: '𝗘', 'E' | replace: '𝗙', 'F' | replace: '𝗚', 'G' | replace: '𝗛', 'H' | replace: '𝗜', 'I' | replace: '𝗝', 'J' | replace: '𝗞', 'K' | replace: '𝗟', 'L' | replace: '𝗠', 'M' | replace: '𝗡', 'N' | replace: '𝗢', 'O' | replace: '𝗣', 'P' | replace: '𝗤', 'Q' | replace: '𝗥', 'R' | replace: '𝗦', 'S' | replace: '𝗧', 'T' | replace: '𝗨', 'U' | replace: '𝗩', 'V' | replace: '𝗪', 'W' | replace: '𝗫', 'X' | replace: '𝗬', 'Y' | replace: '𝗭', 'Z'
+  assign title_en = title_en | replace: '𝗮', 'A' | replace: '𝗯', 'B' | replace: '𝗰', 'C' | replace: '𝗱', 'D' | replace: '𝗲', 'E' | replace: '𝗳', 'F' | replace: '𝗴', 'G' | replace: '𝗵', 'H' | replace: '𝗶', 'I' | replace: '𝗷', 'J' | replace: '𝗸', 'K' | replace: '𝗹', 'L' | replace: '𝗺', 'M' | replace: '𝗻', 'N' | replace: '𝗼', 'O' | replace: '𝗽', 'P' | replace: '𝗾', 'Q' | replace: '𝗿', 'R' | replace: '𝘀', 'S' | replace: '𝘁', 'T' | replace: '𝘂', 'U' | replace: '𝘃', 'V' | replace: '𝘄', 'W' | replace: '𝘅', 'X' | replace: '𝘆', 'Y' | replace: '𝘇', 'Z'
+  assign title_en = title_en | upcase | strip
+
+  # Label already says COLLECTION — drop it from the title ("COLLECTION COAT COLLECTION" → "COLLECTION COAT").
+  if title_en contains 'COLLECTION'
+    assign title_en = title_en | remove: 'COLLECTION' | replace: '  ', ' ' | strip
+  endif
+
   assign heading_color = section.settings.heading_color | default: '#302118'
   assign label_color = section.settings.label_color | default: '#8a7268'
   assign products_count = collection.products_count | default: 0

@@ -62,7 +62,7 @@
                 if link.url contains '/collections/on-sale' or link_title_downcase == 'shop sale' or link_title_downcase == 'sale' or link_title_downcase == 'on sale'
                   assign is_sale_link = true
                 endif
-                if link.handle == 'catalog' or link.url contains '/collections/all' or link_title_downcase == 'catalog'
+                if link.handle == 'catalog' or link.handle == 'shop' or link.url contains '/collections/all' or link_title_downcase == 'catalog' or link_title_downcase == 'shop'
                   assign is_catalog_link = true
                 endif
               %}
@@ -70,9 +70,11 @@
                 {% liquid
                   assign catalog_item_url = link.url
                   assign catalog_item_current = link.current
+                  assign catalog_item_title = link.title
                   if is_catalog_link
                     assign catalog_item_url = '#'
                     assign catalog_item_current = false
+                    assign catalog_item_title = 'SHOP'
                   endif
                 %}
                 <li>
@@ -90,8 +92,8 @@
                       aria-current="page"
                     {% endif %}
                   >
-                    <span class="menu-list__bold-hover-label" data-text="{{ link.title | escape }}">
-                      {{- link.title -}}
+                    <span class="menu-list__bold-hover-label" data-text="{{ catalog_item_title | escape }}">
+                      {{- catalog_item_title -}}
                     </span>
                   </a>
                 </li>
@@ -181,7 +183,7 @@
           if link.url contains '/collections/on-sale' or link_title_downcase == 'shop sale' or link_title_downcase == 'sale' or link_title_downcase == 'on sale'
             assign is_sale_link = true
           endif
-          if link.handle == 'catalog' or link.url contains '/collections/all' or link_title_downcase == 'catalog'
+          if link.handle == 'catalog' or link.handle == 'shop' or link.url contains '/collections/all' or link_title_downcase == 'catalog' or link_title_downcase == 'shop'
             assign is_catalog_link = true
           endif
         %}
@@ -190,10 +192,12 @@
             assign catalog_item_url = link.url
             assign catalog_item_active = link.active
             assign catalog_item_current = link.current
+            assign catalog_item_title = link.title
             if is_catalog_link
               assign catalog_item_url = '#'
               assign catalog_item_active = false
               assign catalog_item_current = false
+              assign catalog_item_title = 'SHOP'
             endif
           %}
           <li
@@ -224,7 +228,7 @@
               {% endif %}
               ref="menuitem"
             >
-              <span class="menu-list__link-title" data-text="{{ link.title | escape }}">{{- link.title -}}</span>
+              <span class="menu-list__link-title" data-text="{{ catalog_item_title | escape }}">{{- catalog_item_title -}}</span>
             </a>
             {%- if link.links != blank and is_catalog_link == false -%}
               <div class="menu-list__submenu{{ background_color_classes }}" ref="submenu[]">
