@@ -1,0 +1,401 @@
+{% liquid
+  assign background_color = section.settings.background_color | default: settings.color_palette.background
+  assign text_color = section.settings.text_color | default: '#302118'
+  assign muted_color = section.settings.muted_text_color | default: '#7e736a'
+  assign border_color = section.settings.border_color | default: '#d8cec3'
+  assign hero_image = section.settings.image
+  assign image_collection = section.settings.collection
+
+  if image_collection == blank
+    assign image_collection = collections['fw2026']
+  endif
+
+  assign images_rendered = 0
+
+  if background_color != blank
+    render 'contrast-override', background_color: background_color, text_color: text_color, section_id: section.id
+  endif
+%}
+
+<div
+  class="section-background{% if background_color != blank %} color-custom-{{ section.id }}{% endif %}"
+></div>
+
+<section
+  class="about-page section section--full-width{% if background_color != blank %} color-custom-{{ section.id }}{% endif %}"
+  style="
+    --about-page-text: {{ text_color }};
+    --about-page-muted: {{ muted_color }};
+    --about-page-border: {{ border_color }};
+  "
+>
+  <div class="about-page__intro">
+    <header class="about-page__header">
+      <p class="about-page__eyebrow">ABOUT</p>
+      <h1 class="about-page__title">{{ section.settings.heading | escape }}</h1>
+    </header>
+
+    <div class="about-page__lead">
+      <p>{{ section.settings.intro | escape }}</p>
+    </div>
+  </div>
+
+  <div class="about-page__media" aria-label="{{ section.settings.image_alt | escape }}">
+    {% if hero_image != blank %}
+      {{
+        hero_image
+        | image_url: width: 3000
+        | image_tag:
+          widths: '750, 1100, 1500, 2000, 2400, 3000',
+          sizes: '100vw',
+          class: 'about-page__image',
+          loading: 'eager',
+          fetchpriority: 'high',
+          alt: section.settings.image_alt
+      }}
+    {% elsif image_collection != blank %}
+      <div
+        class="about-page__image-pool"
+        data-random-collection-image
+        data-prefer-landscape="true"
+      >
+        {% for product in image_collection.products limit: 24 %}
+          {% if product.featured_image == blank %}
+            {% continue %}
+          {% endif %}
+
+          {{
+            product.featured_image
+            | image_url: width: 3000
+            | image_tag:
+              widths: '750, 1100, 1500, 2000, 2400, 3000',
+              sizes: '100vw',
+              class: 'about-page__image resource-image__random-image',
+              loading: 'lazy',
+              alt: '',
+              data-random-image: images_rendered,
+              data-image-aspect: product.featured_image.aspect_ratio
+          }}
+          {% assign images_rendered = images_rendered | plus: 1 %}
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    {% if hero_image == blank and images_rendered == 0 %}
+      <div class="about-page__placeholder" aria-hidden="true">
+        {{ 'lifestyle-1' | placeholder_svg_tag: 'about-page__placeholder-svg' }}
+      </div>
+    {% endif %}
+
+    <img
+      src="{{ 'favrik_logo.png' | asset_url }}"
+      class="about-page__media-logo"
+      alt=""
+      width="120"
+      height="40"
+      loading="lazy"
+      aria-hidden="true"
+    >
+  </div>
+
+  {% if section.settings.story_copy != blank or section.settings.approach_copy != blank or section.settings.melbourne_copy != blank %}
+    <div class="about-page__story">
+      {% if section.settings.story_copy != blank %}
+        <article class="about-page__story-row">
+          <h2 class="about-page__section-title">{{ section.settings.story_heading | escape }}</h2>
+          <div class="about-page__copy">
+            {{ section.settings.story_copy }}
+          </div>
+        </article>
+      {% endif %}
+
+      {% if section.settings.approach_copy != blank %}
+        <article class="about-page__story-row">
+          <h2 class="about-page__section-title">{{ section.settings.approach_heading | escape }}</h2>
+          <div class="about-page__copy">
+            {{ section.settings.approach_copy }}
+          </div>
+        </article>
+      {% endif %}
+
+      {% if section.settings.melbourne_copy != blank %}
+        <article class="about-page__story-row">
+          <h2 class="about-page__section-title">{{ section.settings.melbourne_heading | escape }}</h2>
+          <div class="about-page__copy">
+            {{ section.settings.melbourne_copy }}
+          </div>
+        </article>
+      {% endif %}
+    </div>
+  {% endif %}
+</section>
+
+{% stylesheet %}
+  .about-page {
+    color: var(--about-page-text);
+    background: var(--color-background);
+  }
+
+  .about-page__intro,
+  .about-page__story {
+    width: min(100% - 2.5rem, 72rem);
+    margin-inline: auto;
+  }
+
+  .about-page__intro {
+    display: grid;
+    grid-template-columns: minmax(10rem, 0.38fr) minmax(0, 1fr);
+    gap: clamp(2rem, 6vw, 7rem);
+    padding-block: clamp(3rem, 7vw, 6rem);
+  }
+
+  .about-page__header {
+    display: grid;
+    align-content: start;
+    gap: 0.45rem;
+  }
+
+  .about-page__eyebrow,
+  .about-page__title,
+  .about-page__section-title {
+    margin: 0;
+    color: var(--about-page-text);
+    font-family: var(--font-body--family);
+    font-size: 0.75rem;
+    font-weight: 300;
+    line-height: 1.4;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .about-page__eyebrow {
+    color: var(--about-page-muted);
+  }
+
+  .about-page__lead,
+  .about-page__copy {
+    color: var(--about-page-muted);
+    font-family: var(--font-body--family);
+    font-size: 0.75rem;
+    font-weight: 300;
+    line-height: 1.7;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .about-page__lead {
+    max-width: 56rem;
+  }
+
+  .about-page__lead p,
+  .about-page__copy p {
+    margin: 0;
+  }
+
+  .about-page__copy {
+    display: grid;
+    gap: 0.85rem;
+  }
+
+  .about-page__media {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 7;
+    overflow: hidden;
+    background: rgb(48 33 24 / 0.06);
+  }
+
+  .about-page__image-pool {
+    position: absolute;
+    inset: 0;
+  }
+
+  .about-page__image,
+  .about-page__placeholder,
+  .about-page__placeholder-svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  .about-page__image,
+  .about-page__placeholder-svg {
+    object-fit: cover;
+    object-position: center center;
+  }
+
+  .about-page__media-logo {
+    position: absolute;
+    right: clamp(1rem, 2.5vw, 2rem);
+    bottom: clamp(1rem, 2.5vw, 2rem);
+    z-index: 2;
+    width: clamp(4rem, 7vw, 7.5rem);
+    height: auto;
+    filter: brightness(0);
+    pointer-events: none;
+  }
+
+  .about-page__image-pool .resource-image__random-image {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    visibility: hidden;
+  }
+
+  .about-page__image-pool .resource-image__random-image.is-active,
+  .about-page__image-pool .resource-image__random-image:first-child {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .about-page__image-pool:has(.resource-image__random-image.is-active)
+    .resource-image__random-image:first-child:not(.is-active) {
+    opacity: 0;
+    visibility: hidden;
+  }
+
+  .about-page__story {
+    display: grid;
+    padding-block: clamp(3rem, 7vw, 6rem);
+  }
+
+  .about-page__story-row {
+    display: grid;
+    grid-template-columns: minmax(10rem, 0.38fr) minmax(0, 1fr);
+    gap: clamp(2rem, 6vw, 7rem);
+    padding-block: clamp(1.5rem, 3vw, 2.25rem);
+    border-block-start: 0.5px solid var(--about-page-border);
+  }
+
+  @media screen and (max-width: 749px) {
+    .about-page__intro,
+    .about-page__story-row {
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+
+    .about-page__intro {
+      padding-block: 2.5rem;
+    }
+
+    .about-page__media {
+      aspect-ratio: 4 / 5;
+    }
+
+    .about-page__story {
+      padding-block: 2.5rem;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "About page",
+  "tag": "section",
+  "class": "about-page-section",
+  "enabled_on": {
+    "templates": ["page"]
+  },
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Your Favourite Fabric"
+    },
+    {
+      "type": "textarea",
+      "id": "intro",
+      "label": "Introduction",
+      "default": "favrik"
+    },
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Large image",
+      "info": "Leave blank to show a random image from the selected collection."
+    },
+    {
+      "type": "text",
+      "id": "image_alt",
+      "label": "Image alt text",
+      "default": "Favrik collection"
+    },
+    {
+      "type": "collection",
+      "id": "collection",
+      "label": "Fallback image collection",
+      "info": "Used when no large image is selected."
+    },
+    {
+      "type": "header",
+      "content": "Story"
+    },
+    {
+      "type": "text",
+      "id": "story_heading",
+      "label": "Story heading",
+      "default": "Favrik"
+    },
+    {
+      "type": "richtext",
+      "id": "story_copy",
+      "label": "Story copy",
+      "default": "<p>At Favrik, fashion isn’t just about clothes—it’s about feeling confident, inspired, and true to yourself. We started Favrik with a love for Korean style and the idea of bringing its unique mix of elegance and playfulness to Australia.</p><p>Our collections are thoughtfully curated with pieces that blend timeless design with the latest trends. From everyday essentials to something special for a night out, we look for items that feel versatile, well-crafted, and a little bit different from what you’d find anywhere else.</p><p>Every week, new arrivals drop to keep things fresh and exciting—whether you’re giving your wardrobe a lift, styling for an occasion, or searching for the perfect gift. Alongside clothing, you’ll also find jewellery, accessories, and home décor, because we believe style should touch every part of life.</p><p>Favrik is more than a store to us—it’s a space where fashion, culture, and lifestyle meet. We hope to inspire you to embrace your own style, discover new favourites, and enjoy the little luxuries that make everyday moments feel special.</p>"
+    },
+    {
+      "type": "text",
+      "id": "approach_heading",
+      "label": "Approach heading",
+      "default": "How We Curate"
+    },
+    {
+      "type": "richtext",
+      "id": "approach_copy",
+      "label": "Approach copy",
+      "default": "<p>Every piece is selected with the wider wardrobe in mind. Clean lines meet soft structure; quiet staples sit alongside directional shapes; and each collection is considered for how it can be worn, layered, and returned to.</p><p>The result is a wardrobe that feels refined, adaptable, and personal—real clothes for real life.</p>"
+    },
+    {
+      "type": "text",
+      "id": "melbourne_heading",
+      "label": "Melbourne heading",
+      "default": "Melbourne"
+    },
+    {
+      "type": "richtext",
+      "id": "melbourne_copy",
+      "label": "Melbourne copy",
+      "default": "<p>Favrik is based in Melbourne, with a physical store for discovering the collection in person. Our online store brings the same calm, considered experience to customers across Australia.</p>"
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "t:settings.background_color",
+      "default": "#f3eee7"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "t:settings.text_color",
+      "default": "#302118"
+    },
+    {
+      "type": "color",
+      "id": "muted_text_color",
+      "label": "Muted text color",
+      "default": "#7e736a"
+    },
+    {
+      "type": "color",
+      "id": "border_color",
+      "label": "Divider color",
+      "default": "#d8cec3"
+    }
+  ],
+  "presets": [
+    {
+      "name": "About page"
+    }
+  ]
+}
+{% endschema %}
