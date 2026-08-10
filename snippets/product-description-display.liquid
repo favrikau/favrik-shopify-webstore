@@ -1,9 +1,25 @@
 {%- liquid
   assign output = description | default: ''
+  assign material_product = product | default: closest.product
+  assign material_value = blank
 
-  if output == blank
-    echo output
-  else
+  if material_product != blank
+    assign material_metafield = material_product.metafields.custom.material
+    if material_metafield == blank
+      assign material_metafield = material_product.metafields['custom']['material']
+    endif
+    if material_metafield.value != blank
+      assign material_value = material_metafield.value
+    endif
+  endif
+
+  if material_value != blank
+    assign material_value = material_value | strip
+  endif
+-%}
+{%- if output == blank and material_value == blank -%}
+{%- else -%}
+  {%- liquid
     assign paragraphs = output | split: '</p>'
     assign cleaned_paragraphs = ''
 
@@ -39,7 +55,12 @@
         assign cleaned_paragraphs = cleaned_paragraphs | append: '</p>'
       endunless
     endif
-
-    echo cleaned_paragraphs
-  endif
--%}
+  -%}
+  {{- cleaned_paragraphs -}}
+  {%- if material_value != blank -%}
+    <p class="product-description__material">
+      <span class="product-description__material-label">Material:</span>
+      {{ material_value | escape }}
+    </p>
+  {%- endif -%}
+{%- endif -%}

@@ -340,6 +340,10 @@
   }
 </script>
 
+{% if request.page_type == 'product' %}
+  {% render 'product-delivery-banner' %}
+{% endif %}
+
 <header-component
   id="header-component"
   class="{{ class }}"
@@ -527,6 +531,9 @@
     --header-actions-font-weight: 300;
     --icon-stroke-width: 1px;
     font-weight: 300;
+
+    /* Shared rhythm for left text links and right icon actions */
+    --menu-horizontal-gap: 3.25rem;
 
     display: block;
     contain: layout style;
@@ -1170,6 +1177,14 @@
   .header-actions__action:not(.account-button) .svg-wrapper {
     height: var(--button-size);
     width: var(--button-size);
+  }
+
+  @media screen and (min-width: 750px) {
+    /* Match left-link rhythm: space between glyphs = --menu-horizontal-gap */
+    .header-actions__action:not(.account-button) .svg-wrapper {
+      height: var(--icon-size-md);
+      width: var(--icon-size-md);
+    }
   }
 
   .header-actions__action:not(.account-button) svg {

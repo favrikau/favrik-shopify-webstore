@@ -47,15 +47,28 @@
         assign raw_description_plain = product_resource.description | strip_html | strip
         assign is_product_description_block = false
 
-        if raw_description_plain != blank and visible_text == raw_description_plain
+        if plain_text contains 'closest.product.description' or plain_text contains 'product.description'
           assign is_product_description_block = true
-        elsif plain_text contains 'closest.product.description' or plain_text contains 'product.description'
+        elsif block.id == 'text_aEtTtq'
           assign is_product_description_block = true
+        elsif raw_description_plain != blank
+          assign visible_text_normalized = visible_text | strip
+          assign raw_description_normalized = raw_description_plain | strip
+          if visible_text_normalized == raw_description_normalized
+            assign is_product_description_block = true
+          endif
+        endif
+
+        # Description group text blocks on product pages also get Material appended.
+        if is_product_description_block == false and block_settings.type_preset == 'rte'
+          if product_resource.description != blank and block_settings.text contains product_resource.description
+            assign is_product_description_block = true
+          endif
         endif
 
         if is_product_description_block
           capture cleaned_product_description
-            render 'product-description-display', description: product_resource.description
+            render 'product-description-display', description: product_resource.description, product: product_resource
           endcapture
           assign display_text = cleaned_product_description | strip
         endif
@@ -96,6 +109,10 @@
   style="
     {% render 'spacing-padding', settings: block_settings %}
     {% render 'typography-style', settings: block_settings %}
+    {% if is_product_title_block %}
+      --font-weight: 600;
+      --font-size: 1.25rem;
+    {% endif %}
     {% if block_settings.text_color != blank %}
       --color: {{ block_settings.text_color }};
       --color-rgb: {{ block_settings.text_color.rgb }};

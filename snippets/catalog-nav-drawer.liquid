@@ -6,6 +6,7 @@
 {% liquid
   assign all_url = routes.all_products_collection_url
   assign current_handle = collection.handle | default: ''
+  assign test_collection = collections['test-collection']
   assign fw2026_collection = collections['fw2026']
   assign sale_collection = collections['on-sale']
   assign locations_url = pages['locations'].url | default: '/pages/locations'
@@ -35,6 +36,16 @@
           {% if current_handle == 'all' %}aria-current="page"{% endif %}
         >
           ALL PRODUCTS
+        </a>
+      </li>
+
+      <li>
+        <a
+          href="{% if test_collection != blank %}{{ test_collection.url }}{% else %}/collections/test-collection{% endif %}"
+          class="catalog-nav-drawer__link catalog-nav-drawer__link--secondary{% if current_handle == 'test-collection' %} catalog-nav-drawer__link--active{% endif %}"
+          {% if current_handle == 'test-collection' %}aria-current="page"{% endif %}
+        >
+          TEST COLLECTION
         </a>
       </li>
 
@@ -139,7 +150,8 @@
 {% stylesheet %}
   .catalog-nav-drawer__backdrop {
     position: fixed;
-    top: var(--header-group-height, var(--header-height, 0px));
+    /* Match sticky header `top: -1px` so the blur sits flush — no cream gap */
+    top: calc(var(--header-height, 0px) - 1px);
     right: 0;
     bottom: 0;
     left: 0;
@@ -173,7 +185,7 @@
 
   .catalog-nav-drawer {
     position: fixed;
-    top: var(--header-group-height, var(--header-height, 0px));
+    top: calc(var(--header-height, 0px) - 1px);
     right: 0;
     bottom: 0;
     left: 0;
@@ -225,12 +237,15 @@
     display: flex;
     flex-direction: column;
     gap: 0.15rem;
+    width: 100%;
     margin: 0;
     padding: 0;
   }
 
   .catalog-nav-drawer__divider {
-    width: 4.5rem;
+    /* Full nav-column hairline */
+    width: 100%;
+    max-width: 100%;
     height: 0;
     margin-block: 0.85rem 0.7rem;
     border: 0;

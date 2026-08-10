@@ -38,18 +38,19 @@
     }
 
     /* Match site-wide body weight instead of heavier heading presets.
-       Product name (text_xrnftG) keeps a slightly heavier weight. */
-    .product-details .text-block:not(.text-block--text_xrnftG) :is(h1, h2, h3, h4, h5, h6),
+       Product name (the top-right h1) stays at 600 to match variant labels. */
+    .product-details .text-block :is(h2, h3, h4, h5, h6),
     .sticky-add-to-cart__title {
       font-weight: var(--font-body--weight);
     }
 
-    .product-details .text-block--text_xrnftG,
-    .product-details .text-block--text_xrnftG.custom-typography,
-    .product-details .text-block--text_xrnftG.custom-typography > *,
-    .product-details .text-block--text_xrnftG :is(h1, h2, h3, h4, h5, h6) {
-      --font-weight: 500;
-      font-weight: 500;
+    .product-details .text-block > h1,
+    .product-details .text-block.custom-typography > h1,
+    .product-details h1 {
+      --font-size: 1.25rem;
+      --font-weight: 600;
+      font-size: 1.25rem !important;
+      font-weight: 600 !important;
     }
 
     :lang(ko):is(

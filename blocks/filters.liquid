@@ -445,6 +445,7 @@
     id="filters-drawer"
     data-skip-node-update
     no-persist
+    overlay
     class="facets-block-wrapper facets-block-wrapper--vertical color-custom-drawer"
   >
     <dialog
@@ -537,9 +538,9 @@
               {% render 'sorting',
                 results: results,
                 sort_by: sort_by,
-                filter_style: block_settings.filter_style,
+                filter_style: 'vertical',
                 suffix: 'overflow',
-                should_use_select_on_mobile: should_use_select_on_mobile,
+                should_use_select_on_mobile: false,
                 section_id: section.id
               %}
             {% endif %}

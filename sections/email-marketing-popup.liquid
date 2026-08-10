@@ -1,0 +1,598 @@
+{% comment %}
+  Favrik email marketing popup — fixed teaser + compact floating panel.
+  Uses Shopify's native customer form. Site-wide via footer group.
+{% endcomment %}
+
+{% if section.settings.enable_popup %}
+{% liquid
+  assign teaser_text = section.settings.teaser_text | default: 'Join the list'
+  assign heading = section.settings.heading | default: 'New pieces, first'
+  assign description = section.settings.description | default: 'Sign up for collection releases, restocks and occasional updates.'
+  assign email_placeholder = section.settings.email_placeholder | default: 'Email address'
+  assign submit_label = section.settings.submit_label | default: 'Join'
+  assign consent_text = section.settings.consent_text | default: 'By subscribing, you agree to receive marketing emails from Favrik. You can unsubscribe at any time.'
+  assign success_heading = section.settings.success_heading | default: 'You’re on the list'
+  assign success_message = section.settings.success_message | default: 'We’ll keep you posted on new arrivals and restocks.'
+  assign desktop_position = section.settings.desktop_position | default: 'bottom-right'
+  assign show_on_mobile = section.settings.show_on_mobile
+  assign delay_seconds = section.settings.appear_delay | default: 3
+  assign delay_ms = delay_seconds | times: 1000
+  assign form_id = 'EmailMarketingPopup-' | append: section.id
+%}
+
+<script
+  src="{{ 'email-marketing-popup.js' | asset_url }}"
+  type="module"
+></script>
+
+<email-marketing-popup-component
+  class="email-marketing-popup email-marketing-popup--{{ desktop_position }}{% unless show_on_mobile %} email-marketing-popup--hide-mobile{% endunless %}"
+  id="email-marketing-popup"
+  data-section-id="{{ section.id }}"
+  data-delay-ms="{{ delay_ms }}"
+  {% if request.design_mode %}
+    data-design-mode="true"
+  {% endif %}
+  hidden
+>
+  <button
+    type="button"
+    class="email-marketing-popup__teaser"
+    ref="teaser"
+    id="email-marketing-popup-teaser"
+    aria-expanded="false"
+    aria-controls="email-marketing-popup-panel"
+    on:click="/togglePanel"
+  >
+    <span class="email-marketing-popup__teaser-label">{{ teaser_text | escape }}</span>
+  </button>
+
+  <div
+    class="email-marketing-popup__panel"
+    ref="panel"
+    id="email-marketing-popup-panel"
+    role="region"
+    aria-labelledby="EmailMarketingPopup-title-{{ section.id }}"
+    hidden
+  >
+    <div class="email-marketing-popup__panel-header">
+      <button
+        type="button"
+        class="email-marketing-popup__close button-unstyled"
+        ref="closeButton"
+        aria-label="{{ 'accessibility.close_dialog' | t }}"
+        on:click="/dismiss"
+      >
+        <span class="email-marketing-popup__close-icon" aria-hidden="true">
+          {{- 'icon-close.svg' | inline_asset_content -}}
+        </span>
+      </button>
+    </div>
+
+    {% form 'customer', id: form_id, class: 'email-marketing-popup__form' %}
+      {% liquid
+        assign form_matches = false
+        if form.id == form_id or form.id == blank
+          assign form_matches = true
+        endif
+
+        assign show_success = false
+        if form.posted_successfully? and form_matches
+          assign show_success = true
+        endif
+
+        assign show_errors = false
+        if form.errors and form_matches
+          assign show_errors = true
+        endif
+      %}
+
+      {% if show_success or show_errors %}
+        <span hidden data-email-popup-state="{% if show_success %}success{% else %}error{% endif %}"></span>
+      {% endif %}
+
+      {% if show_success %}
+        <div
+          class="email-marketing-popup__success"
+          ref="success"
+          role="status"
+          tabindex="-1"
+        >
+          <h2
+            class="email-marketing-popup__title"
+            id="EmailMarketingPopup-title-{{ section.id }}"
+          >
+            {{ success_heading | escape }}
+          </h2>
+          <p class="email-marketing-popup__description">
+            {{ success_message | escape }}
+          </p>
+        </div>
+      {% else %}
+        <div class="email-marketing-popup__content">
+          <h2
+            class="email-marketing-popup__title"
+            id="EmailMarketingPopup-title-{{ section.id }}"
+          >
+            {{ heading | escape }}
+          </h2>
+
+          {% if description != blank %}
+            <p class="email-marketing-popup__description">
+              {{ description | escape }}
+            </p>
+          {% endif %}
+
+          {% if show_errors %}
+            <div
+              class="email-marketing-popup__errors"
+              id="EmailMarketingPopup-errors-{{ section.id }}"
+              role="alert"
+              tabindex="-1"
+            >
+              {{ form.errors | default_errors }}
+            </div>
+          {% endif %}
+
+          <input
+            type="hidden"
+            name="contact[tags]"
+            value="newsletter,email-popup"
+          >
+
+          <div class="email-marketing-popup__field">
+            <label
+              class="visually-hidden"
+              for="EmailMarketingPopup-email-{{ section.id }}"
+            >
+              {{ email_placeholder | escape }}
+            </label>
+            <input
+              ref="emailInput"
+              id="EmailMarketingPopup-email-{{ section.id }}"
+              class="email-marketing-popup__input"
+              type="email"
+              name="contact[email]"
+              value="{% if form.email %}{{ form.email }}{% elsif customer %}{{ customer.email }}{% endif %}"
+              placeholder="{{ email_placeholder | escape }}"
+              autocomplete="email"
+              autocorrect="off"
+              autocapitalize="off"
+              spellcheck="false"
+              required
+              {% if show_errors %}
+                aria-invalid="true"
+                aria-describedby="EmailMarketingPopup-errors-{{ section.id }}"
+              {% endif %}
+            >
+          </div>
+
+          <button
+            type="submit"
+            class="email-marketing-popup__submit button"
+          >
+            {{ submit_label | escape }}
+          </button>
+
+          {% if consent_text != blank %}
+            <p class="email-marketing-popup__consent">
+              {{ consent_text | escape }}
+            </p>
+          {% endif %}
+        </div>
+      {% endif %}
+    {% endform %}
+  </div>
+</email-marketing-popup-component>
+{% endif %}
+
+{% stylesheet %}
+  /* Hide Shopify's floating "Protected by hCaptcha" badge only. */
+  #shop-hcaptcha-badge-container {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+  }
+
+  .email-marketing-popup-section,
+  .email-marketing-popup-section > div {
+    display: contents;
+  }
+
+  .email-marketing-popup {
+    --email-popup-bg: var(--color-background, #f3eee7);
+    --email-popup-text: var(--color-foreground, #302118);
+    --email-popup-muted: rgb(var(--color-foreground-rgb) / var(--opacity-muted-text, 0.6));
+    --email-popup-border: rgb(var(--color-border-rgb, 48 33 24) / 0.22);
+    --email-popup-inset: max(var(--margin-lg), env(safe-area-inset-bottom, 0px));
+    --email-popup-inline: max(var(--margin-lg), env(safe-area-inset-right, 0px), env(safe-area-inset-left, 0px));
+
+    position: fixed;
+    z-index: var(--layer-window-overlay);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: var(--gap-xs);
+    max-width: min(22rem, calc(100vw - (2 * var(--email-popup-inline))));
+    pointer-events: none;
+    inset: auto var(--email-popup-inline) var(--email-popup-inset) auto;
+  }
+
+  .email-marketing-popup[hidden] {
+    display: none;
+  }
+
+  .email-marketing-popup--bottom-left {
+    inset: auto auto var(--email-popup-inset) var(--email-popup-inline);
+    align-items: flex-start;
+  }
+
+  .email-marketing-popup--bottom-right {
+    inset: auto var(--email-popup-inline) var(--email-popup-inset) auto;
+    align-items: flex-end;
+  }
+
+  .email-marketing-popup__form {
+    display: block;
+    margin: 0;
+  }
+
+  .email-marketing-popup__teaser,
+  .email-marketing-popup__panel {
+    pointer-events: auto;
+  }
+
+  .email-marketing-popup__teaser {
+    appearance: none;
+    margin: 0;
+    border: var(--style-border-width) solid var(--email-popup-border);
+    border-radius: 0;
+    background-color: var(--email-popup-bg);
+    color: var(--email-popup-text);
+    box-shadow: var(--shadow-popover, 0 4px 20px rgb(0 0 0 / 0.12));
+    padding: var(--padding-sm) var(--padding-lg);
+    min-height: var(--minimum-touch-target);
+    font-family: var(--font-body--family);
+    font-size: var(--font-size--2xs);
+    font-weight: 300;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    line-height: var(--line-height--body-tight);
+    cursor: pointer;
+    transition:
+      opacity var(--animation-values),
+      transform var(--animation-speed-slow) var(--animation-timing-fade-in);
+  }
+
+  .email-marketing-popup__teaser:hover {
+    opacity: 0.85;
+  }
+
+  .email-marketing-popup__teaser:focus-visible {
+    outline: var(--focus-outline-width) solid currentColor;
+    outline-offset: var(--focus-outline-offset);
+  }
+
+  .email-marketing-popup__panel {
+    position: relative;
+    width: min(22rem, calc(100vw - (2 * var(--email-popup-inline))));
+    background-color: var(--email-popup-bg);
+    color: var(--email-popup-text);
+    border: var(--style-border-width) solid var(--email-popup-border);
+    border-radius: 0;
+    box-shadow: var(--shadow-popover, 0 4px 20px rgb(0 0 0 / 0.12));
+    padding: var(--padding-xl) var(--padding-lg) var(--padding-lg);
+  }
+
+  .email-marketing-popup__panel[hidden] {
+    display: none;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .email-marketing-popup[data-visible='true'] .email-marketing-popup__teaser {
+      animation: email-marketing-popup-fade-in var(--animation-speed-slow) var(--animation-timing-fade-in) both;
+    }
+
+    .email-marketing-popup__panel[data-open='true'] {
+      animation: email-marketing-popup-panel-in var(--animation-speed-slow) var(--animation-timing-fade-in) both;
+    }
+  }
+
+  @keyframes email-marketing-popup-fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(0.5rem);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes email-marketing-popup-panel-in {
+    from {
+      opacity: 0;
+      transform: translateY(0.4rem);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .email-marketing-popup__panel-header {
+    position: absolute;
+    inset: var(--padding-xs) var(--padding-xs) auto auto;
+  }
+
+  .email-marketing-popup__close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--minimum-touch-target);
+    height: var(--minimum-touch-target);
+    margin: 0;
+    padding: 0;
+    color: var(--email-popup-text);
+    cursor: pointer;
+    border-radius: var(--style-border-radius-50);
+  }
+
+  .email-marketing-popup__close:hover {
+    opacity: 0.7;
+  }
+
+  .email-marketing-popup__close:focus-visible {
+    outline: var(--focus-outline-width) solid currentColor;
+    outline-offset: var(--focus-outline-offset);
+  }
+
+  .email-marketing-popup__close-icon {
+    display: flex;
+    width: var(--icon-size-xs);
+    height: var(--icon-size-xs);
+  }
+
+  .email-marketing-popup__close-icon svg {
+    width: 100%;
+    height: 100%;
+  }
+
+  .email-marketing-popup__content,
+  .email-marketing-popup__success {
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap-sm);
+    padding-inline-end: var(--padding-md);
+  }
+
+  .email-marketing-popup__success:focus {
+    outline: none;
+  }
+
+  .email-marketing-popup__title {
+    margin: 0;
+    font-family: var(--font-heading--family, var(--font-body--family));
+    font-size: var(--font-size--sm);
+    font-weight: var(--font-heading--weight, 400);
+    letter-spacing: var(--letter-spacing-global, 0.04em);
+    line-height: var(--line-height--heading-normal, 1.3);
+    text-transform: uppercase;
+    color: var(--email-popup-text);
+  }
+
+  .email-marketing-popup__description,
+  .email-marketing-popup__consent {
+    margin: 0;
+    font-family: var(--font-body--family);
+    font-size: var(--font-size--2xs);
+    font-weight: 300;
+    letter-spacing: 0.04em;
+    line-height: var(--line-height--body-normal, 1.5);
+    color: var(--email-popup-muted);
+  }
+
+  .email-marketing-popup__consent {
+    font-size: var(--font-size--3xs);
+    line-height: var(--line-height--body-loose, 1.6);
+  }
+
+  .email-marketing-popup__errors {
+    font-family: var(--font-body--family);
+    font-size: var(--font-size--2xs);
+    font-weight: 300;
+    letter-spacing: 0.04em;
+    color: var(--color-error, #8b0000);
+  }
+
+  .email-marketing-popup__errors ul {
+    margin: 0;
+    padding-inline-start: 1.1em;
+  }
+
+  .email-marketing-popup__field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap-2xs);
+  }
+
+  .email-marketing-popup__input {
+    width: 100%;
+    min-height: 2.75rem;
+    margin: 0;
+    padding: var(--padding-sm) var(--padding-md);
+    border: var(--style-border-width-inputs, 0.5px) solid var(--email-popup-border);
+    border-radius: 0;
+    background-color: transparent;
+    color: var(--color-input-text, var(--email-popup-text));
+    font-family: var(--font-body--family);
+    font-size: var(--font-size--2xs);
+    font-weight: 300;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    line-height: 1.2;
+    outline: none;
+    box-shadow: none;
+    transition: border-color var(--animation-values);
+  }
+
+  .email-marketing-popup__input::placeholder {
+    color: rgb(var(--color-foreground-rgb, 48 33 24) / 0.45);
+    text-transform: uppercase;
+  }
+
+  .email-marketing-popup__input:focus {
+    border-color: rgb(var(--color-foreground-rgb, 48 33 24) / 0.65);
+  }
+
+  .email-marketing-popup__submit.button {
+    --button-border-width: 0.5px;
+
+    width: 100%;
+    min-height: 2.75rem;
+    margin: 0;
+    border-radius: 0;
+    font-family: var(--font-body--family);
+    font-size: var(--font-size--2xs);
+    font-weight: 300;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  @media screen and (max-width: 749px) {
+    /* Hide only the teaser on mobile when disabled — footer link can still open the panel */
+    .email-marketing-popup--hide-mobile .email-marketing-popup__teaser {
+      display: none;
+    }
+
+    .email-marketing-popup {
+      /* Keep clear of sticky ATC / chat FAB on small screens */
+      --email-popup-inset: max(var(--margin-2xl), calc(env(safe-area-inset-bottom, 0px) + var(--margin-xl)));
+      max-width: min(20.5rem, calc(100vw - (2 * var(--email-popup-inline))));
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Email marketing popup",
+  "tag": "div",
+  "class": "email-marketing-popup-section",
+  "enabled_on": {
+    "groups": ["footer"]
+  },
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "enable_popup",
+      "label": "Enable popup",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Teaser"
+    },
+    {
+      "type": "text",
+      "id": "teaser_text",
+      "label": "Teaser text",
+      "default": "Join the list"
+    },
+    {
+      "type": "header",
+      "content": "Panel content"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "New pieces, first"
+    },
+    {
+      "type": "textarea",
+      "id": "description",
+      "label": "Description",
+      "default": "Sign up for collection releases, restocks and occasional updates."
+    },
+    {
+      "type": "text",
+      "id": "email_placeholder",
+      "label": "Email placeholder",
+      "default": "Email address"
+    },
+    {
+      "type": "text",
+      "id": "submit_label",
+      "label": "Submit button text",
+      "default": "Join"
+    },
+    {
+      "type": "textarea",
+      "id": "consent_text",
+      "label": "Consent text",
+      "default": "By subscribing, you agree to receive marketing emails from Favrik. You can unsubscribe at any time."
+    },
+    {
+      "type": "header",
+      "content": "Success state"
+    },
+    {
+      "type": "text",
+      "id": "success_heading",
+      "label": "Success heading",
+      "default": "You’re on the list"
+    },
+    {
+      "type": "textarea",
+      "id": "success_message",
+      "label": "Success message",
+      "default": "We’ll keep you posted on new arrivals and restocks."
+    },
+    {
+      "type": "header",
+      "content": "Behaviour"
+    },
+    {
+      "type": "select",
+      "id": "desktop_position",
+      "label": "Desktop position",
+      "options": [
+        {
+          "value": "bottom-right",
+          "label": "Bottom right"
+        },
+        {
+          "value": "bottom-left",
+          "label": "Bottom left"
+        }
+      ],
+      "default": "bottom-right"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_on_mobile",
+      "label": "Show on mobile",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "appear_delay",
+      "label": "Delay before teaser appears",
+      "min": 0,
+      "max": 30,
+      "step": 1,
+      "unit": "s",
+      "default": 3
+    }
+  ],
+  "presets": [
+    {
+      "name": "Email marketing popup",
+      "category": "t:categories.forms"
+    }
+  ]
+}
+{% endschema %}

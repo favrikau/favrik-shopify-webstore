@@ -154,7 +154,11 @@
     }
   }
 
-  .contact-form__input {
+  .contact-form input.contact-form__input,
+  .contact-form textarea.contact-form__input {
+    --contact-form-border-width: 0.5px;
+    --contact-form-border-color: rgb(48 33 24 / 0.22);
+
     width: 100%;
     min-height: 2.75rem;
     overflow: hidden;
@@ -163,7 +167,8 @@
     background-color: transparent;
     padding: 0.85rem 1rem;
     border-radius: 0;
-    border: 0.5px solid rgb(48 33 24 / 0.22);
+    border: var(--contact-form-border-width) solid var(--contact-form-border-color);
+    border-color: var(--contact-form-border-color);
     font-family: var(--font-body--family);
     font-size: 0.75rem;
     font-weight: 300;
@@ -176,7 +181,8 @@
     transition: border-color 0.2s ease;
   }
 
-  .contact-form__input::placeholder {
+  .contact-form input.contact-form__input::placeholder,
+  .contact-form textarea.contact-form__input::placeholder {
     color: rgb(48 33 24 / 0.45);
     font-family: var(--font-body--family);
     font-size: 0.75rem;
@@ -185,17 +191,20 @@
     text-transform: uppercase;
   }
 
-  .contact-form__input:focus {
+  .contact-form input.contact-form__input:focus,
+  .contact-form textarea.contact-form__input:focus {
     border-color: rgb(48 33 24 / 0.65);
   }
 
-  .contact-form__input--textarea {
+  .contact-form textarea.contact-form__input--textarea {
     resize: vertical;
     min-height: 10rem;
   }
 
   .contact-form .submit-button,
   .contact-form .button {
+    --button-border-width: 0.5px;
+
     margin-block-start: 0.5rem;
     min-height: 2.75rem;
     border-radius: 0;

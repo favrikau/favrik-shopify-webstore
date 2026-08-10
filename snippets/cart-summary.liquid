@@ -224,6 +224,15 @@
     else
       assign total_price = cart.total_price | money
     endif
+
+    assign free_shipping_threshold_cents = 15000
+    assign free_shipping_unlocked = false
+    if cart.items_subtotal_price >= free_shipping_threshold_cents
+      assign free_shipping_unlocked = true
+    else
+      assign free_shipping_remaining_cents = free_shipping_threshold_cents | minus: cart.items_subtotal_price
+      assign free_shipping_remaining = free_shipping_remaining_cents | money
+    endif
   -%}
 
   <div class="cart-totals__container{% if settings.show_installments %} cart-totals__container--has-installments{% endif %}">
@@ -243,6 +252,21 @@
         {{ total_price }}
       </text-component>
     </span>
+    {% if cart != empty %}
+      <p
+        class="cart-totals__free-shipping cart-primary-typography{% if free_shipping_unlocked %} cart-totals__free-shipping--unlocked{% endif %}"
+        role="status"
+      >
+        {% if free_shipping_unlocked %}
+          <span class="cart-totals__free-shipping-icon" aria-hidden="true">
+            {{- 'icon-checkmark.svg' | inline_asset_content -}}
+          </span>
+          Free shipping unlocked
+        {% else %}
+          {{ free_shipping_remaining }} away from free shipping
+        {% endif %}
+      </p>
+    {% endif %}
     {% if settings.show_installments %}
       <span class="cart-totals__item cart-totals__installments">
         {% form 'cart', cart %}
@@ -407,6 +431,35 @@
     @media screen and (max-width: 749px) {
       font-size: var(--font-size--lg);
     }
+  }
+
+  .cart-totals__free-shipping {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin: 0.35rem 0 0;
+    color: var(--color-foreground-subdued);
+    font-size: var(--font-size--2xs);
+    font-weight: 400;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    line-height: 1.4;
+  }
+
+  .cart-totals__free-shipping--unlocked {
+    color: var(--color-success, #006400);
+  }
+
+  .cart-totals__free-shipping-icon {
+    display: inline-flex;
+    flex-shrink: 0;
+    width: 0.875rem;
+    height: 0.875rem;
+  }
+
+  .cart-totals__free-shipping-icon svg {
+    width: 100%;
+    height: 100%;
   }
 
   .cart-totals__installments {

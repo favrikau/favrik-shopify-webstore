@@ -331,6 +331,26 @@ const scrollLockOwners = new Set();
 /** @type {MutationObserver | undefined} */
 let scrollLockObserver;
 
+/** @type {Element | null} */
+let scrollLockScrollElement = null;
+
+/** @type {number} */
+let scrollLockScrollTop = 0;
+
+function getScrollLockScrollElement() {
+  if (window.matchMedia('(min-width: 990px)').matches) {
+    return document.querySelector('.page-wrapper') ?? document.documentElement;
+  }
+
+  return document.documentElement;
+}
+
+function freezeScrollLockPosition() {
+  if (scrollLockScrollElement) {
+    scrollLockScrollElement.scrollTop = scrollLockScrollTop;
+  }
+}
+
 function pruneDisconnectedScrollLockOwners() {
   for (const owner of scrollLockOwners) {
     if (!owner.isConnected) {
@@ -345,6 +365,12 @@ function syncScrollLock() {
   if (scrollLockOwners.size > 0) {
     document.documentElement.setAttribute('scroll-lock', '');
 
+    if (!scrollLockScrollElement) {
+      scrollLockScrollElement = getScrollLockScrollElement();
+      scrollLockScrollTop = scrollLockScrollElement.scrollTop;
+      scrollLockScrollElement.addEventListener('scroll', freezeScrollLockPosition);
+    }
+
     if (!scrollLockObserver) {
       scrollLockObserver = new MutationObserver(syncScrollLock);
       scrollLockObserver.observe(document.documentElement, { childList: true, subtree: true });
@@ -354,6 +380,8 @@ function syncScrollLock() {
   }
 
   document.documentElement.removeAttribute('scroll-lock');
+  scrollLockScrollElement?.removeEventListener('scroll', freezeScrollLockPosition);
+  scrollLockScrollElement = null;
   scrollLockObserver?.disconnect();
   scrollLockObserver = undefined;
 }

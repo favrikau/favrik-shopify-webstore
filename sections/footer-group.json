@@ -31,11 +31,11 @@
         "instagram_url": "https://www.instagram.com/favrik__/?hl=en",
         "contact_url": "/pages/contact",
         "designer_credit": "Designed by RSD",
-        "tagline_ko": "서울에서 영감받은. 일상의 품격",
         "show_legal_notice": true,
+        "show_payment_icons": true,
         "company_name": "Favrik Pty Ltd",
         "phone": "",
-        "email": "",
+        "email": "favrik.au@gmail.com",
         "address": "Emporium, Lower Ground, Shop 27a/287 Lonsdale St, Melbourne VIC 3000",
         "opening_hours": "Mon–Wed, Sat–Sun 11am–7pm\nThu–Fri 11am–8pm",
         "abn": "",
@@ -49,10 +49,29 @@
         "padding-block-start": 0,
         "padding-block-end": 0
       }
+    },
+    "email_marketing_popup": {
+      "type": "email-marketing-popup",
+      "name": "Email marketing popup",
+      "settings": {
+        "enable_popup": true,
+        "teaser_text": "Join the list",
+        "heading": "New pieces, first",
+        "description": "Sign up for collection releases, restocks and occasional updates.",
+        "email_placeholder": "Email address",
+        "submit_label": "Join",
+        "consent_text": "By subscribing, you agree to receive marketing emails from Favrik. You can unsubscribe at any time.",
+        "success_heading": "You’re on the list",
+        "success_message": "We’ll keep you posted on new arrivals and restocks.",
+        "desktop_position": "bottom-right",
+        "show_on_mobile": true,
+        "appear_delay": 3
+      }
     }
   },
   "order": [
     "footer_colorway_rectangles",
-    "favrik_footer"
+    "favrik_footer",
+    "email_marketing_popup"
   ]
 }

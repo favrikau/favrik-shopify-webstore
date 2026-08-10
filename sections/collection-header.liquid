@@ -51,14 +51,33 @@
         <span class="collection-page-header__title">{{ title_en | escape }}</span>
       </h1>
 
-      <p class="collection-page-header__count" role="status" data-testid="products-count">
-        {% if products_count > 25000 %}
-          {{- 'content.item_count_cutoff' | t: count: 25000 -}}
-        {% else %}
-          {{- 'content.item_count' | t: count: products_count -}}
-        {% endif %}
-      </p>
+      <div class="collection-page-header__meta">
+        <p class="collection-page-header__count" role="status" data-testid="products-count">
+          {% if products_count > 25000 %}
+            {{- 'content.item_count_cutoff' | t: count: 25000 -}}
+          {% else %}
+            {{- 'content.item_count' | t: count: products_count -}}
+          {% endif %}
+        </p>
+
+        <button
+          type="button"
+          class="collection-page-header__filter button-unstyled"
+          data-collection-filter-trigger
+          aria-controls="filters-drawer"
+          aria-expanded="false"
+          aria-haspopup="dialog"
+          on:click="#filters-drawer/toggle"
+        >
+          {{ 'actions.show_filters' | t }}
+        </button>
+      </div>
     </div>
+
+    <script
+      src="{{ 'collection-header-filters.js' | asset_url }}"
+      type="module"
+    ></script>
 
     {% if section.settings.show_description and collection.description != blank and collection.handle != 'on-sale' %}
       <div class="collection-page-header__description rte">
@@ -109,9 +128,17 @@
     font-weight: 300;
   }
 
-  .collection-page-header__count {
-    margin: 0;
+  .collection-page-header__meta {
+    display: flex;
+    align-items: baseline;
+    justify-content: flex-end;
+    gap: 0.85rem;
     flex-shrink: 0;
+  }
+
+  .collection-page-header__count,
+  .collection-page-header__filter {
+    margin: 0;
     color: var(--collection-header-title-color, #302118);
     font-family: var(--font-body--family);
     font-size: 0.75rem;
@@ -121,9 +148,202 @@
     white-space: nowrap;
   }
 
+  .collection-page-header__filter {
+    padding: 0;
+    cursor: pointer;
+    text-transform: uppercase;
+    background: transparent;
+    border: 0;
+    transition: opacity var(--animation-values);
+  }
+
+  .collection-page-header__filter:hover {
+    opacity: 0.55;
+  }
+
+  .collection-page-header__filter:focus-visible {
+    outline: var(--focus-outline-width) solid currentColor;
+    outline-offset: var(--focus-outline-offset);
+  }
+
   .collection-page-header__description {
     margin-block-start: 12px;
     max-width: 65ch;
+  }
+
+  /*
+    Hide Horizon's default facets toolbar / mobile toggle on collection pages.
+    Filtering + sorting open from the header "Filter" control instead.
+  */
+  .content-for-layout[data-template='collection'] .facets-block-wrapper--horizontal,
+  .content-for-layout[data-template='collection'] .facets-toggle {
+    display: none !important;
+  }
+
+  /* Compact square filter popdown (reuses #filters-drawer content). */
+  .content-for-layout[data-template='collection'] #filters-drawer .theme-drawer__dialog {
+    --theme-drawer-width: min(22rem, calc(100vw - 2rem));
+    --collection-filter-panel-top: calc(var(--header-height, 4.5rem) + 3.5rem);
+    --collection-filter-pad: var(--padding-lg);
+    --collection-filter-type-size: 0.75rem;
+    --checkbox-border-radius: 0;
+
+    inset: unset;
+    top: var(--collection-filter-panel-top);
+    right: max(var(--page-margin, 1rem), 1rem);
+    left: auto;
+    bottom: auto;
+    width: var(--theme-drawer-width);
+    height: auto;
+    max-height: min(70dvh, 36rem);
+    border: var(--style-border-width, 0.5px) solid rgb(48 33 24 / 0.18);
+    border-left: var(--style-border-width, 0.5px) solid rgb(48 33 24 / 0.18);
+    background-color: var(--color-background, #f3eee7);
+    color: var(--color-foreground, #302118);
+    box-shadow: var(--shadow-popover, 0 4px 20px rgb(0 0 0 / 0.12));
+    overflow: hidden;
+  }
+
+  .content-for-layout[data-template='collection'] #filters-drawer .theme-drawer__dialog[open] {
+    right: max(var(--page-margin, 1rem), 1rem);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .content-for-layout[data-template='collection'] #filters-drawer .theme-drawer__dialog--opening {
+      animation: collection-filter-panel-in var(--animation-speed-slow) var(--animation-timing-fade-in);
+    }
+
+    .content-for-layout[data-template='collection'] #filters-drawer .theme-drawer__dialog--closing {
+      animation: collection-filter-panel-out var(--animation-speed-slow) var(--animation-timing-fade-out) forwards;
+    }
+  }
+
+  @keyframes collection-filter-panel-in {
+    from {
+      opacity: 0;
+      transform: translateY(-0.4rem);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes collection-filter-panel-out {
+    to {
+      opacity: 0;
+      transform: translateY(-0.4rem);
+    }
+  }
+
+  .content-for-layout[data-template='collection'] #filters-drawer .price-facet__highest-price,
+  .content-for-layout[data-template='collection'] #filters-drawer .facets-remove,
+  .content-for-layout[data-template='collection'] #filters-drawer .filter-remove-buttons {
+    display: none;
+  }
+
+  .content-for-layout[data-template='collection'] #filters-drawer .theme-drawer__header,
+  .content-for-layout[data-template='collection'] #filters-drawer .facets-drawer__filters,
+  .content-for-layout[data-template='collection'] #filters-drawer .facets__drawer-actions {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    padding-inline: var(--collection-filter-pad);
+  }
+
+  .content-for-layout[data-template='collection'] #filters-drawer .theme-drawer__header {
+    padding-block: var(--padding-md);
+  }
+
+  .content-for-layout[data-template='collection'] #filters-drawer .facets,
+  .content-for-layout[data-template='collection'] #filters-drawer .facets__form,
+  .content-for-layout[data-template='collection'] #filters-drawer .facets__filters-wrapper,
+  .content-for-layout[data-template='collection'] #filters-drawer .facets__item,
+  .content-for-layout[data-template='collection'] #filters-drawer .facets__panel,
+  .content-for-layout[data-template='collection'] #filters-drawer .facets__panel-content,
+  .content-for-layout[data-template='collection'] #filters-drawer .facets__inputs,
+  .content-for-layout[data-template='collection'] #filters-drawer .facets__inputs-wrapper,
+  .content-for-layout[data-template='collection'] #filters-drawer .sorting-filter,
+  .content-for-layout[data-template='collection'] #filters-drawer .sorting-filter__options,
+  .content-for-layout[data-template='collection'] #filters-drawer .sorting-filter__options-inner,
+  .content-for-layout[data-template='collection'] #filters-drawer .price-facet {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+  }
+
+  .content-for-layout[data-template='collection'] #filters-drawer .theme-drawer__title,
+  .content-for-layout[data-template='collection'] #filters-drawer .facets__label,
+  .content-for-layout[data-template='collection'] #filters-drawer .facets__summary,
+  .content-for-layout[data-template='collection'] #filters-drawer .facets__status,
+  .content-for-layout[data-template='collection'] #filters-drawer .checkbox__label-text,
+  .content-for-layout[data-template='collection'] #filters-drawer .sorting-filter__label,
+  .content-for-layout[data-template='collection'] #filters-drawer .sorting-filter__option,
+  .content-for-layout[data-template='collection'] #filters-drawer .price-facet__label,
+  .content-for-layout[data-template='collection'] #filters-drawer .price-facet__input,
+  .content-for-layout[data-template='collection'] #filters-drawer .facets__clear,
+  .content-for-layout[data-template='collection'] #filters-drawer .facets__drawer-actions .button,
+  .content-for-layout[data-template='collection'] #filters-drawer .facets__drawer-actions .button-secondary {
+    font-family: var(--font-body--family);
+    font-size: var(--collection-filter-type-size);
+    font-weight: 300;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .content-for-layout[data-template='collection'] #filters-drawer .facets-drawer__filters {
+    max-height: min(48dvh, 24rem);
+    overflow: auto;
+  }
+
+  .content-for-layout[data-template='collection'] #filters-drawer .checkbox .icon-checkmark,
+  .content-for-layout[data-template='collection'] #filters-drawer .checkbox__input:focus-visible + .checkbox__label .icon-checkmark {
+    border-radius: 0;
+  }
+
+  .content-for-layout[data-template='collection'] #filters-drawer .facets__drawer-actions {
+    padding-block: var(--padding-md);
+    gap: var(--gap-sm);
+    align-items: center;
+  }
+
+  .content-for-layout[data-template='collection'] #filters-drawer .facets__drawer-actions .button,
+  .content-for-layout[data-template='collection'] #filters-drawer .facets__drawer-actions .button-secondary {
+    border-radius: 0;
+  }
+
+  .content-for-layout[data-template='collection'] #filters-drawer .facets__clear-all {
+    --facets-clear-all-min-width: 0;
+
+    flex-grow: 0;
+    min-width: 0;
+    min-height: 1.75rem;
+    padding-block: var(--padding-2xs);
+    padding-inline: var(--padding-sm);
+    font-size: 0.625rem;
+  }
+
+  .content-for-layout[data-template='collection'] #filters-drawer .facets__see-results {
+    min-height: 2.25rem;
+    padding-block: var(--padding-xs);
+  }
+
+  @media screen and (max-width: 749px) {
+    .content-for-layout[data-template='collection'] #filters-drawer .theme-drawer__dialog {
+      --collection-filter-panel-top: calc(var(--header-height, 4rem) + 3rem);
+
+      right: 1rem;
+      left: 1rem;
+      width: auto;
+      max-width: none;
+    }
+
+    .content-for-layout[data-template='collection'] #filters-drawer .theme-drawer__dialog[open] {
+      right: 1rem;
+      left: 1rem;
+    }
   }
 {% endstylesheet %}
 

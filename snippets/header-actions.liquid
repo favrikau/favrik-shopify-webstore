@@ -276,12 +276,16 @@
   header-actions {
     display: flex;
     align-items: center;
-    gap: var(--gap-xs);
+    /* Match left nav link spacing (--menu-horizontal-gap on .header) */
+    gap: var(--menu-horizontal-gap, 3.25rem);
+    /* Room for the cart count badge hanging off the last icon */
+    padding-inline-end: 6px;
 
     @media screen and (max-width: 749px) {
       justify-self: flex-end;
       gap: 0;
       margin-inline-end: 2px;
+      padding-inline-end: 8px;
     }
   }
 
@@ -310,8 +314,14 @@
   }
 
   @media screen and (min-width: 750px) {
+    /* Size wrappers to the icon so gap equals the visible space between glyphs */
+    .header-actions__action:not(.account-button) .svg-wrapper {
+      height: var(--icon-size-md);
+      width: var(--icon-size-md);
+    }
+
     .header-actions--text {
-      gap: var(--gap-xl);
+      gap: var(--menu-horizontal-gap, 3.25rem);
     }
 
     .header-actions__text-style {
@@ -327,7 +337,7 @@
   }
 
   .header__column--right header-actions {
-    margin-inline-start: calc(var(--gap-md) * -1);
+    margin-inline-start: 0;
   }
 
   .header-actions__action.header-actions__instagram {
@@ -339,40 +349,57 @@
   }
 
   .header-actions__cart-icon {
-    --cart-bubble-size: 20px;
-    --cart-bubble-top: 4.5px;
-    --cart-bubble-right: 2.5px;
+    --cart-bubble-size: 14px;
+    --cart-bubble-top: -4px;
+    --cart-bubble-right: -6px;
 
     position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: visible;
   }
 
-  .header-actions__cart-icon .cart-bubble {
+  /* Mobile wrappers are 40px touch targets; pin the badge to the 18px glyph corner */
+  @media screen and (max-width: 749px) {
+    .header-actions__cart-icon {
+      --cart-bubble-size: 13px;
+      --cart-bubble-top: 6px;
+      --cart-bubble-right: 6px;
+    }
+  }
+
+  .header-actions__action:has(.header-actions__cart-icon) {
+    overflow: visible;
+  }
+
+  .header-actions__cart-icon .cart-bubble,
+  .header-actions__cart-icon .cart-bubble[data-maintain-ratio] {
     position: absolute;
-    width: var(--cart-bubble-size, 20px);
+    z-index: 1;
+    width: auto;
+    min-width: var(--cart-bubble-size, 14px);
+    height: var(--cart-bubble-size, 14px);
     top: var(--cart-bubble-top);
     right: var(--cart-bubble-right);
+    padding-inline: 3px;
+    box-sizing: border-box;
+    aspect-ratio: auto;
   }
 
   @media screen and (min-width: 750px) {
     .header-actions__cart-icon--text.header-actions__cart-icon .cart-bubble {
       position: relative;
       top: 0;
+      right: 0;
     }
   }
 
   .header-actions__cart-icon .cart-bubble__text {
     font-family: var(--font-paragraph--family);
-    font-weight: var(--font-paragraph--weight);
-  }
-
-  .header-actions__cart-icon.header-actions__cart-icon--has-cart svg {
-    /* Create donut mask where the cart bubble sits */
-    mask: radial-gradient(
-      calc(var(--cart-bubble-size) + 2px) at calc(100% - var(--cart-bubble-right)) var(--cart-bubble-top),
-      transparent 45.45%,
-      #fff 45.45%,
-      #fff 100%
-    );
+    font-weight: 500;
+    font-size: 0.5625rem; /* 9px — sits cleanly in the corner badge */
+    line-height: 1;
   }
 
   .cart-bubble.cart-bubble--animating .cart-bubble__background {
@@ -389,19 +416,14 @@
   }
 
   cart-icon:has(.cart-bubble__text-count:empty) {
-    --cart-bubble-size: 10px;
-    --cart-bubble-top: 9px;
-    --cart-bubble-right: 9px;
-
-    .svg-wrapper {
-      --cart-bubble-top: 4px;
-      --cart-bubble-right: 4px;
-    }
+    --cart-bubble-size: 8px;
+    --cart-bubble-top: -1px;
+    --cart-bubble-right: -1px;
   }
 
   @media screen and (min-width: 750px) {
     cart-icon.header-actions__cart-icon--text:has(.cart-bubble__text-count:empty) {
-      --cart-bubble-right: 2.5px;
+      --cart-bubble-right: 0;
     }
   }
 

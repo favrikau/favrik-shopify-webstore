@@ -37,6 +37,7 @@ html {
   scrollbar-width: thin;
   scrollbar-color: rgb(var(--color-foreground-rgb) / var(--opacity-40)) var(--color-background);
   scroll-behavior: smooth;
+  overflow-y: scroll;
 }
 
 @media (min-width: 990px) {
@@ -47,9 +48,10 @@ html {
   }
 }
 
+/* Scrollbar stays visible (overflow-y: scroll above); JS freezes position */
 html[scroll-lock],
 html[scroll-lock] .page-wrapper {
-  overflow: hidden;
+  overscroll-behavior: none;
 }
 
 .page-wrapper {
@@ -62,7 +64,7 @@ html[scroll-lock] .page-wrapper {
 @media (min-width: 990px) {
   .page-wrapper {
     height: 100dvh;
-    overflow-y: auto;
+    overflow-y: scroll;
     scroll-behavior: smooth;
     scrollbar-width: thin;
     scrollbar-color: rgb(var(--color-foreground-rgb) / var(--opacity-40)) var(--color-background);
@@ -951,6 +953,7 @@ body:has(.header[transparent]) .content-for-layout[data-template='index']
 
 .content-for-layout[data-template='page.contact'] .contact-page__title {
   color: #302118;
+  font-weight: 600;
 }
 
 .content-for-layout[data-template='page.contact'] .contact-page__subheading {

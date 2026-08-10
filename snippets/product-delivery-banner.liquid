@@ -8,37 +8,17 @@
   fetchpriority="low"
 ></script>
 
-<marquee-component
-  class="product-delivery-banner"
-  style="--marquee-gap: 2.5rem; --marquee-direction: normal;"
-  data-speed-factor="20"
-  data-movement-direction="normal"
-  aria-label="Free delivery promotion"
->
-  <div class="marquee__wrapper" ref="wrapper">
-    <div class="marquee__content" ref="content">
-      <div class="marquee__repeated-items" ref="marqueeItems[]">
-        <span class="product-delivery-banner__message product-delivery-banner__message--en">
-          Free delivery on orders over $150
-        </span>
-        <span class="product-delivery-banner__message product-delivery-banner__message--ko" lang="ko">
-          $150 이상 주문 시 무료 배송
-        </span>
-      </div>
-    </div>
-  </div>
-</marquee-component>
-
-{% stylesheet %}
+<style>
   .product-delivery-banner {
     display: block;
     width: 100%;
+    flex: 0 0 auto;
     overflow: hidden;
-    background: rgb(48 33 24 / 0.78);
-    backdrop-filter: blur(14px) saturate(120%);
-    -webkit-backdrop-filter: blur(14px) saturate(120%);
+    background: #000;
     color: rgb(255 247 236 / 0.92);
-    border-block: 0.5px solid rgb(48 33 24 / 0.42);
+    border: none;
+    position: relative;
+    z-index: 2;
   }
 
   .product-delivery-banner .marquee__wrapper {
@@ -78,6 +58,11 @@
     letter-spacing: 0.04em;
   }
 
+  .product-delivery-banner__amount {
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+  }
+
   @media (prefers-reduced-motion: no-preference) {
     .product-delivery-banner:not([data-disabled]) .marquee__wrapper {
       animation: product-delivery-banner-motion var(--marquee-speed) linear infinite var(--marquee-direction);
@@ -89,4 +74,33 @@
       transform: translate3d(calc(-50% - (var(--marquee-gap) / 2)), 0, 0);
     }
   }
-{% endstylesheet %}
+
+  /* Keep sticky header rules working when the banner sits above header-component */
+  .header-section:has(> .product-delivery-banner):has(> #header-component[sticky='always']),
+  .header-section:has(> .product-delivery-banner):has(> #header-component[sticky='scroll-up'][data-sticky-state='active']) {
+    position: sticky;
+    top: -1px;
+    z-index: var(--layer-menu-drawer);
+  }
+</style>
+
+<marquee-component
+  class="product-delivery-banner"
+  style="--marquee-gap: 2.5rem; --marquee-direction: normal;"
+  data-speed-factor="20"
+  data-movement-direction="normal"
+  aria-label="Free delivery promotion"
+>
+  <div class="marquee__wrapper" ref="wrapper">
+    <div class="marquee__content" ref="content">
+      <div class="marquee__repeated-items" ref="marqueeItems[]">
+        <span class="product-delivery-banner__message product-delivery-banner__message--en">
+          Free delivery on orders over $150
+        </span>
+        <span class="product-delivery-banner__message product-delivery-banner__message--ko" lang="ko">
+          <span class="product-delivery-banner__amount" lang="en">$150</span> 이상 주문 시 무료 배송
+        </span>
+      </div>
+    </div>
+  </div>
+</marquee-component>

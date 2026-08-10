@@ -2,6 +2,74 @@
   Expandable Shipping & Returns section for product pages.
 {% enddoc %}
 
+{% liquid
+  assign care_guide_metafield = product.metafields.custom.care_guide
+  assign care_guide_entry = care_guide_metafield.value
+  assign care_guide_content = blank
+
+  if care_guide_metafield != blank
+    if care_guide_entry.system != blank
+      assign care_guide_content = care_guide_entry.care_guide
+      if care_guide_content == blank
+        assign care_guide_content = care_guide_entry.care_instructions
+      endif
+      if care_guide_content == blank
+        assign care_guide_content = care_guide_entry.instructions
+      endif
+      if care_guide_content == blank
+        assign care_guide_content = care_guide_entry.content
+      endif
+      if care_guide_content == blank
+        assign care_guide_content = care_guide_entry.description
+      endif
+      if care_guide_content == blank
+        assign care_guide_content = care_guide_entry.details
+      endif
+    else
+      assign care_guide_content = care_guide_metafield
+    endif
+  endif
+
+  assign sizing_guide = product.metafields.custom.size_guide.value
+  if sizing_guide == blank
+    assign sizing_guide = product.metafields.custom.sizing_guide.value
+  endif
+  assign sizing_guide_has_content = false
+  assign sizing_product_type = blank
+  assign sizing_fit_notes = blank
+  assign sizing_total_length = blank
+  assign sizing_shoulder = blank
+  assign sizing_sleeves = blank
+  assign sizing_bust = blank
+  assign sizing_waist = blank
+  assign sizing_hip = blank
+  assign sizing_rise = blank
+  assign sizing_inseam = blank
+  assign sizing_thigh = blank
+  assign sizing_shoe_size = blank
+  assign sizing_foot_length = blank
+
+  if sizing_guide != blank
+    assign sizing_product_type = sizing_guide.product_type.value | default: sizing_guide.product_type | strip
+    assign sizing_fit_notes = sizing_guide.fit_notes.value | default: sizing_guide.fit_notes | strip
+    assign sizing_total_length = sizing_guide.total_length.value | default: sizing_guide.total_length | strip
+    assign sizing_shoulder = sizing_guide.shoulder.value | default: sizing_guide.shoulder | strip
+    assign sizing_sleeves = sizing_guide.sleeves.value | default: sizing_guide.sleeves | strip
+    assign sizing_bust = sizing_guide.bust.value | default: sizing_guide.bust | strip
+    assign sizing_waist = sizing_guide.waist.value | default: sizing_guide.waist | strip
+    assign sizing_hip = sizing_guide.hip.value | default: sizing_guide.hip | strip
+    assign sizing_rise = sizing_guide.rise.value | default: sizing_guide.rise | strip
+    assign sizing_inseam = sizing_guide.inseam.value | default: sizing_guide.inseam | strip
+    assign sizing_thigh = sizing_guide.thigh.value | default: sizing_guide.thigh | strip
+    assign sizing_shoe_size = sizing_guide.shoe_size.value | default: sizing_guide.shoe_size | strip
+    assign sizing_foot_length = sizing_guide.foot_length.value | default: sizing_guide.foot_length | strip
+
+    if sizing_product_type != blank or sizing_fit_notes != blank or sizing_total_length != blank or sizing_shoulder != blank or sizing_sleeves != blank or sizing_bust != blank or sizing_waist != blank or sizing_hip != blank or sizing_rise != blank or sizing_inseam != blank or sizing_thigh != blank or sizing_shoe_size != blank or sizing_foot_length != blank
+      assign sizing_guide_has_content = true
+    endif
+  endif
+%}
+
 {% capture shipping_returns_content %}
   <details class="details" data-testid="accordion-details">
     <summary class="details__header product-section-heading">
@@ -85,6 +153,137 @@
   </details>
 {% endcapture %}
 
+{% if care_guide_content != blank %}
+  {% capture care_guide_accordion %}
+    <details class="details" data-testid="accordion-details">
+      <summary class="details__header product-section-heading">
+        Care Guide
+        <span class="svg-wrapper icon-caret icon-animated">
+          {{- 'icon-caret.svg' | inline_asset_content -}}
+        </span>
+        <span class="svg-wrapper icon-plus">
+          {{- 'icon-plus.svg' | inline_asset_content -}}
+        </span>
+      </summary>
+
+      <div class="details-content product-shipping-returns__content product-care-guide__content rte">
+        {{ care_guide_content | metafield_tag }}
+      </div>
+    </details>
+  {% endcapture %}
+{% endif %}
+
+{% if sizing_guide_has_content %}
+  {% capture sizing_guide_accordion %}
+    <details class="details" data-testid="accordion-details">
+      <summary class="details__header product-section-heading">
+        Sizing Guide
+        <span class="svg-wrapper icon-caret icon-animated">
+          {{- 'icon-caret.svg' | inline_asset_content -}}
+        </span>
+        <span class="svg-wrapper icon-plus">
+          {{- 'icon-plus.svg' | inline_asset_content -}}
+        </span>
+      </summary>
+
+      <div class="details-content product-shipping-returns__content product-sizing-guide__content">
+        {% if sizing_product_type != blank %}
+          <p class="product-sizing-guide__type">{{ sizing_product_type | escape }}</p>
+        {% endif %}
+
+        {% if sizing_total_length != blank
+          or sizing_shoulder != blank
+          or sizing_sleeves != blank
+          or sizing_bust != blank
+          or sizing_waist != blank
+          or sizing_hip != blank
+          or sizing_rise != blank
+          or sizing_inseam != blank
+          or sizing_thigh != blank
+          or sizing_shoe_size != blank
+          or sizing_foot_length != blank
+        %}
+          <dl class="product-sizing-guide__list">
+            {% if sizing_total_length != blank %}
+              <div class="product-sizing-guide__row">
+                <dt>Total length</dt>
+                <dd>{{ sizing_total_length | escape }}</dd>
+              </div>
+            {% endif %}
+            {% if sizing_shoulder != blank %}
+              <div class="product-sizing-guide__row">
+                <dt>Shoulder</dt>
+                <dd>{{ sizing_shoulder | escape }}</dd>
+              </div>
+            {% endif %}
+            {% if sizing_sleeves != blank %}
+              <div class="product-sizing-guide__row">
+                <dt>Sleeves</dt>
+                <dd>{{ sizing_sleeves | escape }}</dd>
+              </div>
+            {% endif %}
+            {% if sizing_bust != blank %}
+              <div class="product-sizing-guide__row">
+                <dt>Bust</dt>
+                <dd>{{ sizing_bust | escape }}</dd>
+              </div>
+            {% endif %}
+            {% if sizing_waist != blank %}
+              <div class="product-sizing-guide__row">
+                <dt>Waist</dt>
+                <dd>{{ sizing_waist | escape }}</dd>
+              </div>
+            {% endif %}
+            {% if sizing_hip != blank %}
+              <div class="product-sizing-guide__row">
+                <dt>Hip</dt>
+                <dd>{{ sizing_hip | escape }}</dd>
+              </div>
+            {% endif %}
+            {% if sizing_rise != blank %}
+              <div class="product-sizing-guide__row">
+                <dt>Rise</dt>
+                <dd>{{ sizing_rise | escape }}</dd>
+              </div>
+            {% endif %}
+            {% if sizing_inseam != blank %}
+              <div class="product-sizing-guide__row">
+                <dt>Inseam</dt>
+                <dd>{{ sizing_inseam | escape }}</dd>
+              </div>
+            {% endif %}
+            {% if sizing_thigh != blank %}
+              <div class="product-sizing-guide__row">
+                <dt>Thigh</dt>
+                <dd>{{ sizing_thigh | escape }}</dd>
+              </div>
+            {% endif %}
+            {% if sizing_shoe_size != blank %}
+              <div class="product-sizing-guide__row">
+                <dt>Shoe size (US)</dt>
+                <dd>{{ sizing_shoe_size | escape }}</dd>
+              </div>
+            {% endif %}
+            {% if sizing_foot_length != blank %}
+              <div class="product-sizing-guide__row">
+                <dt>Foot length</dt>
+                <dd>{{ sizing_foot_length | escape }}</dd>
+              </div>
+            {% endif %}
+          </dl>
+        {% endif %}
+
+        {% if sizing_fit_notes != blank %}
+          <div class="product-sizing-guide__notes">
+            <h4 class="product-shipping-returns__subheading">Fit notes</h4>
+            {{ sizing_fit_notes | newline_to_br }}
+          </div>
+        {% endif %}
+      </div>
+    </details>
+  {% endcapture %}
+{% endif %}
+
 <div
   class="product-shipping-returns accordion accordion--plus accordion--dividers"
   style="
@@ -97,19 +296,32 @@
   "
 >
   {% render 'accordion-custom-component', children: shipping_returns_content %}
+  {% if care_guide_content != blank %}
+    {% render 'accordion-custom-component', children: care_guide_accordion %}
+  {% endif %}
+  {% if sizing_guide_has_content %}
+    {% render 'accordion-custom-component', children: sizing_guide_accordion %}
+  {% endif %}
 </div>
 
 {% render 'accordion-styles' %}
 
 {% stylesheet %}
   .product-shipping-returns {
+    --color-border: rgb(48 33 24 / 0.22);
+    --style-border-width: 0.5px;
     margin-block-start: 0;
     padding-block-start: 0;
     border-block-start: none;
   }
 
+  .product-shipping-returns.accordion--dividers accordion-custom:not(:first-child) .details {
+    border-block-start: 0.5px solid rgb(48 33 24 / 0.22);
+  }
+
   .product-shipping-returns .details__header {
-    font-weight: inherit;
+    font-weight: 600;
+    text-transform: uppercase;
   }
 
   .product-shipping-returns__content {
@@ -129,7 +341,7 @@
     font-weight: var(--font-heading--weight);
     line-height: inherit;
     margin-block: var(--padding-xl) var(--padding-sm);
-    text-transform: none;
+    text-transform: uppercase;
   }
 
   .product-shipping-returns__heading:first-child {
@@ -139,10 +351,10 @@
   .product-shipping-returns__subheading {
     font-family: inherit;
     font-size: inherit;
-    font-weight: var(--font-heading--weight);
+    font-weight: 600;
     line-height: inherit;
     margin-block: var(--padding-lg) var(--padding-xs);
-    text-transform: none;
+    text-transform: uppercase;
   }
 
   .product-shipping-returns__content p {
@@ -160,5 +372,76 @@
 
   .product-shipping-returns__content li {
     margin-block: var(--padding-xs);
+  }
+
+  .product-care-guide__content > :first-child,
+  .product-care-guide__content .metafield-rich_text_field > :first-child {
+    margin-block-start: 0;
+  }
+
+  .product-care-guide__content > :last-child,
+  .product-care-guide__content .metafield-rich_text_field > :last-child {
+    margin-block-end: 0;
+  }
+
+  .product-sizing-guide__type {
+    margin: 0 0 var(--padding-md);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .product-sizing-guide__list {
+    display: grid;
+    gap: 0;
+    margin: 0;
+  }
+
+  .product-sizing-guide__row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 1rem;
+    align-items: baseline;
+    padding-block: 0.55rem;
+    border-block-end: 0.5px solid rgb(48 33 24 / 0.14);
+  }
+
+  .product-sizing-guide__row:first-child {
+    padding-block-start: 0;
+  }
+
+  .product-sizing-guide__row:last-child {
+    border-block-end: none;
+    padding-block-end: 0;
+  }
+
+  .product-sizing-guide__row dt,
+  .product-sizing-guide__row dd {
+    margin: 0;
+  }
+
+  .product-sizing-guide__row dt {
+    font-weight: 500;
+  }
+
+  .product-sizing-guide__row dd {
+    text-align: end;
+    font-weight: 400;
+  }
+
+  .product-sizing-guide__notes {
+    margin-block-start: var(--padding-lg);
+  }
+
+  .product-sizing-guide__notes .product-shipping-returns__subheading {
+    margin-block-start: 0;
+  }
+
+  .product-sizing-guide__content > :first-child {
+    margin-block-start: 0;
+  }
+
+  .product-sizing-guide__content > :last-child {
+    margin-block-end: 0;
   }
 {% endstylesheet %}

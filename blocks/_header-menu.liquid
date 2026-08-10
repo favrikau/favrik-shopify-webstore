@@ -452,7 +452,6 @@
   }
 
   .menu-list {
-    --menu-horizontal-gap: var(--gap-xl);
     --menu-vertical-gap: var(--gap-xl);
     --header-menu-color: var(--color-foreground);
     --header-link-hover-transition: 0.4s var(--ease-out-cubic);
@@ -519,7 +518,7 @@
   }
 
   .menu-list__link-title {
-    padding-inline: calc(var(--gap-xl) / 2);
+    padding-inline: calc(var(--menu-horizontal-gap) / 2);
   }
 
   [slot='overflow'] .menu-list__link-title {

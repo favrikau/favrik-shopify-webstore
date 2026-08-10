@@ -71,11 +71,15 @@
           assign option_name_downcase = product_option.name | downcase
           assign is_color_option = false
           assign is_size_option = false
+          assign is_shoe_size_option = false
           if option_name_downcase contains 'color' or option_name_downcase contains 'colour' or option_name_downcase contains '컬러' or option_name_downcase contains '색상'
             assign is_color_option = true
           endif
           if option_name_downcase contains 'size' or option_name_downcase contains '사이즈'
             assign is_size_option = true
+          endif
+          if option_name_downcase contains 'shoe'
+            assign is_shoe_size_option = true
           endif
 
           # Some products name the option after its colors (e.g. "Grey & Black") instead of "Color".
@@ -122,6 +126,8 @@
             <legend class="{% if variant_style == 'swatch' and is_color_option == false %}visually-hidden{% else %}variant-option__label{% endif %}">
               {%- if is_color_option -%}
                 COLOR
+              {%- elsif is_shoe_size_option -%}
+                SHOE SIZE (US)
               {%- elsif variant_style == 'swatch' -%}
                 {{ product_option.name | escape -}}
                 <span class="variant-option__swatch-value">{{ product_option.selected_value }}</span>
@@ -143,7 +149,7 @@
                   aria-label="{{ product_option_value.name | escape }}{% if product_option_value.available == false %} - {{ 'products.product.sold_out' | t }}{% endif %}"
                   {% if product_option_value.available == false %}
                     aria-disabled="true"
-                    {% if is_color_option %}
+                    {% if is_color_option or is_size_option %}
                       disabled
                     {% endif %}
                   {% endif %}
@@ -212,7 +218,7 @@
                     {{- product_option_value | escape -}}
                   </span>
                 {% endif %}
-                {% unless is_color_option and product_option_value.available == false %}
+                {% unless product_option_value.available == false and is_color_option == false and is_size_option == false %}
                   {% render 'strikethrough-variant', product_option: product_option_value %}
                 {% endunless %}
               </label>
@@ -264,6 +270,9 @@
                     data-option-value-id="{{ product_option_value.id }}"
                     data-variant-id="{{ product_option_value.variant.id }}"
                     data-connected-product-url="{{ product_option_value.product_url }}"
+                    {% if product_option_value.available == false %}
+                      disabled
+                    {% endif %}
                     {% if product_option_value.selected %}
                       selected="selected"
                     {% endif %}
