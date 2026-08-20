@@ -72,7 +72,7 @@ const openPanel = (root) => {
   initSkuSearchForms();
 
   if (input instanceof HTMLInputElement) {
-    window.requestAnimationFrame(() => input.focus());
+    window.requestAnimationFrame(() => input.focus({ preventScroll: true }));
   }
 };
 

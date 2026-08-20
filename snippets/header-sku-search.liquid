@@ -228,7 +228,7 @@
     background: transparent;
     color: #ffffff;
     font-family: var(--font-body--family);
-    font-size: 0.75rem;
+    font-size: var(--product-card-title-font-size, 0.75rem);
     line-height: 1.25;
     text-align: left;
     cursor: pointer;
@@ -304,7 +304,7 @@
 
   .header-sku-search .facets__sku-search-option-title {
     color: #ffffff;
-    font-size: 0.75rem;
+    font-size: var(--product-card-title-font-size, 0.75rem);
     font-weight: 300;
     line-height: 1.35;
     letter-spacing: 0.03em;
@@ -320,6 +320,12 @@
     .header-sku-search__form {
       width: 100%;
       margin-inline: 0;
+    }
+
+    /* iOS zooms the viewport when focusing inputs under 16px. */
+    .header-sku-search__input,
+    .header-sku-search .facets__sku-search-input {
+      font-size: 16px;
     }
   }
 {% endstylesheet %}

@@ -1,5 +1,5 @@
 {% liquid
-  assign strip_color = section.settings.strip_color | default: '#5a5048'
+  assign strip_color = section.settings.strip_color | default: '#8a827a'
 %}
 
 <div
@@ -18,7 +18,7 @@
     display: block;
     width: 100%;
     height: var(--footer-accent-strip-height, 0.5px);
-    background-color: var(--footer-accent-strip-color, #5a5048);
+    background-color: var(--footer-accent-strip-color, #8a827a);
   }
 
   @media screen and (max-width: 749px) {
@@ -58,7 +58,7 @@
       "type": "color",
       "id": "strip_color",
       "label": "Strip color",
-      "default": "#5a5048"
+      "default": "#8a827a"
     }
   ],
   "presets": [

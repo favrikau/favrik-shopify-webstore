@@ -201,15 +201,13 @@
               · ABN {{ section.settings.abn | escape }}
             {%- endif -%}
             · &copy; {{ 'now' | date: '%Y' }} {{ copyright_name | escape }}
-            · <a href="{{ privacy_url }}">Privacy Policy</a>
-            · <a href="{{ terms_url }}">Terms of Use</a>
           </p>
-        {% else %}
-          <p class="favrik-footer__legal-single">
-            <a href="{{ privacy_url }}">Privacy Policy</a>
-            · <a href="{{ terms_url }}">Terms of Use</a>
-          </p>
+          <span class="favrik-footer__meta-dot" aria-hidden="true">·</span>
         {% endif %}
+        <p class="favrik-footer__policies">
+          <a href="{{ privacy_url }}">Privacy Policy</a>
+          · <a href="{{ terms_url }}">Terms of Use</a>
+        </p>
       </div>
 
       <div class="favrik-footer__meta-end">
@@ -291,9 +289,13 @@
     flex-direction: column;
     gap: 1.25rem;
     width: 100%;
-    max-width: var(--page-width);
     margin-inline: auto;
-    padding-inline: var(--padding-md);
+    /* Page-width sections already sit in the site gutter; don’t add a second inset. */
+    padding-inline: 0;
+  }
+
+  .favrik-footer.section--full-width .favrik-footer__inner {
+    padding-inline: var(--page-margin);
   }
 
   .favrik-footer__grid {
@@ -388,7 +390,7 @@
     gap: 1rem;
     width: 100%;
     padding-top: 1rem;
-    border-top: 0.5px solid rgb(48 33 24 / 0.12);
+    border-top: 0.5px solid rgb(48 33 24 / 0.08);
   }
 
   .favrik-footer__meta-start {
@@ -396,7 +398,12 @@
   }
 
   .favrik-footer__meta-center {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
     justify-self: center;
+    gap: 0 0.4em;
     text-align: center;
     min-width: 0;
   }
@@ -406,7 +413,9 @@
   }
 
   .favrik-footer__credit,
-  .favrik-footer__legal-single {
+  .favrik-footer__legal-single,
+  .favrik-footer__policies,
+  .favrik-footer__meta-dot {
     margin: 0;
     font-size: 0.625rem;
     font-weight: var(--font-body--weight);
@@ -426,14 +435,23 @@
     text-align: center;
   }
 
-  .favrik-footer__legal-single a {
+  .favrik-footer__policies {
+    font-family: var(--font-body--family);
+    text-align: center;
+    white-space: nowrap;
+  }
+
+  .favrik-footer__legal-single a,
+  .favrik-footer__policies a {
     color: inherit;
     text-decoration: none;
     transition: opacity 0.25s var(--ease-out-cubic, ease);
   }
 
   .favrik-footer__legal-single a:hover,
-  .favrik-footer__legal-single a:focus-visible {
+  .favrik-footer__legal-single a:focus-visible,
+  .favrik-footer__policies a:hover,
+  .favrik-footer__policies a:focus-visible {
     opacity: 0.7;
     text-decoration: underline;
     text-underline-offset: 2px;
@@ -487,21 +505,51 @@
 
   @media screen and (max-width: 749px) {
     .favrik-footer__meta {
-      grid-template-columns: 1fr;
-      gap: 0.75rem;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+      column-gap: 0.45em;
+      row-gap: 0.55rem;
     }
 
-    .favrik-footer__meta-start,
-    .favrik-footer__meta-center,
-    .favrik-footer__meta-end {
-      justify-self: center;
+    .favrik-footer__meta-center {
+      display: contents;
+    }
+
+    .favrik-footer__meta-dot {
+      display: none;
+    }
+
+    .favrik-footer__legal-single {
+      flex: 1 0 100%;
+      order: 1;
       text-align: center;
-      width: 100%;
+    }
+
+    .favrik-footer__policies {
+      order: 2;
+    }
+
+    .favrik-footer__meta-start {
+      order: 3;
+      width: auto;
     }
 
     .favrik-footer__credit {
       text-align: center;
-      white-space: normal;
+      white-space: nowrap;
+    }
+
+    .favrik-footer__credit:not(:empty)::before {
+      content: '·';
+      margin-inline-end: 0.45em;
+    }
+
+    .favrik-footer__meta-end {
+      flex: 1 0 100%;
+      order: 4;
+      text-align: center;
     }
 
     .favrik-footer__payments,
@@ -510,7 +558,9 @@
     }
 
     .favrik-footer__credit,
-    .favrik-footer__legal-single {
+    .favrik-footer__legal-single,
+    .favrik-footer__policies,
+    .favrik-footer__meta-dot {
       font-size: 0.5625rem;
       line-height: 1.35;
     }

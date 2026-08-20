@@ -101,6 +101,17 @@
   .collection-hero-button:is(:hover, :focus-visible) .collection-hero-button__ko {
     opacity: 0.85;
   }
+
+  @media screen and (max-width: 749px) {
+    .collection-hero-button__en {
+      font-size: 0.875rem;
+      line-height: 1.25;
+    }
+
+    .collection-hero-button__ko {
+      font-size: calc(0.875rem * 0.72);
+    }
+  }
 {% endstylesheet %}
 
 {% schema %}

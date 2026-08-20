@@ -236,9 +236,18 @@
     margin: 0;
   }
 
+  /* Desktop: keep grid content aligned with page gutter.
+     Mobile: product cards go edge-to-edge; text keeps --page-margin. */
   .content-for-layout[data-template='collection'] .main-collection-grid > div,
   .content-for-layout[data-template='search'] .main-collection-grid > div {
-    padding-inline: var(--page-margin);
+    padding-inline: 0;
+  }
+
+  @media screen and (min-width: 750px) {
+    .content-for-layout[data-template='collection'] .main-collection-grid > div,
+    .content-for-layout[data-template='search'] .main-collection-grid > div {
+      padding-inline: var(--page-margin);
+    }
   }
 
   .content-for-layout[data-template='collection'] .main-collection-grid,
@@ -283,6 +292,33 @@
     --padding-block-end: 0px;
     --padding-inline-start: 0px;
     --padding-inline-end: 0px;
+  }
+
+  @media screen and (max-width: 749px) {
+    .content-for-layout[data-template='collection']
+      :is(.collection-wrapper--full-width, .collection-wrapper--full-width-on-mobile)
+      .product-grid__card,
+    .content-for-layout[data-template='search']
+      :is(.collection-wrapper--full-width, .collection-wrapper--full-width-on-mobile)
+      .product-grid__card {
+      padding-inline: 0;
+    }
+
+    .content-for-layout[data-template='collection']
+      :is(.collection-wrapper--full-width, .collection-wrapper--full-width-on-mobile)
+      .card-gallery,
+    .content-for-layout[data-template='search']
+      :is(.collection-wrapper--full-width, .collection-wrapper--full-width-on-mobile)
+      .card-gallery {
+      margin-inline: 0;
+    }
+
+    .content-for-layout[data-template='collection'] .main-collection-grid__product-count,
+    .content-for-layout[data-template='search'] .main-collection-grid__product-count,
+    .content-for-layout[data-template='collection'] .main-collection-grid__title,
+    .content-for-layout[data-template='search'] .main-collection-grid__title {
+      padding-inline: var(--page-margin);
+    }
   }
 
   .main-collection-grid__product-count {

@@ -135,8 +135,6 @@
 
 {% stylesheet %}
   product-card .product-card__content {
-    --product-card-title-price-gap: 5px;
-    --product-card-color-row-gap: 8px;
     --product-card-color-row-height: 8px;
   }
 
@@ -163,7 +161,7 @@
     -webkit-backdrop-filter: blur(10px);
     backdrop-filter: blur(10px);
     font-family: var(--font-body--family);
-    font-size: 0.75rem;
+    font-size: var(--product-card-title-font-size);
     font-weight: 500;
     line-height: 1.25;
     letter-spacing: 0.08em;
@@ -271,8 +269,8 @@
   .product-card__content > a.contents > .text-block :is(p, h1, h2, h3, h4, h5, h6),
   .product-card__meta > a.contents > .text-block,
   .product-card__meta > a.contents > .text-block :is(p, h1, h2, h3, h4, h5, h6) {
-    font-size: 0.75rem;
-    line-height: 1.35;
+    font-size: var(--product-card-title-font-size);
+    line-height: var(--product-card-text-line-height);
     font-weight: 500;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -293,8 +291,9 @@
   .product-card__meta > product-price,
   .product-card__meta > product-price .price,
   .product-card__meta > product-price .compare-at-price {
-    font-size: var(--font-size--2xs);
+    font-size: var(--product-card-meta-font-size);
     font-weight: 400;
+    line-height: var(--product-card-text-line-height);
     color: rgb(var(--color-foreground-rgb) / 0.58);
   }
 
@@ -322,9 +321,9 @@
   .product-card__meta > product-price .product-card__sold-out,
   .product-card__sold-out {
     display: block;
-    font-size: var(--font-size--2xs);
+    font-size: var(--product-card-meta-font-size);
     font-weight: 400;
-    line-height: 1.35;
+    line-height: var(--product-card-text-line-height);
     text-transform: uppercase;
     white-space: nowrap;
     color: #c91f4a;
@@ -429,11 +428,52 @@
     .product-card__made-by-favrik-badge {
       min-height: 1.875rem;
       padding: 0.3rem 0.5rem;
-      font-size: 0.75rem;
     }
 
     .product-card slideshow-arrows .slideshow-control {
       display: none;
+    }
+
+    /* Full-width collection grids pull galleries with negative margin, which
+       leaves a gap inside the card frame. Keep images flush to the border. */
+    :is(.collection-wrapper--full-width, .collection-wrapper--full-width-on-mobile)
+      product-card
+      .card-gallery {
+      margin-inline-start: 0;
+      margin-inline-end: 0;
+    }
+
+    product-card .card-gallery {
+      overflow: hidden;
+    }
+
+    product-card .card-gallery
+      :is(
+        slideshow-component,
+        slideshow-container,
+        slideshow-slides,
+        slideshow-slide,
+        .product-media-container,
+        .product-media
+      ) {
+      width: 100%;
+      height: 100%;
+      min-height: 0;
+    }
+
+    product-card .card-gallery .product-media {
+      position: relative;
+      aspect-ratio: auto;
+    }
+
+    product-card .card-gallery :is(.product-media__image, img):not(.product-card-gallery__coming-soon-logo) {
+      display: block;
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center center;
     }
   }
 {% endstylesheet %}

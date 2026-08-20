@@ -318,4 +318,15 @@
     display: none;
     content: none;
   }
+
+  @media screen and (max-width: 749px) {
+    .product-details .variant-option__button-label--size,
+    .product-details .variant-option__button-label--color,
+    .product-details .variant-option__button-label:has(.variant-option__color-chip) {
+      min-height: calc(32px + (1em * var(--font-paragraph--line-height, 1.6)));
+      flex-basis: auto;
+      justify-content: center;
+      box-sizing: border-box;
+    }
+  }
 {% endstylesheet %}

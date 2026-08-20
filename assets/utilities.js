@@ -432,13 +432,14 @@ export function isPointWithinElement(x, y, element) {
 }
 
 /**
- * A media query for large screens
+ * Tablet+ breakpoint (min-width: 750px). Phone is the inverse.
+ * Prefer one Liquid tree + CSS; use this for behavior only (see mobile-desktop-ui rule).
  * @type {MediaQueryList}
  */
 export const mediaQueryLarge = matchMedia('(min-width: 750px)');
 
 /**
- * Check if the current breakpoint is mobile
+ * Check if the current breakpoint is mobile (max-width: 749px)
  * @returns {boolean} True if the current breakpoint is mobile, false otherwise
  */
 export function isMobileBreakpoint() {
@@ -446,7 +447,7 @@ export function isMobileBreakpoint() {
 }
 
 /**
- * Check if the current breakpoint is desktop
+ * Check if the current breakpoint is desktop/tablet+ (min-width: 750px)
  * @returns {boolean} True if the current breakpoint is desktop, false otherwise
  */
 export function isDesktopBreakpoint() {

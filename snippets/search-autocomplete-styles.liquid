@@ -53,7 +53,7 @@
     background: transparent;
     color: #302118;
     font-family: var(--font-body--family);
-    font-size: 0.75rem;
+    font-size: var(--product-card-title-font-size, 0.75rem);
     line-height: 1.25;
     text-align: left;
     cursor: pointer;
@@ -137,7 +137,7 @@
   .facets__sku-search-option-title {
     display: block;
     overflow: hidden;
-    font-size: 0.75rem;
+    font-size: var(--product-card-title-font-size, 0.75rem);
     font-weight: 300;
     line-height: 1.35;
     letter-spacing: 0.03em;
@@ -169,7 +169,7 @@
     flex-shrink: 0;
     color: rgb(48 33 24 / 0.68);
     font-family: var(--font-body--family);
-    font-size: 0.6875rem;
+    font-size: var(--product-card-meta-font-size, 0.75rem);
     line-height: 1;
     letter-spacing: 0.02em;
   }

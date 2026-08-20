@@ -451,7 +451,14 @@ p:empty {
   height: 100%;
 }
 
-/* Utility */
+/* Utility
+ *
+ * Breakpoint visibility (749 / 750): prefer one Liquid tree + CSS.
+ * Use these only for rare structural islands—not full mobile/desktop forks.
+ *   .hidden--mobile / .desktop-only  → hide on phone, show tablet+
+ *   .hidden--desktop / .mobile-only → show on phone, hide tablet+
+ * JS: mediaQueryLarge, isMobileBreakpoint(), isDesktopBreakpoint() in utilities.js
+ */
 
 .hidden {
   /* stylelint-disable-next-line declaration-no-important */
@@ -460,7 +467,8 @@ p:empty {
 
 @media screen and (max-width: 749px) {
   .hidden--mobile,
-  .mobile\:hidden {
+  .mobile\:hidden,
+  .desktop-only {
     /* stylelint-disable-next-line declaration-no-important */
     display: none !important;
   }
@@ -468,7 +476,8 @@ p:empty {
 
 @media screen and (min-width: 750px) {
   .hidden--desktop,
-  .desktop\:hidden {
+  .desktop\:hidden,
+  .mobile-only {
     /* stylelint-disable-next-line declaration-no-important */
     display: none !important;
   }
@@ -1001,6 +1010,38 @@ body:has(.header[transparent]) .content-for-layout[data-template='index']
   .resource-list {
   --resource-list-column-gap: var(--product-card-grid-gap);
   --resource-list-row-gap: var(--product-card-grid-gap);
+}
+
+@media screen and (max-width: 749px) {
+  .content-for-layout[data-template='index'] {
+    --homepage-mobile-section-gap: var(--page-margin);
+  }
+
+  .content-for-layout[data-template='index'] [data-testid='collection-list'].spacing-style {
+    --padding-block-end: var(--homepage-mobile-section-gap);
+  }
+
+  .content-for-layout[data-template='index'] [data-testid='product-list'] {
+    --gap: 0px;
+  }
+
+  .content-for-layout[data-template='index']
+    [data-testid='product-list']
+    .section-resource-list__header
+    .favrik-bilingual-heading {
+    padding-block-start: 0;
+    padding-block-end: var(--homepage-mobile-section-gap);
+  }
+
+  .content-for-layout[data-template='index'] [data-testid='collection-image-trio'].spacing-style {
+    --padding-block-start: var(--homepage-mobile-section-gap);
+    --padding-block-end: 0px;
+  }
+
+  .content-for-layout[data-template='index'] [data-testid='collection-image-duo'].spacing-style {
+    --padding-block-start: 0px;
+    --padding-block-end: 0px;
+  }
 }
 
 @media screen and (min-width: 750px) {
@@ -3400,8 +3441,8 @@ fly-to-cart.fly-to-cart--sticky {
   [product-grid-view='default']
   .product-grid__card {
   @media screen and (max-width: 749px) {
-    padding-inline-start: max(var(--padding-xs), var(--padding-inline-start));
-    padding-inline-end: max(var(--padding-xs), var(--padding-inline-end));
+    padding-inline-start: 0;
+    padding-inline-end: 0;
   }
 }
 
@@ -3409,17 +3450,17 @@ fly-to-cart.fly-to-cart--sticky {
   [product-grid-view='mobile-single']
   .product-grid__card {
   @media screen and (max-width: 749px) {
-    padding-inline-start: max(var(--padding-xs), var(--padding-inline-start));
-    padding-inline-end: max(var(--padding-xs), var(--padding-inline-end));
+    padding-inline-start: 0;
+    padding-inline-end: 0;
   }
 }
 
-/* Make product media go edge-to-edge by using negative margins */
+/* Full-bleed cards: no compensating negative gallery margins on mobile */
 :is(.collection-wrapper--full-width) .card-gallery,
 :is(.collection-wrapper--full-width-on-mobile) .card-gallery {
   @media screen and (max-width: 749px) {
-    margin-inline-start: calc(-1 * max(var(--padding-xs), var(--padding-inline-start)));
-    margin-inline-end: calc(-1 * max(var(--padding-xs), var(--padding-inline-end)));
+    margin-inline-start: 0;
+    margin-inline-end: 0;
   }
 }
 

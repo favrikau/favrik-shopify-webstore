@@ -889,6 +889,10 @@
   }
 
   @media screen and (max-width: 749px) {
+    .header {
+      --header-padding: 4px;
+    }
+
     .header__row--top:not(.divider--page-width),
     .header__row--top.divider--page-width .header__columns {
       border-bottom-width: 0 !important;
@@ -1020,8 +1024,8 @@
     --header-right: 1fr;
     --header-template-columns: var(--header-left) var(--header-center) var(--header-right);
 
-    /* Mobile layout */
-    --header-mobile-bookend: 44px;
+    /* Mobile layout — match header-actions 40px icon buttons */
+    --header-mobile-bookend: 40px;
 
     display: grid;
     grid-template-areas: 'left center right';
@@ -1065,10 +1069,12 @@
       column-gap: 0;
       align-items: center;
       padding-block: 0;
-      padding-inline: 0 var(--padding-3xs);
+      padding-inline: 0;
 
       .header-logo {
         grid-area: center;
+        justify-self: center;
+        align-self: center;
       }
 
       &:not(:has(header-actions)) .search-action {
@@ -1086,18 +1092,6 @@
       header-actions {
         grid-area: rightB;
       }
-
-      /* Native search is off — give all right icons room instead of a 44px cell. */
-      &:not(:has(.search-action)) {
-        --header-template-columns: var(--header-mobile-bookend) var(--header-mobile-bookend) 1fr max-content;
-
-        grid-template-areas: 'leftA leftB center right';
-
-        header-actions {
-          grid-area: right;
-          justify-self: end;
-        }
-      }
     }
   }
 
@@ -1112,10 +1106,12 @@
     column-gap: 0;
     align-items: center;
     padding-block: 0;
-    padding-inline: 0 var(--padding-3xs);
+    padding-inline: 0;
 
     .header-logo {
       grid-area: center;
+      justify-self: center;
+      align-self: center;
     }
 
     &:not(:has(header-actions)) .search-action {
@@ -1133,17 +1129,25 @@
     header-actions {
       grid-area: rightB;
     }
+  }
 
-    /* Native search is off — give all right icons room instead of a 44px cell. */
-    &:not(:has(.search-action)) {
-      --header-template-columns: var(--header-mobile-bookend) var(--header-mobile-bookend) 1fr max-content;
+  /* Phone: search sits in leftB, immediately right of the hamburger. */
+  @media screen and (max-width: 749px) {
+    .header__columns header-actions {
+      display: contents;
+    }
 
-      grid-template-areas: 'leftA leftB center right';
+    .header__drawer {
+      grid-area: leftA;
+    }
 
-      header-actions {
-        grid-area: right;
-        justify-self: end;
-      }
+    .header-sku-search {
+      grid-area: leftB;
+    }
+
+    .header-actions__action:has(.header-actions__cart-icon) {
+      grid-area: rightB;
+      justify-self: center;
     }
   }
 

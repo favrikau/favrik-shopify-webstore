@@ -216,15 +216,11 @@
 
   /* Mobile styles */
   @media screen and (max-width: 749px) {
-    .product-information__media {
-      grid-column: 1 / -1;
-    }
-
+    .product-information__media,
     .product-details,
     .product-information__details-stack {
-      grid-column: 2 / 3;
+      grid-column: 1 / -1;
     }
-
   }
 
   /* Desktop styles */
@@ -484,11 +480,14 @@
     --sticky-header-offset: var(--header-height);
   }
 
+  .product-information .product-details {
+    --style-border-radius-buttons-primary: 0;
+    --style-border-radius-buttons-secondary: 0;
+    --style-border-radius-inputs: 0;
+  }
+
   @media screen and (min-width: 750px) {
     .product-information .product-details {
-      --style-border-radius-buttons-primary: 4px;
-      --style-border-radius-buttons-secondary: 4px;
-      --style-border-radius-inputs: 4px;
       --style-border-radius-pills: 4px;
     }
   }
@@ -515,6 +514,7 @@
     margin: 0;
     padding-block-start: 24px;
     padding-block-end: var(--padding-sm);
+    padding-inline: var(--page-margin);
   }
 
   .product-breadcrumbs__list {
@@ -584,7 +584,7 @@
   .product-information .product-details > .group-block > .group-block-content {
     --product-details-section-border-color: rgb(48 33 24 / 0.22);
     --product-details-section-border-width: 0.5px;
-    --product-details-section-padding: clamp(1.5rem, 2.25vw, 2.25rem) clamp(1.5rem, 3vw, 3rem);
+    --product-details-section-padding: clamp(1.5rem, 2.25vw, 2.25rem) var(--page-margin);
     display: flex;
     flex-direction: column;
     gap: 0;
@@ -608,8 +608,8 @@
     padding: var(--product-details-section-padding);
     border-style: solid;
     border-color: var(--product-details-section-border-color);
-    /* Shared edges: no top border; first visible section adds it below */
-    border-width: 0 var(--product-details-section-border-width) var(--product-details-section-border-width);
+    /* Full-bleed: top/bottom only — sides sit on the page edge */
+    border-width: 0 0 var(--product-details-section-border-width);
   }
 
   @media screen and (min-width: 750px) {
@@ -699,7 +699,7 @@
 
   @media screen and (max-width: 749px) {
     .product-information .product-details > .group-block > .group-block-content {
-      --product-details-section-padding: 1.25rem;
+      --product-details-section-padding: 1.25rem var(--page-margin);
     }
   }
 
@@ -737,5 +737,32 @@
     font-size: 1.25rem !important;
     font-weight: 600 !important;
     text-transform: uppercase;
+  }
+
+  @media screen and (max-width: 749px) {
+    .product-information .product-details .text-block:has(> h1),
+    .product-information .product-details .text-block--text_xrnftG {
+      width: 100%;
+      max-width: 100%;
+      align-items: stretch;
+      text-wrap: wrap;
+    }
+
+    .product-information .product-details .text-block:has(> h1) > *,
+    .product-information .product-details .text-block--text_xrnftG,
+    .product-information .product-details .text-block--text_xrnftG.custom-typography,
+    .product-information .product-details .text-block--text_xrnftG.custom-typography > *,
+    .product-information .product-details .text-block--text_xrnftG :is(h1, h2, h3, h4, h5, h6),
+    .product-information .product-details .text-block > h1,
+    .product-information .product-details .text-block.custom-typography > h1,
+    .product-information .product-details h1 {
+      --font-size: 1rem;
+      --max-width: 100%;
+      width: 100%;
+      max-width: 100%;
+      max-inline-size: 100%;
+      font-size: 1rem !important;
+      text-wrap: wrap;
+    }
   }
 {% endstylesheet %}

@@ -19,12 +19,21 @@
       data-hydration-key="header-drawer-mobile"
       {{ block.shopify_attributes }}
     >
-      {% render 'header-drawer',
-        linklist: block_settings.menu,
-        data_header_drawer_type: 'mobile-drawer',
-        block: block,
-        section: section
-      %}
+      <button
+        type="button"
+        class="header__icon header__icon--menu header__icon--catalog-nav button-unstyled"
+        data-catalog-nav-trigger
+        aria-controls="catalog-nav-drawer"
+        aria-expanded="false"
+        aria-label="{{ 'accessibility.menu' | t }}"
+      >
+        <span class="svg-wrapper header-drawer-icon header-drawer-icon--open">
+          {{- 'icon-menu.svg' | inline_asset_content -}}
+        </span>
+        <span class="svg-wrapper header-drawer-icon header-drawer-icon--close">
+          {{- 'icon-close.svg' | inline_asset_content -}}
+        </span>
+      </button>
     </div>
 
   {% when 'navigation_bar' %}
@@ -368,6 +377,12 @@
     align-items: center;
   }
 
+  @media screen and (max-width: 749px) {
+    .header__drawer {
+      --header-drawer-min-height: 48px;
+    }
+  }
+
   #header-component[data-menu-style='drawer'] .header__drawer {
     display: flex;
     min-height: var(--header-drawer-min-height);
@@ -382,6 +397,44 @@
 
   .header--compact .header__drawer {
     min-height: var(--minimum-touch-target);
+  }
+
+  .header__icon--catalog-nav {
+    --button-size: 40px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--button-size);
+    height: var(--button-size);
+    padding: 0;
+    color: inherit;
+    cursor: pointer;
+  }
+
+  .header__icon--catalog-nav .svg-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--button-size);
+    height: var(--button-size);
+  }
+
+  .header__icon--catalog-nav svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .header__icon--catalog-nav .header-drawer-icon--close {
+    display: none;
+  }
+
+  .header__icon--catalog-nav[aria-expanded='true'] .header-drawer-icon--close {
+    display: flex;
+  }
+
+  .header__icon--catalog-nav[aria-expanded='true'] .header-drawer-icon--open {
+    display: none;
   }
 
   .menu-list--mobile {

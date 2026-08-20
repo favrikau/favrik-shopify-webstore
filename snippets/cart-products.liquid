@@ -700,6 +700,7 @@
     text-align: end;
     display: block;
     font-size: var(--font-size--sm);
+    font-weight: 500;
     line-height: var(--line-height);
   }
 
@@ -729,6 +730,52 @@
     margin-inline: auto;
     padding-inline: var(--padding-4xl);
     padding-block: var(--padding-lg);
+  }
+
+  @media screen and (max-width: 749px) {
+    .cart-items__table-row {
+      align-items: stretch;
+    }
+
+    .cart-items__media {
+      display: flex;
+      align-self: stretch;
+    }
+
+    .cart-items__media-container {
+      aspect-ratio: auto;
+      width: 100%;
+      height: auto;
+      min-height: 100%;
+      align-self: stretch;
+    }
+
+    .cart-items__media-image {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .cart-items .quantity-selector {
+      --quantity-selector-width: 96px;
+      --quantity-button-size: 32px;
+
+      width: var(--quantity-selector-width);
+      flex: 0 0 var(--quantity-selector-width);
+      height: var(--quantity-button-size);
+      align-self: center;
+    }
+
+    .cart-items .quantity-selector :is(.quantity-minus, .quantity-plus) {
+      width: var(--quantity-button-size);
+      height: var(--quantity-button-size);
+    }
+
+    .cart-items .quantity-selector input[type='number'] {
+      max-width: calc(var(--quantity-selector-width) - var(--quantity-button-size) * 2);
+    }
   }
 
   /* Error message */
@@ -876,6 +923,12 @@
     font-family: var(--font-numeric--family), var(--cart-secondary-font-family);
     font-style: var(--cart-secondary-font-style);
     font-weight: var(--cart-secondary-font-weight);
+  }
+
+  .cart-items__price.cart-secondary-typography,
+  .cart-totals__original-value.cart-secondary-typography,
+  .cart-totals__total-value.cart-secondary-typography {
+    font-weight: 500;
   }
 
   .cart__ctas {

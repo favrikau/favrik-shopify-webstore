@@ -53,6 +53,21 @@
       font-weight: 600 !important;
     }
 
+    @media screen and (max-width: 749px) {
+      .product-details .text-block:has(> h1) > *,
+      .product-details .text-block > h1,
+      .product-details .text-block.custom-typography > h1,
+      .product-details h1 {
+        --font-size: 1rem;
+        --max-width: 100%;
+        width: 100%;
+        max-width: 100%;
+        max-inline-size: 100%;
+        font-size: 1rem !important;
+        text-wrap: wrap;
+      }
+    }
+
     :lang(ko):is(
         h1,
         h2,

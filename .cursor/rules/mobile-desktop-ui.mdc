@@ -1,0 +1,43 @@
+---
+description: Prefer one responsive Liquid tree over separate mobile/desktop component forks
+globs: **/*.{liquid,css,js}
+alwaysApply: false
+---
+
+# Mobile vs desktop UI
+
+## Default
+
+Use **one shared Liquid component tree**. Adapt with CSS media queries and light JS—do not fork full mobile and desktop implementations.
+
+Liquid cannot know viewport width at render time. Breakpoint behavior belongs in CSS/JS.
+
+## Breakpoints (theme standard)
+
+- **Phone**: `max-width: 749px`
+- **Tablet+**: `min-width: 750px` (`mediaQueryLarge` / `isMobileBreakpoint()` / `isDesktopBreakpoint()` in `assets/utilities.js`)
+- **Desktop chrome**: `min-width: 990px` (header, page-wrapper scroll)
+
+## Decision rule
+
+| Situation | Approach |
+|---|---|
+| Same blocks, different layout/spacing/type | One component + CSS `@media` |
+| Same blocks, different interaction | One component + `matchMedia` / existing breakpoint helpers |
+| Truly different DOM that CSS `order`/grid cannot solve | Small local island only |
+| Desktop-only merchant setting | Keep as a setting (e.g. `desktop_media_position`); do not invent a parallel mobile settings system |
+
+## Local islands (rare)
+
+When a fragment only exists on one breakpoint (e.g. mobile sticky ATC), use existing utilities—do not duplicate the whole page:
+
+- `.mobile-only` / `.hidden--desktop` / `.desktop\:hidden` — visible on phone only
+- `.desktop-only` / `.hidden--mobile` / `.mobile\:hidden` — visible on tablet+ only
+
+Scope styles next to the component under `@media screen and (max-width: 749px)` (see `snippets/product-information-content.liquid`).
+
+## Avoid
+
+- Two full product/header/collection trees
+- JS that rewrites large DOM on resize
+- New parallel “mobile settings” systems when CSS can adapt the same markup

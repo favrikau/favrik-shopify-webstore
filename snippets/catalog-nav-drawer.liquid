@@ -150,8 +150,8 @@
 {% stylesheet %}
   .catalog-nav-drawer__backdrop {
     position: fixed;
-    /* Match sticky header `top: -1px` so the blur sits flush — no cream gap */
-    top: calc(var(--header-height, 0px) - 1px);
+    /* Clear sticky header stack (delivery banner + bar), not just --header-height */
+    top: var(--catalog-nav-top, calc(var(--header-height, 0px) - 1px));
     right: 0;
     bottom: 0;
     left: 0;
@@ -185,7 +185,7 @@
 
   .catalog-nav-drawer {
     position: fixed;
-    top: calc(var(--header-height, 0px) - 1px);
+    top: var(--catalog-nav-top, calc(var(--header-height, 0px) - 1px));
     right: 0;
     bottom: 0;
     left: 0;
