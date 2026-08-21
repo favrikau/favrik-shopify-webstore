@@ -45,6 +45,9 @@
         render 'product-color-from-name', color_name: product_option_value.name
       endcapture
       assign chip_color = chip_color | strip
+      if chip_color == blank and product_option_value.swatch.color != blank
+        assign chip_color = product_option_value.swatch.color | append: '' | strip
+      endif
       if chip_color != blank
         assign color_token = chip_color | prepend: '|'
         unless unique_colors contains color_token
@@ -83,6 +86,9 @@
         {% render 'product-color-from-name', color_name: product_option_value.name %}
       {% endcapture %}
       {% assign chip_color = chip_color | strip %}
+      {% if chip_color == blank and product_option_value.swatch.color != blank %}
+        {% assign chip_color = product_option_value.swatch.color | append: '' | strip %}
+      {% endif %}
 
       {% if chip_color == blank %}
         {% continue %}
@@ -99,7 +105,7 @@
       {% endif %}
 
       <span
-        class="product-card-color-indicators__chip{% if chip_color == '#f4f1ea' or chip_color == '#c9c9c9' or chip_color == '#9eb5d4' %} product-card-color-indicators__chip--light{% endif %}{% if chip_is_sold_out %} product-card-color-indicators__chip--sold-out{% endif %}"
+        class="product-card-color-indicators__chip{% if chip_color == '#f4f1ea' or chip_color == '#c9c9c9' or chip_color == '#9eb5d4' or chip_color == '#e8dfd0' or chip_color == '#a8c5b0' or chip_color == '#b7a7c7' %} product-card-color-indicators__chip--light{% endif %}{% if chip_is_sold_out %} product-card-color-indicators__chip--sold-out{% endif %}"
         style="--color-chip-background: {{ chip_color }};"
         title="{{ product_option_value.name | escape }}"
       >

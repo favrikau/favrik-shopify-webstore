@@ -99,7 +99,7 @@
             endif
           endunless
 
-          if swatch_count > 0 and block_settings.show_swatches
+          if swatch_count > 0 and block_settings.show_swatches and is_color_option == false
             if block_settings.variant_style == 'dropdown'
               assign variant_style = 'swatch_dropdown'
             else
@@ -185,12 +185,11 @@
                   {% render 'swatch',
                     swatch: product_option_value.swatch,
                     variant_image: featured_media,
-                    mode: 'unscaled'
+                    mode: 'unscaled',
+                    color_name: product_option_value.name
                   %}
                 {% else %}
-                  {% capture variant_chip_color %}
-                    {% render 'product-color-from-name', color_name: product_option_value.name %}
-                  {% endcapture %}
+                  {% capture variant_chip_color %}{% render 'product-color-from-name', color_name: product_option_value.name %}{% endcapture %}
                   {% assign variant_chip_color = variant_chip_color | strip %}
                   {% if variant_chip_color == blank and product_option_value.swatch.color != blank %}
                     {% assign variant_chip_color = product_option_value.swatch.color %}
@@ -200,7 +199,7 @@
                   {% endif %}
                   {% if variant_chip_color != blank %}
                     <span
-                      class="variant-option__color-chip{% if variant_chip_color == '#f4f1ea' or variant_chip_color == '#c9c9c9' or variant_chip_color == '#9eb5d4' %} variant-option__color-chip--light{% endif %}"
+                      class="variant-option__color-chip{% if variant_chip_color == '#f4f1ea' or variant_chip_color == '#c9c9c9' or variant_chip_color == '#9eb5d4' or variant_chip_color == '#e8dfd0' or variant_chip_color == '#a8c5b0' or variant_chip_color == '#b7a7c7' %} variant-option__color-chip--light{% endif %}"
                       style="--variant-color-chip: {{ variant_chip_color }};"
                       aria-hidden="true"
                     ></span>

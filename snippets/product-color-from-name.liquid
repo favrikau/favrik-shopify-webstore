@@ -1,8 +1,9 @@
 {%- doc -%}
-  Maps a variant color name to one of 10 Favrik swatch colors (earthy blues + stone tones).
-  Many variant names collapse into the same swatch. Longer keywords are checked first.
+  Maps a variant color name to an accurate preview hex.
+  More specific names are checked first so "olive green" does not become generic green,
+  and greens are checked before greys/creams so "green" is never beige.
 
-  @param {string} color_name - Variant option value (e.g. "Navy", "Stone")
+  @param {string} color_name - Variant option value (e.g. "Navy", "Olive Green")
 
   @example
   {% render 'product-color-from-name', color_name: 'Off White' %}
@@ -16,29 +17,77 @@
     assign color = blank
   elsif name contains 'multicolor' or name contains 'multi color' or name contains 'multi-color' or name == 'multi'
     assign color = blank
-  elsif name contains 'black'
+
+  elsif name contains 'black' or name contains 'ebony' or name contains 'noir'
     assign color = '#1c1c1c'
-  elsif name contains 'light denim' or name contains 'light blue' or name contains 'teal'
+
+  elsif name contains 'forest' or name contains 'hunter' or name contains 'bottle green' or name contains 'dark green'
+    assign color = '#2d4a3e'
+  elsif name contains 'olive'
+    assign color = '#5c5a32'
+  elsif name contains 'sage'
+    assign color = '#8a9a7b'
+  elsif name contains 'mint'
+    assign color = '#a8c5b0'
+  elsif name contains 'emerald' or name contains 'jade'
+    assign color = '#2e6b4f'
+  elsif name contains 'lime'
+    assign color = '#7a9a3a'
+  elsif name contains 'khaki'
+    assign color = '#b5a66e'
+  elsif name contains 'green'
+    assign color = '#5e6140'
+
+  elsif name contains 'burgundy' or name contains 'wine' or name contains 'maroon' or name contains 'oxblood'
+    assign color = '#6b2430'
+  elsif name contains 'coral'
+    assign color = '#c97a6a'
+  elsif name contains 'blush' or name contains 'pink' or name contains 'rose'
+    assign color = '#d4a5a5'
+  elsif name contains 'red' or name contains 'scarlet' or name contains 'cherry'
+    assign color = '#8b2e2e'
+
+  elsif name contains 'mustard'
+    assign color = '#c4a035'
+  elsif name contains 'gold' or name contains 'yellow'
+    assign color = '#c9b44a'
+  elsif name contains 'rust' or name contains 'terracotta' or name contains 'orange'
+    assign color = '#b85c38'
+
+  elsif name contains 'lilac' or name contains 'lavender'
+    assign color = '#b7a7c7'
+  elsif name contains 'plum' or name contains 'purple' or name contains 'violet'
+    assign color = '#5c3d6e'
+
+  elsif name contains 'teal' or name contains 'aqua' or name contains 'turquoise'
+    assign color = '#3d7a78'
+  elsif name contains 'light denim' or name contains 'light blue' or name contains 'sky' or name contains 'powder blue'
     assign color = '#9eb5d4'
   elsif name contains 'navy' or name contains 'midnight' or name contains 'dark denim'
     assign color = '#1e2a4a'
-  elsif name contains 'denim' or name contains 'blue'
+  elsif name contains 'indigo' or name contains 'denim'
     assign color = '#5578a8'
+  elsif name contains 'blue'
+    assign color = '#4a6fa5'
+
   elsif name contains 'charcoal' or name contains 'dark grey' or name contains 'dark gray' or name contains 'slate'
     assign color = '#4a4a4a'
   elsif name contains 'light oat'
     assign color = '#e8dfd0'
   elsif name == 'oat' or name contains ' oat' or name contains 'oat '
     assign color = '#d4c4a8'
-  elsif name contains 'light grey' or name contains 'light gray'
+  elsif name contains 'light grey' or name contains 'light gray' or name contains 'silver'
     assign color = '#c9c9c9'
   elsif name contains 'stone' or name contains 'pewter' or name contains 'grey' or name contains 'gray'
     assign color = '#9a9590'
-  elsif name contains 'sand' or name contains 'beige' or name contains 'khaki' or name contains 'tan' or name contains 'brown' or name contains 'camel'
+
+  elsif name contains 'chocolate' or name contains 'espresso' or name contains 'coffee' or name contains 'brown'
+    assign color = '#6b4a32'
+  elsif name contains 'camel' or name contains 'tan' or name contains 'taupe' or name contains 'sand' or name contains 'beige'
     assign color = '#c9b08f'
+
   elsif name contains 'cream' or name contains 'ivory' or name contains 'ecru' or name contains 'natural' or name contains 'white' or name contains 'off white' or name contains 'off-white' or name contains 'offwhite'
     assign color = '#f4f1ea'
   endif
 %}
-
 {{- color -}}
