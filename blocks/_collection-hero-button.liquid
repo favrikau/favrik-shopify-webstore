@@ -9,36 +9,19 @@
 {% if show_hero_button %}
   {% liquid
     assign button_en = block.settings.label_en
-    assign button_ko = block.settings.label_ko
 
-    if button_en == blank or button_ko == blank
+    if button_en == blank
       case closest.collection.handle
         when 'fw2026'
-          if button_en == blank
-            assign button_en = 'Explore Collection'
-          endif
-          if button_ko == blank
-            assign button_ko = '컬렉션 둘러보기'
-          endif
+          assign button_en = 'Explore Collection'
         when 'on-sale'
-          if button_en == blank
-            assign button_en = 'Shop Sale'
-          endif
-          if button_ko == blank
-            assign button_ko = '세일 상품 보기'
-          endif
+          assign button_en = 'Shop Sale'
         else
-          if button_en == blank
-            assign button_en = 'View Collection'
-          endif
-          if button_ko == blank
-            assign button_ko = '컬렉션 보기'
-          endif
+          assign button_en = 'View Collection'
       endcase
     endif
 
     assign button_en = button_en | escape
-    assign button_ko = button_ko | escape
   %}
 
   <a
@@ -53,7 +36,6 @@
     {{ block.shopify_attributes }}
   >
     <span class="collection-hero-button__en" data-text="{{ button_en }}">{{ button_en }}</span>
-    <span class="collection-hero-button__ko">{{ button_ko }}</span>
   </a>
 {% endif %}
 

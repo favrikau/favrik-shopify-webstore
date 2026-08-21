@@ -40,6 +40,9 @@
     {% render 'gap-style', value: section.settings.gap %}
   "
   data-testid="collection-list"
+  {% if request.page_type == 'index' %}
+    data-homepage-section="hero"
+  {% endif %}
   {% if section.id contains 'collection_list_showcase' %}
     data-collection-list-showcase
   {% endif %}

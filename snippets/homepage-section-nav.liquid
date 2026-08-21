@@ -1,0 +1,65 @@
+{% doc %}
+  Homepage vertical ticker — four ticks for hero, signature, FW2026, and bottom images.
+{% enddoc %}
+
+<nav class="homepage-section-nav" aria-label="Homepage sections">
+  <button type="button" class="homepage-section-nav__tick is-active" data-homepage-tick="hero" aria-label="Hero" aria-current="true"></button>
+  <button type="button" class="homepage-section-nav__tick" data-homepage-tick="signature" aria-label="Signature Collection"></button>
+  <button type="button" class="homepage-section-nav__tick" data-homepage-tick="fw2026" aria-label="FW2026 Collection"></button>
+  <button type="button" class="homepage-section-nav__tick" data-homepage-tick="bottom" aria-label="Collection images"></button>
+</nav>
+
+<script src="{{ 'homepage-section-nav.js' | asset_url }}" defer></script>
+
+{% stylesheet %}
+  .homepage-section-nav {
+    position: fixed;
+    top: 50%;
+    right: var(--page-margin);
+    z-index: calc(var(--layer-menu-drawer, 18) + 4);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 10px;
+    transform: translateY(-50%);
+    mix-blend-mode: difference;
+    pointer-events: none;
+  }
+
+  @media screen and (min-width: 750px) {
+    .homepage-section-nav {
+      display: flex;
+      gap: 12px;
+    }
+  }
+
+  .homepage-section-nav__tick {
+    pointer-events: auto;
+    width: 16px;
+    height: 1.5px;
+    padding: 6px 0;
+    margin: 0;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+    appearance: none;
+  }
+
+  .homepage-section-nav__tick::after {
+    content: '';
+    display: block;
+    width: 100%;
+    height: 1.5px;
+    background: rgb(255 255 255 / 0.38);
+    transition: background-color 0.25s ease, opacity 0.25s ease;
+  }
+
+  .homepage-section-nav__tick.is-active::after {
+    background: #ffffff;
+  }
+
+  .homepage-section-nav__tick:focus-visible {
+    outline: 1px solid #fff;
+    outline-offset: 4px;
+  }
+{% endstylesheet %}

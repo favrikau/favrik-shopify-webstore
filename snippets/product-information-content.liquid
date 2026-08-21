@@ -718,7 +718,12 @@
   .product-information .product-details product-price.text-block,
   .product-information .product-details product-price.text-block :is(.price, .compare-at-price, .unit-price) {
     font-size: var(--font-paragraph--size, 1rem);
-    font-weight: var(--font-body--weight);
+    font-weight: 500;
+    color: #302118;
+  }
+
+  .product-information .product-details product-price.text-block .compare-at-price {
+    font-weight: 300;
   }
 
   .product-information .product-details product-price.text-block .price-item--sale {
@@ -733,10 +738,11 @@
   .product-information .product-details .text-block.custom-typography > h1,
   .product-information .product-details h1 {
     --font-size: 1.25rem;
-    --font-weight: 600;
+    --font-weight: 300;
     font-size: 1.25rem !important;
-    font-weight: 600 !important;
+    font-weight: 300 !important;
     text-transform: uppercase;
+    color: #3c2e24;
   }
 
   @media screen and (max-width: 749px) {

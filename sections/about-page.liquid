@@ -29,17 +29,6 @@
     --about-page-border: {{ border_color }};
   "
 >
-  <div class="about-page__intro">
-    <header class="about-page__header">
-      <p class="about-page__eyebrow">ABOUT</p>
-      <h1 class="about-page__title">{{ section.settings.heading | escape }}</h1>
-    </header>
-
-    <div class="about-page__lead">
-      <p>{{ section.settings.intro | escape }}</p>
-    </div>
-  </div>
-
   <div class="about-page__media" aria-label="{{ section.settings.image_alt | escape }}">
     {% if hero_image != blank %}
       {{
@@ -102,7 +91,7 @@
     <div class="about-page__story">
       {% if section.settings.story_copy != blank %}
         <article class="about-page__story-row">
-          <h2 class="about-page__section-title">{{ section.settings.story_heading | escape }}</h2>
+          <h1 class="about-page__section-title">{{ section.settings.story_heading | escape }}</h1>
           <div class="about-page__copy">
             {{ section.settings.story_copy }}
           </div>
@@ -136,27 +125,11 @@
     background: var(--color-background);
   }
 
-  .about-page__intro,
   .about-page__story {
     width: min(100% - 2.5rem, 72rem);
     margin-inline: auto;
   }
 
-  .about-page__intro {
-    display: grid;
-    grid-template-columns: minmax(10rem, 0.38fr) minmax(0, 1fr);
-    gap: clamp(2rem, 6vw, 7rem);
-    padding-block: clamp(3rem, 7vw, 6rem);
-  }
-
-  .about-page__header {
-    display: grid;
-    align-content: start;
-    gap: 0.45rem;
-  }
-
-  .about-page__eyebrow,
-  .about-page__title,
   .about-page__section-title {
     margin: 0;
     color: var(--about-page-text);
@@ -168,12 +141,9 @@
     text-transform: uppercase;
   }
 
-  .about-page__eyebrow {
-    color: var(--about-page-muted);
-  }
-
-  .about-page__lead,
   .about-page__copy {
+    display: grid;
+    gap: 0.85rem;
     color: var(--about-page-muted);
     font-family: var(--font-body--family);
     font-size: 0.75rem;
@@ -183,18 +153,8 @@
     text-transform: uppercase;
   }
 
-  .about-page__lead {
-    max-width: 56rem;
-  }
-
-  .about-page__lead p,
   .about-page__copy p {
     margin: 0;
-  }
-
-  .about-page__copy {
-    display: grid;
-    gap: 0.85rem;
   }
 
   .about-page__media {
@@ -268,20 +228,14 @@
   }
 
   @media screen and (max-width: 749px) {
-    .about-page__intro,
     .about-page__story-row {
       grid-template-columns: 1fr;
       gap: 1rem;
     }
 
-    .about-page__intro,
     .about-page__story {
       width: 100%;
       padding-inline: 16px;
-    }
-
-    .about-page__intro {
-      padding-block: 2.5rem;
     }
 
     .about-page__media {

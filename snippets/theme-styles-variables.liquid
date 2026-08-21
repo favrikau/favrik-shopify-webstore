@@ -139,12 +139,13 @@
     --product-card-columns-desktop: 4;
     --product-card-columns-tablet: 3;
     --product-card-columns-mobile: 2;
-    --product-card-grid-gap: 0px;
-    --product-card-frame-border-width: 0.5px;
-    --product-card-frame-border-color: #ddd4cb;
     --product-card-inline-padding: 10px;
+    --product-card-grid-column-gap: var(--product-card-inline-padding);
+    --product-card-grid-row-gap: calc(var(--product-card-inline-padding) * 2);
+    --product-card-grid-gap: var(--product-card-grid-row-gap) var(--product-card-grid-column-gap);
+    --product-card-frame-border-width: 0px;
     --product-card-meta-padding-top: var(--product-card-inline-padding);
-    --product-card-meta-padding-bottom: var(--product-card-inline-padding);
+    --product-card-meta-padding-bottom: 0px;
     --product-card-title-font-size: 0.75rem;
     --product-card-meta-font-size: 0.75rem;
     --product-card-title-price-gap: 5px;

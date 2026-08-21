@@ -224,7 +224,7 @@
         "background_color": "{{ settings.color_palette.background }}",
         "show_bilingual_heading": true,
         "heading_en": "Signature Collection",
-        "heading_ko": "시그니처 컬렉션",
+        "heading_ko": "",
         "heading_color": "#302118",
         "padding-block-start": 48,
         "padding-block-end": 48

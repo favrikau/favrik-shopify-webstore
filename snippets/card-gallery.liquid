@@ -232,6 +232,15 @@
     aspect-ratio: var(--gallery-aspect-ratio, var(--ratio));
   }
 
+  .card-gallery slideshow-arrows .icon-chevron,
+  .card-gallery slideshow-arrows .icon-chevron svg {
+    --icon-stroke-width: 0.75px;
+    width: 10px;
+    height: 16px;
+    max-width: none;
+    aspect-ratio: auto;
+  }
+
   .product-card-gallery__coming-soon {
     display: flex;
     align-items: center;
@@ -450,12 +459,7 @@
   }
 
   .card-gallery slideshow-arrows .slideshow-control {
-    /* Align icons with quick-add button */
-    padding-inline: var(--padding-xl);
-
-    @container (max-width: 249px) {
-      padding-inline: 0 var(--padding-sm);
-    }
+    padding: 0;
   }
 
   /*

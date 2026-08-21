@@ -63,6 +63,8 @@
   {% endif %}
   {{- block.shopify_attributes -}}
 >
+  {% render 'header-sku-search', section: section %}
+
   <a
     href="https://www.instagram.com/favrik__/?hl=en"
     class="header-actions__action header-actions__instagram mobile:hidden"
@@ -105,7 +107,29 @@
     </span>
   </a>
 
-  {% render 'header-sku-search', section: section %}
+  {% if settings.cart_type == 'drawer' and template.name != 'cart' %}
+    <button
+      class="header-actions__action button-unstyled{% if display_style == 'text' %} header-actions__text-style{% endif %}"
+      on:click="#cart-drawer/toggle"
+      aria-haspopup="dialog"
+      aria-expanded="false"
+      aria-controls="cart-drawer"
+      aria-label="{{ 'accessibility.cart' | t }}"
+      aria-describedby="cart-bubble-text"
+      data-testid="cart-drawer-trigger"
+    >
+      {{ cart_icon }}
+    </button>
+  {% else %}
+    <a
+      href="{{ routes.cart_url }}"
+      class="header-actions__action action__cart{% if display_style == 'text' %} header-actions__text-style{% endif %}"
+      aria-label="{{ 'accessibility.cart' | t }}"
+      aria-describedby="cart-bubble-text"
+    >
+      {{ cart_icon }}
+    </a>
+  {% endif %}
 
   {% if shop.customer_accounts_enabled %}
     {% liquid
@@ -167,30 +191,6 @@
     </a>
   {% endif %}
 
-  {% if settings.cart_type == 'drawer' and template.name != 'cart' %}
-    <button
-      class="header-actions__action button-unstyled{% if display_style == 'text' %} header-actions__text-style{% endif %}"
-      on:click="#cart-drawer/toggle"
-      aria-haspopup="dialog"
-      aria-expanded="false"
-      aria-controls="cart-drawer"
-      aria-label="{{ 'accessibility.cart' | t }}"
-      aria-describedby="cart-bubble-text"
-      data-testid="cart-drawer-trigger"
-    >
-      {{ cart_icon }}
-    </button>
-  {% else %}
-    <a
-      href="{{ routes.cart_url }}"
-      class="header-actions__action action__cart{% if display_style == 'text' %} header-actions__text-style{% endif %}"
-      aria-label="{{ 'accessibility.cart' | t }}"
-      aria-describedby="cart-bubble-text"
-    >
-      {{ cart_icon }}
-    </a>
-  {% endif %}
-
   <span
     ref="liveRegion"
     class="visually-hidden"
@@ -246,13 +246,32 @@
     --shopify-account-dialog-position-top: var(--account-offset-top);
 
     &:not(:defined) {
-      min-width: 44px;
-      height: 44px;
+      min-width: 0;
+      width: auto;
+      height: auto;
       display: flex;
-      justify-content: center;
+      justify-content: flex-end;
       align-items: center;
       line-height: normal;
     }
+  }
+
+  .header__column--right .account-button,
+  .header__column--right .account-button shopify-account {
+    min-width: 0;
+    width: auto;
+    height: auto;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    padding: 0;
+    margin: 0;
+  }
+
+  .account-button__icon {
+    display: block;
+    width: 15px;
+    height: 17px;
   }
 
   .account-button__fallback {
@@ -278,8 +297,7 @@
     align-items: center;
     /* Match left nav link spacing (--menu-horizontal-gap on .header) */
     gap: var(--menu-horizontal-gap, 3.25rem);
-    /* Room for the cart count badge hanging off the last icon */
-    padding-inline-end: 6px;
+    padding-inline-end: 0;
 
     @media screen and (max-width: 749px) {
       justify-self: flex-end;

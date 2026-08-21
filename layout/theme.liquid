@@ -136,6 +136,10 @@
     {% render 'theme-drawer' %}
     {% render 'catalog-nav-drawer' %}
 
+    {% if request.page_type == 'index' %}
+      {% render 'homepage-section-nav' %}
+    {% endif %}
+
     {% render 'search-modal' %}
 
     {% if settings.quick_add or settings.mobile_quick_add %}

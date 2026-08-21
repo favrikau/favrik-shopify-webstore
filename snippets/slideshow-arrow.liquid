@@ -11,13 +11,8 @@
 {%- enddoc -%}
 
 {%- liquid
-  assign icon_name = 'arrow'
   assign style = icon_style | default: 'arrow'
   assign shape = icon_shape | default: 'none'
-
-  if icon_style contains 'chevron'
-    assign icon_name = 'caret'
-  endif
 
   if icon_style contains 'large'
     assign icon_size = 'large'
@@ -31,7 +26,6 @@
     {% if shape != 'none' %} slideshow-control--shape-{{ shape }}{% endif %}
     slideshow-control--style-{{ style }}
     button button-unstyled button-unstyled--transparent
-    {% if action == 'previous' %} flip-x{% endif %}
   "
   {% if action == 'previous' %}
     aria-label="{{ 'accessibility.slideshow_previous' | t }}"
@@ -41,30 +35,57 @@
   on:click="/{{ action }}"
   ref="{{ action }}"
 >
-  <span class="svg-wrapper icon-{{ icon_name }}">
-    {%- if icon_name == 'caret' -%}
-      {{- 'icon-caret.svg' | inline_asset_content -}}
+  <span
+    class="icon-chevron"
+    style="width: 10px; height: 16px; display: block; line-height: 0;"
+  >
+    {%- if action == 'previous' -%}
+      <svg
+        width="10"
+        height="16"
+        viewBox="0 0 6 10"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        aria-hidden="true"
+        focusable="false"
+        style="width: 10px; height: 16px; max-width: none; aspect-ratio: auto; display: block;"
+      >
+        <path d="M5 1L1 5L5 9" stroke="currentColor" stroke-width="0.75" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="8"/>
+      </svg>
     {%- else -%}
-      {{- 'icon-arrow.svg' | inline_asset_content -}}
+      <svg
+        width="10"
+        height="16"
+        viewBox="0 0 6 10"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        aria-hidden="true"
+        focusable="false"
+        style="width: 10px; height: 16px; max-width: none; aspect-ratio: auto; display: block;"
+      >
+        <path d="M1 1L5 5L1 9" stroke="currentColor" stroke-width="0.75" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="8"/>
+      </svg>
     {%- endif -%}
   </span>
 </button>
 
 {% stylesheet %}
   .slideshow-control--large {
-    .icon-caret {
-      --icon-stroke-width: 1px;
-    }
-
-    .icon-caret {
-      --icon-stroke-width: 1px;
-    }
-
     .svg-wrapper,
     svg {
       width: var(--slideshow-controls-icon);
       height: var(--slideshow-controls-icon);
     }
+  }
+
+  .slideshow-control .icon-chevron,
+  .slideshow-control .icon-chevron svg {
+    --icon-stroke-width: 0.75px;
+    width: 10px;
+    height: 16px;
+    max-width: none;
+    aspect-ratio: auto;
+    display: block;
   }
 
   /* Slideshow control shape styles */
@@ -84,9 +105,5 @@
 
   .slideshow-control.slideshow-control--shape-square {
     border-radius: 0;
-  }
-
-  .slideshow-control .icon-caret {
-    rotate: -90deg;
   }
 {% endstylesheet %}

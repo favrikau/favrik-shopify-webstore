@@ -17,6 +17,9 @@
 ></div>
 <div
   data-testid="product-list"
+  {% if request.page_type == 'index' %}
+    data-homepage-section="signature"
+  {% endif %}
   {% if randomize_products %}
     data-random-product-list
     data-random-product-limit="{{ section.settings.max_products }}"

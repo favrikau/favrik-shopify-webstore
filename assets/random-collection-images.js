@@ -108,7 +108,7 @@ const usedProductUrls = new Set();
 const usedProductIds = new Set();
 
 /**
- * Picks a unique random image for each slot in a three-column collection image row.
+ * Picks a unique random image for each slot in the collection image row.
  */
 const trioSections = document.querySelectorAll('[data-random-image-trio]');
 

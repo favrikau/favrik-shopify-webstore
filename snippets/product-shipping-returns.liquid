@@ -177,7 +177,7 @@
   {% capture sizing_guide_accordion %}
     <details class="details" data-testid="accordion-details">
       <summary class="details__header product-section-heading">
-        Sizing Guide
+        Measurements
         <span class="svg-wrapper icon-caret icon-animated">
           {{- 'icon-caret.svg' | inline_asset_content -}}
         </span>
@@ -295,13 +295,13 @@
     --summary-font-case: var(--font-body--case);
   "
 >
-  {% render 'accordion-custom-component', children: shipping_returns_content %}
-  {% if care_guide_content != blank %}
-    {% render 'accordion-custom-component', children: care_guide_accordion %}
-  {% endif %}
   {% if sizing_guide_has_content %}
     {% render 'accordion-custom-component', children: sizing_guide_accordion %}
   {% endif %}
+  {% if care_guide_content != blank %}
+    {% render 'accordion-custom-component', children: care_guide_accordion %}
+  {% endif %}
+  {% render 'accordion-custom-component', children: shipping_returns_content %}
 </div>
 
 {% render 'accordion-styles' %}

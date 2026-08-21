@@ -510,7 +510,7 @@
 
   .header {
     /* Set header paddings based on height setting */
-    --header-padding: var(--padding-xs);
+    --header-padding: 12px;
     --font-paragraph--line-height: 1;
     --header-content-transition-timing: 0s;
     --closed-underlay-blur: 0;
@@ -890,7 +890,7 @@
 
   @media screen and (max-width: 749px) {
     .header {
-      --header-padding: 4px;
+      --header-padding: 8px;
     }
 
     .header__row--top:not(.divider--page-width),
@@ -1201,7 +1201,7 @@
   }
 
   .header.header--compact {
-    --header-padding: 4px;
+    --header-padding: 8px;
   }
 
   /* Affixed compact header disabled for now — never show, even when rested. */
@@ -1216,7 +1216,7 @@
   }
 
   .header:not(.header--compact) .header__row--bottom {
-    --header-padding: var(--padding-xs);
+    --header-padding: 12px;
   }
 
   .header--collapse-row-paddings {

@@ -111,7 +111,7 @@
         {% if store_address != blank %}
           <div class="favrik-footer__info-block">
             <p class="favrik-footer__info-label">Store address</p>
-            <p class="favrik-footer__info-text">{{ store_address | escape | newline_to_br }}</p>
+            <p class="favrik-footer__info-text">{{ store_address | escape | replace: ', Melbourne VIC 3000', '<br>Melbourne VIC 3000' | newline_to_br }}</p>
           </div>
         {% endif %}
 
@@ -628,7 +628,7 @@
       "type": "textarea",
       "id": "address",
       "label": "Store address",
-      "default": "Emporium, Lower Ground, Shop 27a/287 Lonsdale St, Melbourne VIC 3000",
+      "default": "Emporium, Lower Ground, Shop 27a/287 Lonsdale St,\nMelbourne VIC 3000",
       "info": "Shown in the first footer column. Leave blank to use your store address from Shopify settings."
     },
     {

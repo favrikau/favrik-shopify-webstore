@@ -57,7 +57,7 @@
       <div class="locations-page__details">
         <div class="locations-page__detail">
           <p class="locations-page__detail-label">Store address</p>
-          <p class="locations-page__detail-text">{{ store_address | escape | newline_to_br }}</p>
+          <p class="locations-page__detail-text">{{ store_address | escape | replace: ', Melbourne VIC 3000', '<br>Melbourne VIC 3000' | newline_to_br }}</p>
           <p class="locations-page__note">
             <a
               href="{{ map_directions_url }}"
@@ -249,7 +249,7 @@
       "type": "textarea",
       "id": "address",
       "label": "Store address",
-      "default": "Emporium, Lower Ground, Shop 27a/287 Lonsdale St, Melbourne VIC 3000"
+      "default": "Emporium, Lower Ground, Shop 27a/287 Lonsdale St,\nMelbourne VIC 3000"
     },
     {
       "type": "textarea",

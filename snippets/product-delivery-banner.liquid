@@ -1,78 +1,69 @@
 {% doc %}
-  Infinite scrolling delivery promo banner for product pages.
+  Static delivery promo banner for product pages.
 {% enddoc %}
 
-<script
-  src="{{ 'marquee.js' | asset_url }}"
-  type="module"
-  fetchpriority="low"
-></script>
+<script>
+  try {
+    if (sessionStorage.getItem('favrik-delivery-banner-dismissed') === '1') {
+      document.documentElement.classList.add('product-delivery-banner-dismissed');
+    }
+  } catch (error) {
+    /* sessionStorage can throw in private browsing */
+  }
+</script>
 
 <style>
+  html.product-delivery-banner-dismissed .product-delivery-banner {
+    display: none;
+  }
+
   .product-delivery-banner {
     display: block;
     width: 100%;
     flex: 0 0 auto;
     overflow: hidden;
-    background: #000;
+    background: #323232;
     color: rgb(255 247 236 / 0.92);
     border: none;
     position: relative;
     z-index: 2;
-  }
-
-  .product-delivery-banner .marquee__wrapper {
-    display: flex;
-    gap: var(--marquee-gap);
-    width: fit-content;
-    white-space: nowrap;
-  }
-
-  .product-delivery-banner .marquee__content {
-    min-width: max-content;
-    display: flex;
-    gap: var(--marquee-gap);
-  }
-
-  .product-delivery-banner .marquee__repeated-items {
-    min-width: max-content;
-    display: flex;
-    gap: var(--marquee-gap);
-    align-items: center;
-    padding-block: 0.625rem;
+    padding-block: 0.35rem;
+    padding-inline: 2.5rem;
+    text-align: center;
   }
 
   .product-delivery-banner__message {
     font-family: var(--font-body--family);
     font-size: 0.6875rem;
     font-weight: 300;
-    line-height: 1.2;
-    letter-spacing: 0.08em;
+    line-height: 1.1;
+    letter-spacing: 0.34em;
     text-transform: uppercase;
     white-space: nowrap;
   }
 
-  .product-delivery-banner__message--ko {
-    font-family: var(--font-korean--family);
-    text-transform: none;
-    letter-spacing: 0.04em;
+  .product-delivery-banner__close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 2.5rem;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    appearance: none;
   }
 
-  .product-delivery-banner__amount {
-    font-family: 'DM Sans', sans-serif;
-    font-weight: 300;
-  }
-
-  @media (prefers-reduced-motion: no-preference) {
-    .product-delivery-banner:not([data-disabled]) .marquee__wrapper {
-      animation: product-delivery-banner-motion var(--marquee-speed) linear infinite var(--marquee-direction);
-    }
-  }
-
-  @keyframes product-delivery-banner-motion {
-    to {
-      transform: translate3d(calc(-50% - (var(--marquee-gap) / 2)), 0, 0);
-    }
+  .product-delivery-banner__close .svg-wrapper,
+  .product-delivery-banner__close svg {
+    width: 14px;
+    height: 14px;
+    display: block;
   }
 
   /* Keep sticky header rules working when the banner sits above header-component */
@@ -84,23 +75,45 @@
   }
 </style>
 
-<marquee-component
+<div
   class="product-delivery-banner"
-  style="--marquee-gap: 2.5rem; --marquee-direction: normal;"
-  data-speed-factor="20"
-  data-movement-direction="normal"
+  id="product-delivery-banner"
   aria-label="Free delivery promotion"
 >
-  <div class="marquee__wrapper" ref="wrapper">
-    <div class="marquee__content" ref="content">
-      <div class="marquee__repeated-items" ref="marqueeItems[]">
-        <span class="product-delivery-banner__message product-delivery-banner__message--en">
-          Free delivery on orders over $150
-        </span>
-        <span class="product-delivery-banner__message product-delivery-banner__message--ko" lang="ko">
-          <span class="product-delivery-banner__amount" lang="en">$150</span> 이상 주문 시 무료 배송
-        </span>
-      </div>
-    </div>
-  </div>
-</marquee-component>
+  <span class="product-delivery-banner__message">
+    Free delivery on orders over $150
+  </span>
+  <button
+    type="button"
+    class="product-delivery-banner__close"
+    aria-label="{{ 'actions.close' | t }}"
+    data-product-delivery-banner-close
+  >
+    <span class="svg-wrapper" aria-hidden="true">
+      {{- 'icon-close.svg' | inline_asset_content -}}
+    </span>
+  </button>
+</div>
+
+<script>
+  (function () {
+    var banner = document.getElementById('product-delivery-banner');
+    if (!banner) return;
+
+    var closeButton = banner.querySelector('[data-product-delivery-banner-close]');
+    if (!closeButton) return;
+
+    closeButton.addEventListener('click', function () {
+      banner.hidden = true;
+      document.documentElement.classList.add('product-delivery-banner-dismissed');
+
+      try {
+        if (!window.Shopify || !window.Shopify.designMode) {
+          sessionStorage.setItem('favrik-delivery-banner-dismissed', '1');
+        }
+      } catch (error) {
+        /* sessionStorage can throw in private browsing */
+      }
+    });
+  })();
+</script>
