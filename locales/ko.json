@@ -224,6 +224,7 @@
     "taxes_included_shipping_at_checkout_with_policy_without_discounts_html": "세금이 포함된 가격입니다. 배송료는 결제 시 계산됩니다.",
     "taxes_included_shipping_at_checkout_without_policy_without_discounts": "세금이 포함된 가격입니다. 배송료는 결제 시 계산됩니다.",
     "view_more_details": "세부 정보 더 보기",
+    "view_more_products": "제품 더 보기",
     "powered_by": "상점 제공:",
     "store_owner_link_html": "스토어 소유자이신가요? <a href=\"{{ link }}\">여기에서 로그인</a>하세요.",
     "shipping_discount_error": "배송 요금 할인은 결제 단계에서 주소를 추가한 후에 표시됩니다.",

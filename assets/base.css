@@ -301,7 +301,7 @@ p:empty {
 .page-width-normal,
 .page-width-narrow,
 .page-width-content {
-  --page-margin: 16px;
+  --page-margin: 10px;
 }
 
 @media screen and (min-width: 750px) {
@@ -990,7 +990,7 @@ body:has(.header[transparent]) .content-for-layout[data-template='index']
 
 .content-for-layout[data-template='page.contact'] .contact-page__title {
   color: #302118;
-  font-weight: 600;
+  font-weight: 300;
 }
 
 .content-for-layout[data-template='page.contact'] .contact-page__subheading {
@@ -1015,6 +1015,7 @@ body:has(.header[transparent]) .content-for-layout[data-template='index']
 .content-for-layout[data-template='page.locations'] .locations-page__title,
 .content-for-layout[data-template='page.locations'] .locations-page__detail-label {
   color: #302118;
+  font-weight: 300;
 }
 
 .content-for-layout[data-template='page.locations'] .locations-page__subheading,
@@ -4033,24 +4034,15 @@ fly-to-cart.fly-to-cart--sticky {
   }
 }
 
-/* Product card title truncation - applied only to zoom-out view */
-[product-grid-view='zoom-out'] :is(.product-card, .product-grid__card) :is(h4, .h4) {
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  -webkit-line-clamp: 3;
-}
-
-/* Product card title truncation - applied on mobile regardless of view */
-@media screen and (max-width: 749px) {
-  :is(.product-card, .product-grid__card) :is(h4, .h4) {
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    -webkit-line-clamp: 3;
-  }
+[product-grid-view='zoom-out'] :is(.product-card, .product-grid__card) :is(h4, .h4),
+:is(.product-card, .product-grid__card) :is(h4, .h4) {
+  display: block;
+  -webkit-box-orient: unset;
+  -webkit-line-clamp: unset;
+  overflow: visible;
+  text-overflow: unset;
+  white-space: normal;
+  overflow-wrap: break-word;
 }
 
 .product-card:hover,

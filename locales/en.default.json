@@ -297,6 +297,7 @@
     "use_fewer_filters_html": "Try using fewer filters, or <a class=\"{{ class }}\" href=\"{{ link }}\">clear all filters</a>.",
     // Link or button to expand additional information
     "view_more_details": "View more details",
+    "view_more_products": "View more products",
     "volume_pricing_available": "Volume pricing available",
     "volume_pricing": "Volume pricing",
     "at_price_each": "at {{ price }}/ea",

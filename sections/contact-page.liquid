@@ -25,7 +25,7 @@
   class="section section--{{ section.settings.section_width }} spacing-style contact-page{% if section.settings.background_color != blank %} color-custom-{{ section.id }}{% endif %}"
   style="{% render 'spacing-style', settings: section.settings %}"
 >
-  <div class="contact-page__layout">
+    <div class="contact-page__layout force-full-width">
     <div class="contact-page__content">
       <header class="contact-page__header">
         <h1 class="contact-page__title">
@@ -62,7 +62,7 @@
               | image_url: width: 2000
               | image_tag:
                 widths: '600, 900, 1200, 1600, 2000',
-                sizes: '(min-width: 750px) 50vw, 100vw',
+                sizes: '(min-width: 990px) 50vw, 100vw',
                 class: 'contact-page__image resource-image__random-image',
                 loading: 'lazy',
                 alt: '',
@@ -83,7 +83,7 @@
             | image_url: width: 2000
             | image_tag:
               widths: '600, 900, 1200, 1600, 2000',
-              sizes: '(min-width: 750px) 50vw, 100vw',
+              sizes: '(min-width: 990px) 50vw, 100vw',
               class: 'contact-page__image',
               loading: 'lazy',
               alt: ''
@@ -107,11 +107,10 @@
   }
 
   .contact-page__layout {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    align-items: stretch;
-    gap: 0;
+    display: flex;
+    flex-direction: column;
     width: 100%;
+    max-width: 100%;
     min-height: calc(100dvh - var(--header-group-height, 0px));
   }
 
@@ -120,7 +119,9 @@
     flex-direction: column;
     justify-content: center;
     gap: 1.5rem;
-    padding: clamp(2rem, 5vw, 4rem) clamp(1.25rem, 4vw, 3.5rem);
+    padding: 2rem var(--page-margin) 1.5rem;
+    width: 100%;
+    max-width: 100%;
     min-width: 0;
   }
 
@@ -142,7 +143,7 @@
 
   .contact-page__title {
     color: #302118;
-    font-weight: 600;
+    font-weight: 300;
   }
 
   .contact-page__subheading {
@@ -163,8 +164,13 @@
 
   .contact-page__media {
     position: relative;
+    display: block;
+    width: 100%;
+    max-width: 100%;
     min-width: 0;
-    min-height: 22rem;
+    flex: 0 0 auto;
+    min-height: 18rem;
+    aspect-ratio: 3 / 4;
     overflow: hidden;
     background: rgb(48 33 24 / 0.06);
   }
@@ -172,12 +178,15 @@
   .contact-page__image-pool {
     position: absolute;
     inset: 0;
+    width: 100%;
+    height: 100%;
   }
 
   .contact-page__image,
   .contact-page__placeholder-svg {
     display: block;
     width: 100%;
+    max-width: 100%;
     height: 100%;
     object-fit: cover;
     object-position: center center;
@@ -205,24 +214,33 @@
   .contact-page__placeholder {
     width: 100%;
     height: 100%;
-    min-height: 22rem;
+    min-height: 18rem;
   }
 
-  @media screen and (max-width: 749px) {
+  @media screen and (min-width: 990px) {
     .contact-page__layout {
-      grid-template-columns: 1fr;
-      min-height: calc(100dvh - var(--header-group-height, 0px));
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      align-items: stretch;
+      gap: 0;
     }
 
     .contact-page__content {
-      order: 1;
-      padding: 2rem 16px 1.5rem;
+      grid-column: 1;
+      grid-row: 1;
+      padding: clamp(2rem, 5vw, 4rem) clamp(1.25rem, 4vw, 3.5rem);
     }
 
     .contact-page__media {
-      order: 2;
-      min-height: 18rem;
-      aspect-ratio: 3 / 4;
+      grid-column: 2;
+      grid-row: 1;
+      min-height: 22rem;
+      aspect-ratio: auto;
+      height: 100%;
+    }
+
+    .contact-page__placeholder {
+      min-height: 22rem;
     }
   }
 {% endstylesheet %}

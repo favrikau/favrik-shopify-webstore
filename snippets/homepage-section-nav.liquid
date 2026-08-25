@@ -24,6 +24,18 @@
     transform: translateY(-50%);
     mix-blend-mode: difference;
     pointer-events: none;
+    transition: opacity 0.2s ease, visibility 0.2s ease;
+  }
+
+  @media screen and (max-width: 749px) {
+    body:has(.catalog-nav-drawer.is-open) .homepage-section-nav,
+    body:has(.catalog-nav-drawer__backdrop.is-visible) .homepage-section-nav,
+    body:has(.header-sku-search.is-open) .homepage-section-nav,
+    body:has(.header-sku-search-backdrop.is-visible) .homepage-section-nav {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
   }
 
   @media screen and (min-width: 750px) {

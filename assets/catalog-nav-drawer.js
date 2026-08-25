@@ -78,6 +78,8 @@ function setOpen(open) {
   });
 
   if (open) {
+    document.dispatchEvent(new CustomEvent('catalog-nav:open'));
+    closeSearchModal();
     syncOverlayTop();
     observeHeaderStack(true);
 
@@ -134,6 +136,13 @@ function observeHeaderStack(enabled) {
   window.addEventListener('scroll', syncOverlayTop, true);
 }
 
+function closeSearchModal() {
+  const searchModal = document.getElementById('search-modal');
+  if (searchModal && typeof searchModal.closeDialog === 'function') {
+    searchModal.closeDialog();
+  }
+}
+
 function openDrawer() {
   setOpen(true);
 }
@@ -185,6 +194,14 @@ function init() {
   syncOverlayTop();
   document.addEventListener('click', handleDocumentClick);
   document.addEventListener('keydown', handleKeydown);
+  document.addEventListener('header-sku-search:open', () => {
+    if (isOpen()) closeDrawer();
+  });
+
+  const searchModal = document.getElementById('search-modal');
+  searchModal?.addEventListener('dialog:open', () => {
+    if (isOpen()) closeDrawer();
+  });
 }
 
 if (document.readyState === 'loading') {

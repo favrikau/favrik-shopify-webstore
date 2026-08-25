@@ -37,8 +37,7 @@
       font-style: var(--font-body--style);
     }
 
-    /* Match site-wide body weight instead of heavier heading presets.
-       Product name (the top-right h1) stays at 600 to match variant labels. */
+    /* Match product-card title weight. */
     .product-details .text-block :is(h2, h3, h4, h5, h6),
     .sticky-add-to-cart__title {
       font-weight: var(--font-body--weight);
@@ -48,9 +47,9 @@
     .product-details .text-block.custom-typography > h1,
     .product-details h1 {
       --font-size: 1.25rem;
-      --font-weight: 600;
+      --font-weight: 400;
       font-size: 1.25rem !important;
-      font-weight: 600 !important;
+      font-weight: 400 !important;
     }
 
     @media screen and (max-width: 749px) {
@@ -107,9 +106,10 @@
     font-size: 0.875rem;
     font-weight: var(--font-body--weight);
     line-height: 1.3;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    overflow: visible;
+    text-overflow: unset;
+    white-space: normal;
+    overflow-wrap: break-word;
     max-width: 100%;
     min-width: 0;
   }

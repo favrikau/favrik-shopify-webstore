@@ -289,10 +289,10 @@
   style="
     --summary-font-family: var(--font-body--family);
     --summary-font-style: var(--font-body--style);
-    --summary-font-weight: var(--font-heading--weight);
+    --summary-font-weight: 400;
     --summary-font-size: var(--font-body--size);
     --summary-font-line-height: var(--font-body--line-height);
-    --summary-font-case: var(--font-body--case);
+    --summary-font-case: uppercase;
   "
 >
   {% if sizing_guide_has_content %}
@@ -320,7 +320,8 @@
   }
 
   .product-shipping-returns .details__header {
-    font-weight: 600;
+    font-weight: 400;
+    color: #2e2e2e;
     text-transform: uppercase;
   }
 
@@ -329,6 +330,12 @@
     font-style: var(--font-body--style);
     font-size: var(--font-body--size);
     line-height: var(--font-body--line-height);
+    font-weight: 300;
+    color: #000;
+  }
+
+  .product-shipping-returns__content:not(.product-care-guide__content):not(.product-sizing-guide__content) {
+    color: #4a4a4a;
   }
 
   .product-shipping-returns__content :lang(ko) {
@@ -338,7 +345,8 @@
   .product-shipping-returns__heading {
     font-family: inherit;
     font-size: inherit;
-    font-weight: var(--font-heading--weight);
+    font-weight: 400;
+    color: #2e2e2e;
     line-height: inherit;
     margin-block: var(--padding-xl) var(--padding-sm);
     text-transform: uppercase;
@@ -351,7 +359,8 @@
   .product-shipping-returns__subheading {
     font-family: inherit;
     font-size: inherit;
-    font-weight: 600;
+    font-weight: 400;
+    color: #2e2e2e;
     line-height: inherit;
     margin-block: var(--padding-lg) var(--padding-xs);
     text-transform: uppercase;
@@ -386,7 +395,8 @@
 
   .product-sizing-guide__type {
     margin: 0 0 var(--padding-md);
-    font-weight: 600;
+    font-weight: 400;
+    color: #2e2e2e;
     text-transform: uppercase;
     letter-spacing: 0.04em;
   }
@@ -421,12 +431,15 @@
   }
 
   .product-sizing-guide__row dt {
-    font-weight: 500;
+    font-weight: 400;
+    color: #2e2e2e;
+    text-transform: uppercase;
   }
 
   .product-sizing-guide__row dd {
     text-align: end;
-    font-weight: 400;
+    font-weight: 300;
+    color: #000;
   }
 
   .product-sizing-guide__notes {

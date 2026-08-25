@@ -64,6 +64,7 @@ const openPanel = (root) => {
 
   if (!(panel instanceof HTMLElement) || !(toggle instanceof HTMLElement)) return;
 
+  document.dispatchEvent(new CustomEvent('header-sku-search:open'));
   activeRoot = root;
   root.classList.add('is-open');
   panel.hidden = false;
@@ -109,6 +110,8 @@ document.addEventListener('click', (event) => {
 document.addEventListener('keydown', (event) => {
   if (event.key === 'Escape') closePanel();
 });
+
+document.addEventListener('catalog-nav:open', () => closePanel());
 
 initHeaderSkuSearch();
 document.addEventListener('shopify:section:load', initHeaderSkuSearch);

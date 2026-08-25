@@ -281,9 +281,10 @@
     line-height: var(--product-card-text-line-height);
     font-weight: 400;
     color: #2e2e2e;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    overflow: visible;
+    text-overflow: unset;
+    white-space: normal;
+    overflow-wrap: break-word;
     max-width: 100%;
     min-width: 0;
   }
@@ -433,6 +434,10 @@
   }
 
   @media screen and (max-width: 749px) {
+    product-card .product-card__sold-out:not(.product-card__sold-out--placeholder) {
+      margin-block-start: 8px;
+    }
+
     .product-card__badges {
       top: 0.5rem;
       right: 0.5rem;

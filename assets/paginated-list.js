@@ -11,7 +11,8 @@ import { getScrollTop, scrollTo } from '@theme/scroll-container';
  * @typedef {object} Refs
  * @property {HTMLUListElement} [grid] - The grid element.
  * @property {HTMLSpanElement} [viewMorePrevious] - The view more previous button.
- * @property {HTMLSpanElement} [viewMoreNext] - The view more next button.
+ * @property {HTMLSpanElement} [viewMoreNext] - The view more next sentinel.
+ * @property {HTMLButtonElement} [viewMoreButton] - The manual view more products button.
  * @property {HTMLElement[]} [cards] - The cards elements.
  *
  * @extends Component<Refs>
@@ -34,6 +35,12 @@ export default class PaginatedList extends Component {
   /** @type {PaginatedListAspectRatioHelper} */
   #aspectRatioHelper;
 
+  /** @type {number} */
+  #autoLoadedPages = 0;
+
+  /** @type {boolean} */
+  #isLoadingNext = false;
+
   connectedCallback() {
     super.connectedCallback();
 
@@ -48,6 +55,7 @@ export default class PaginatedList extends Component {
     this.#fetchPage('next');
     this.#fetchPage('previous');
     this.#observeViewMore();
+    this.addEventListener('click', this.#handleViewMoreClick);
 
     // Listen for filter updates to clear cached pages
     document.addEventListener(StandardEvents.searchUpdate, this.#handleFilterUpdate);
@@ -59,9 +67,72 @@ export default class PaginatedList extends Component {
     if (this.infinityScrollObserver) {
       this.infinityScrollObserver.disconnect();
     }
+    this.removeEventListener('click', this.#handleViewMoreClick);
     // Remove the filter update listeners
     document.removeEventListener(StandardEvents.searchUpdate, this.#handleFilterUpdate);
     document.removeEventListener(StandardEvents.collectionUpdate, this.#handleFilterUpdate);
+  }
+
+  /**
+   * Number of extra pages to auto-load before switching to the text button.
+   * Unset (or invalid) keeps unlimited infinite scroll.
+   * @returns {number}
+   */
+  get #autoLoadLimit() {
+    if (!this.hasAttribute('auto-load-pages')) return Number.POSITIVE_INFINITY;
+
+    const parsed = Number.parseInt(this.getAttribute('auto-load-pages') ?? '', 10);
+    return Number.isFinite(parsed) && parsed >= 0 ? parsed : Number.POSITIVE_INFINITY;
+  }
+
+  /**
+   * @returns {boolean}
+   */
+  #shouldAutoLoadNext() {
+    return this.#autoLoadedPages < this.#autoLoadLimit;
+  }
+
+  /**
+   * @returns {boolean}
+   */
+  #hasNextPage() {
+    return this.#shouldUsePage(this.#getPage('next'));
+  }
+
+  #stopAutoLoadNext() {
+    const { viewMoreNext } = this.refs;
+    if (viewMoreNext && this.infinityScrollObserver) {
+      this.infinityScrollObserver.unobserve(viewMoreNext);
+    }
+    this.#syncViewMoreButton();
+  }
+
+  #syncViewMoreButton() {
+    const { viewMoreButton } = this.refs;
+    if (!(viewMoreButton instanceof HTMLButtonElement)) return;
+
+    const showButton = !this.#shouldAutoLoadNext() && this.#hasNextPage();
+    viewMoreButton.hidden = !showButton;
+    viewMoreButton.disabled = this.#isLoadingNext;
+    viewMoreButton.setAttribute('aria-busy', this.#isLoadingNext ? 'true' : 'false');
+  }
+
+  /**
+   * @param {Event} event
+   */
+  #handleViewMoreClick = (event) => {
+    const target = event.target;
+    if (!(target instanceof Element)) return;
+    if (!target.closest('[ref="viewMoreButton"]')) return;
+
+    event.preventDefault();
+    this.#loadNextFromButton();
+  };
+
+  async #loadNextFromButton() {
+    if (this.#isLoadingNext) return;
+    await this.#renderNextPage();
+    this.#syncViewMoreButton();
   }
 
   #observeViewMore() {
@@ -85,7 +156,17 @@ export default class PaginatedList extends Component {
               if (entry.target === viewMorePrevious) {
                 this.#renderPreviousPage();
               } else if (entry.target === viewMoreNext) {
-                this.#renderNextPage();
+                if (!this.#shouldAutoLoadNext()) {
+                  this.#stopAutoLoadNext();
+                  continue;
+                }
+
+                const loaded = await this.#renderNextPage();
+                if (loaded) this.#autoLoadedPages += 1;
+
+                if (!this.#hasNextPage() || !this.#shouldAutoLoadNext()) {
+                  this.#stopAutoLoadNext();
+                }
               }
             }
           }
@@ -170,37 +251,48 @@ export default class PaginatedList extends Component {
   async #renderNextPage() {
     const { grid } = this.refs;
 
-    if (!grid) return;
+    if (!grid || this.#isLoadingNext) return false;
 
     const nextPage = this.#getPage('next');
 
-    if (!nextPage || !this.#shouldUsePage(nextPage)) return;
-    let nextPageItemElements = this.#getGridForPage(nextPage.page);
+    if (!nextPage || !this.#shouldUsePage(nextPage)) return false;
 
-    if (!nextPageItemElements) {
-      const promise = new Promise((res) => {
-        this.#resolveNextPagePromise = res;
+    this.#isLoadingNext = true;
+    this.#syncViewMoreButton();
+
+    try {
+      let nextPageItemElements = this.#getGridForPage(nextPage.page);
+
+      if (!nextPageItemElements) {
+        const promise = new Promise((res) => {
+          this.#resolveNextPagePromise = res;
+        });
+
+        // Trigger the fetch for this page
+        this.#fetchPage('next');
+
+        await promise;
+        nextPageItemElements = this.#getGridForPage(nextPage.page);
+        if (!nextPageItemElements) return false;
+      }
+
+      grid.append(...nextPageItemElements);
+
+      this.#aspectRatioHelper?.processNewElements();
+
+      await yieldToMainThread();
+
+      history.pushState('', '', nextPage.url.toString());
+
+      requestIdleCallback(() => {
+        this.#fetchPage('next');
       });
 
-      // Trigger the fetch for this page
-      this.#fetchPage('next');
-
-      await promise;
-      nextPageItemElements = this.#getGridForPage(nextPage.page);
-      if (!nextPageItemElements) return;
+      return true;
+    } finally {
+      this.#isLoadingNext = false;
+      this.#syncViewMoreButton();
     }
-
-    grid.append(...nextPageItemElements);
-
-    this.#aspectRatioHelper.processNewElements();
-
-    await yieldToMainThread();
-
-    history.pushState('', '', nextPage.url.toString());
-
-    requestIdleCallback(() => {
-      this.#fetchPage('next');
-    });
   }
 
   async #renderPreviousPage() {
@@ -313,6 +405,14 @@ export default class PaginatedList extends Component {
     const eventSection = /** @type {Element | null} */ (event.target)?.closest('[id^="shopify-section-"]');
     if (eventSection && eventSection.id !== `shopify-section-${this.sectionId}`) return;
     this.pages.clear();
+    this.#autoLoadedPages = 0;
+    this.#isLoadingNext = false;
+
+    const { viewMoreButton } = this.refs;
+    if (viewMoreButton instanceof HTMLButtonElement) {
+      viewMoreButton.hidden = true;
+      viewMoreButton.disabled = false;
+    }
 
     // Resolve any pending promises to unblock waiting renders
     this.#resolveNextPagePromise?.();

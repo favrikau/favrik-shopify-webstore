@@ -287,22 +287,17 @@
   }
 
   @media screen and (max-width: 749px) {
-    .product-recommendations .section {
-      --page-margin: 0px;
-      --gutter-slide-width: 0px;
-    }
-
     .product-recommendations .resource-list__carousel {
-      --gutter-slide-width: 0px;
+      --resource-list-column-gap: var(--page-margin);
     }
 
     .product-recommendations .resource-list__carousel slideshow-slides[gutters] {
-      padding-inline: 0;
-      scroll-padding-inline-start: 0;
+      padding-inline: var(--page-margin);
+      scroll-padding-inline-start: var(--page-margin);
     }
 
     .product-recommendations .resource-list__carousel slideshow-arrows {
-      padding-inline: 0;
+      padding-inline: var(--page-margin);
     }
 
     .product-recommendations .resource-list__carousel .resource-list__slide {
@@ -310,7 +305,7 @@
     }
 
     .product-recommendations .section-resource-list__content > .text-block {
-      padding-inline-start: 16px;
+      padding-inline: var(--page-margin);
     }
   }
 {% endstylesheet %}

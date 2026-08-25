@@ -123,7 +123,7 @@
         {% endif %}
       </div>
 
-      <nav class="favrik-footer__column" aria-label="Company">
+      <nav class="favrik-footer__column favrik-footer__column--company" aria-label="Company">
         <ul class="favrik-footer__link-list list-unstyled">
           <li class="favrik-footer__link-item">
             <a href="{{ about_url }}" class="favrik-footer__link">About</a>
@@ -141,15 +141,18 @@
             </a>
           </li>
           <li class="favrik-footer__link-item">
-            <a href="{{ returns_url }}" class="favrik-footer__link">Returns Policy</a>
+            <a href="{{ locations_url }}" class="favrik-footer__link">Locations</a>
           </li>
         </ul>
       </nav>
 
-      <nav class="favrik-footer__column" aria-label="Connect">
+      <nav class="favrik-footer__column favrik-footer__column--connect" aria-label="Connect">
         <ul class="favrik-footer__link-list list-unstyled">
           <li class="favrik-footer__link-item">
-            <a href="{{ locations_url }}" class="favrik-footer__link">Locations</a>
+            <a href="{{ returns_url }}" class="favrik-footer__link">Returns Policy</a>
+          </li>
+          <li class="favrik-footer__link-item">
+            <a href="{{ contact_url }}" class="favrik-footer__link">Contact Us</a>
           </li>
           <li class="favrik-footer__link-item">
             <a
@@ -160,9 +163,6 @@
             >
               Instagram
             </a>
-          </li>
-          <li class="favrik-footer__link-item">
-            <a href="{{ contact_url }}" class="favrik-footer__link">Contact Us</a>
           </li>
           <li class="favrik-footer__link-item">
             <a
@@ -504,6 +504,36 @@
   }
 
   @media screen and (max-width: 749px) {
+    .favrik-footer {
+      --favrik-footer-padding-top: 1.5rem;
+    }
+
+    .favrik-footer__inner {
+      gap: 1rem;
+    }
+
+    .favrik-footer__grid {
+      grid-template-columns: 1fr 1fr;
+      column-gap: 1.25rem;
+      row-gap: 1.25rem;
+      align-items: start;
+    }
+
+    .favrik-footer__column--info {
+      grid-column: 1 / -1;
+      order: 1;
+      gap: 0.85rem;
+    }
+
+    .favrik-footer__column--company,
+    .favrik-footer__column--connect {
+      order: 0;
+    }
+
+    .favrik-footer__link-list {
+      gap: 0.5rem;
+    }
+
     .favrik-footer__meta {
       display: flex;
       flex-wrap: wrap;

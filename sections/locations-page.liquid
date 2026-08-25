@@ -43,7 +43,7 @@
   class="section section--{{ section.settings.section_width }} spacing-style locations-page{% if section.settings.background_color != blank %} color-custom-{{ section.id }}{% endif %}"
   style="{% render 'spacing-style', settings: section.settings %}"
 >
-  <div class="locations-page__layout">
+    <div class="locations-page__layout force-full-width">
     <div class="locations-page__content">
       <header class="locations-page__header">
         <h1 class="locations-page__title">
@@ -93,6 +93,8 @@
         title="Favrik store location on Google Maps"
         loading="lazy"
         allowfullscreen
+        width="100%"
+        height="100%"
         referrerpolicy="no-referrer-when-downgrade"
         src="{{ map_embed_url }}"
       ></iframe>
@@ -107,31 +109,33 @@
   }
 
   .locations-page__layout {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    align-items: stretch;
-    gap: 0;
+    display: flex;
+    flex-direction: column;
     width: 100%;
+    max-width: 100%;
     min-height: calc(100dvh - var(--header-group-height, 0px));
   }
 
   .locations-page__content {
-    grid-column: 1;
-    grid-row: 1;
     display: flex;
     flex-direction: column;
     justify-content: center;
     gap: 1.5rem;
-    padding: clamp(2rem, 5vw, 4rem) clamp(1.25rem, 4vw, 3.5rem);
+    padding: 2rem var(--page-margin) 1.5rem;
+    width: 100%;
+    max-width: 100%;
     min-width: 0;
   }
 
   .locations-page__media {
-    grid-column: 2;
-    grid-row: 1;
     position: relative;
+    display: block;
+    width: 100%;
+    max-width: 100%;
     min-width: 0;
-    min-height: 22rem;
+    flex: 0 0 auto;
+    min-height: 18rem;
+    aspect-ratio: 3 / 4;
     overflow: hidden;
     background: rgb(48 33 24 / 0.06);
   }
@@ -141,6 +145,7 @@
     inset: 0;
     display: block;
     width: 100%;
+    max-width: 100%;
     height: 100%;
     border: 0;
   }
@@ -164,8 +169,10 @@
     text-transform: uppercase;
   }
 
-  .locations-page__title {
+  .locations-page__title,
+  .locations-page__detail-label {
     color: #302118;
+    font-weight: 300;
   }
 
   .locations-page__subheading,
@@ -187,10 +194,6 @@
     gap: 0.45rem;
   }
 
-  .locations-page__detail-label {
-    color: #302118;
-  }
-
   .locations-page__link {
     color: inherit;
     text-decoration: underline;
@@ -201,25 +204,26 @@
     color: #302118;
   }
 
-  @media screen and (max-width: 749px) {
+  @media screen and (min-width: 990px) {
     .locations-page__layout {
-      grid-template-columns: 1fr;
-      min-height: calc(100dvh - var(--header-group-height, 0px));
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      align-items: stretch;
+      gap: 0;
     }
 
     .locations-page__content {
       grid-column: 1;
       grid-row: 1;
-      order: 1;
-      padding: 2rem 16px 1.5rem;
+      padding: clamp(2rem, 5vw, 4rem) clamp(1.25rem, 4vw, 3.5rem);
     }
 
     .locations-page__media {
-      grid-column: 1;
-      grid-row: 2;
-      order: 2;
-      min-height: 18rem;
-      aspect-ratio: 3 / 4;
+      grid-column: 2;
+      grid-row: 1;
+      min-height: 22rem;
+      aspect-ratio: auto;
+      height: 100%;
     }
   }
 {% endstylesheet %}
