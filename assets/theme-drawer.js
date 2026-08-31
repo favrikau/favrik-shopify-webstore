@@ -289,7 +289,13 @@ export class ThemeDrawer extends Component {
     const closeButton = /** @type {HTMLElement | null} */ (
       this.refs.panel.querySelector('.theme-drawer__close-button')
     );
-    closeButton?.focus();
+    if (!closeButton) return;
+
+    // Keep focus inside the dialog for accessibility, but distinguish the
+    // automatic initial focus from focus reached through keyboard navigation.
+    closeButton.setAttribute('data-initial-focus', '');
+    closeButton.addEventListener('blur', () => closeButton.removeAttribute('data-initial-focus'), { once: true });
+    closeButton.focus({ preventScroll: true });
   }
 
   /**

@@ -121,6 +121,29 @@ const ACCOUNT_SHEET_CSS = `
       0 0 0 ${ACCOUNT_SHEET_LINE} var(--shopify-login-form-color-border, var(--shopify-account-color-border)) inset,
       var(--shadow-focus-ring-accent) !important;
   }
+
+  @media (max-width: 749px) {
+    :host,
+    * {
+      font-size: 0.75rem !important;
+    }
+
+    input,
+    textarea,
+    select {
+      font-size: 16px !important;
+    }
+
+    .account__close,
+    .account__close.button.subdued,
+    .account__close:is(:hover, :active, :focus, :focus-visible) {
+      border: 0 !important;
+      outline: none !important;
+      background: transparent !important;
+      background-color: transparent !important;
+      box-shadow: none !important;
+    }
+  }
 `;
 
 /** @type {WeakSet<Element>} */

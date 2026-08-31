@@ -1,4 +1,5 @@
 import { initSkuSearchForms } from '@theme/sku-search';
+import { lockScroll, unlockScroll } from '@theme/utilities';
 
 const SELECTORS = {
   root: '[data-header-sku-search]',
@@ -47,6 +48,8 @@ const hideBackdrop = () => {
 const closePanel = () => {
   if (!activeRoot) return;
 
+  unlockScroll(activeRoot);
+
   const toggle = activeRoot.querySelector(SELECTORS.toggle);
   const panel = activeRoot.querySelector(SELECTORS.panel);
 
@@ -66,6 +69,7 @@ const openPanel = (root) => {
 
   document.dispatchEvent(new CustomEvent('header-sku-search:open'));
   activeRoot = root;
+  lockScroll(root);
   root.classList.add('is-open');
   panel.hidden = false;
   toggle.setAttribute('aria-expanded', 'true');

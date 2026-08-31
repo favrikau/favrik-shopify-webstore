@@ -151,7 +151,7 @@
       endif
     %}
     <div
-      class="account-button header-actions__action{% if display_style == 'text' %} account-button--text{% endif %} color-custom-popover mobile:hidden"
+      class="account-button header-actions__action{% if display_style == 'text' %} account-button--text{% endif %} color-custom-popover"
     >
       <shopify-account
         menu="{{ customer_account_menu }}"
@@ -182,7 +182,8 @@
   {% else %}
     <a
       href="{{ routes.account_login_url }}"
-      class="header-actions__action header-actions__login mobile:hidden{% if display_style == 'text' %} header-actions__text-style{% endif %}"
+      class="header-actions__action header-actions__login{% if display_style == 'text' %} header-actions__text-style{% endif %}"
+      aria-label="Log in"
     >
       <span class="{% if display_style == 'icon' %}hidden{% else %}mobile:hidden{% endif %}">Log in</span>
       <span class="svg-wrapper {% if display_style != 'icon' %}desktop:hidden{% endif %}" aria-hidden="true">
@@ -324,6 +325,28 @@
     .header-actions__action:not(.account-button) svg {
       width: 18px;
       height: 18px;
+    }
+
+    .account-button,
+    .header-actions__login {
+      grid-area: rightA;
+      justify-self: center;
+    }
+
+    .header__column--right .account-button,
+    .header__column--right .account-button shopify-account {
+      width: 40px;
+      height: 40px;
+      justify-content: center;
+    }
+
+    .header__column--right .account-button shopify-account {
+      --shopify-account-signed-in-avatar-size: 24px;
+    }
+
+    .account-button__fallback {
+      width: 24px;
+      height: 24px;
     }
 
     .header-sku-search {

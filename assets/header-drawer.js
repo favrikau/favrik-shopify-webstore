@@ -1,6 +1,6 @@
 import { Component } from '@theme/component';
 import { trapFocus, removeTrapFocus } from '@theme/focus';
-import { onAnimationEnd, removeWillChangeOnAnimationEnd } from '@theme/utilities';
+import { lockScroll, onAnimationEnd, removeWillChangeOnAnimationEnd, unlockScroll } from '@theme/utilities';
 
 /**
  * A custom element that manages the main menu drawer.
@@ -23,6 +23,7 @@ class HeaderDrawer extends Component {
 
   disconnectedCallback() {
     super.disconnectedCallback();
+    unlockScroll(this);
     this.removeEventListener('keyup', this.#onKeyUp);
   }
 
@@ -73,6 +74,7 @@ class HeaderDrawer extends Component {
     if (!summary) return;
 
     summary.setAttribute('aria-expanded', 'true');
+    if (details === this.refs.details) lockScroll(this);
 
     this.preventInitialAccordionAnimations(details);
     requestAnimationFrame(() => {
@@ -126,6 +128,7 @@ class HeaderDrawer extends Component {
       () => {
         reset(details);
         if (details === this.refs.details) {
+          unlockScroll(this);
           removeTrapFocus();
           const openDetails = this.querySelectorAll('details[open]:not(accordion-custom > details)');
           openDetails.forEach(reset);

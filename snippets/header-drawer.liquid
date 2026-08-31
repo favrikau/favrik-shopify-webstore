@@ -790,6 +790,14 @@
     height: var(--icon-size-xs);
   }
 
+  @media screen and (max-width: 749px) {
+    .header__icon--summary .header-drawer-icon--open,
+    .header__icon--summary .header-drawer-icon--open > svg {
+      width: 18px;
+      height: 18px;
+    }
+  }
+
   .menu-drawer__featured-content {
     z-index: var(--layer-base);
     container-type: inline-size;

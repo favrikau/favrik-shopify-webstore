@@ -24,12 +24,12 @@ export class CartQuantitySelectorComponent extends QuantitySelectorComponent {
    */
   updateButtonStates() {
     const { minusButton, plusButton } = this.refs;
-    const { min, value } = this.getCurrentValues();
+    const { min, step, value } = this.getCurrentValues();
     const effectiveMax = this.getEffectiveMax();
 
     // Cart buttons are always dynamically managed
     minusButton.disabled = value <= min;
-    plusButton.disabled = effectiveMax !== null && value >= effectiveMax;
+    plusButton.disabled = effectiveMax !== null && value + step > effectiveMax;
   }
 }
 

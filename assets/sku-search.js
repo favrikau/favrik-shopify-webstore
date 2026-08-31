@@ -14,6 +14,8 @@ export function initSkuSearchForms() {
 
     if (!(input instanceof HTMLInputElement) || !(results instanceof HTMLElement) || !dataScript?.textContent) return;
 
+    const isHeaderSearch = searchForm.closest('[data-header-sku-search]') !== null;
+
     /** @type {{ title: string; price: string; image: string; url: string; terms: string[] }[]} */
     let products = [];
 
@@ -165,6 +167,12 @@ export function initSkuSearchForms() {
 
       if (event.key !== 'Enter') return;
 
+      if (isHeaderSearch && window.matchMedia('(max-width: 749px)').matches) {
+        event.preventDefault();
+        input.blur();
+        return;
+      }
+
       const activeOption = results.querySelector('.facets__sku-search-option.is-active');
       if (!(activeOption instanceof HTMLElement)) return;
 
@@ -172,6 +180,8 @@ export function initSkuSearchForms() {
       navigateToProduct(activeOption.dataset.url);
     });
     input.addEventListener('blur', () => {
+      if (isHeaderSearch && window.matchMedia('(max-width: 749px)').matches) return;
+
       window.setTimeout(closeResults, 120);
     });
   });

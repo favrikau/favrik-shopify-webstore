@@ -1,3 +1,5 @@
+import { lockScroll, unlockScroll } from '@theme/utilities';
+
 /**
  * Catalog navigation overlay.
  * Catalog clicks only open/close a blur overlay with category links — no page navigation.
@@ -85,6 +87,7 @@ function setOpen(open) {
 
     drawer.hidden = false;
     drawer.setAttribute('aria-hidden', 'false');
+    lockScroll(drawer);
     if (backdrop) {
       backdrop.hidden = false;
       backdrop.setAttribute('aria-hidden', 'false');
@@ -105,6 +108,7 @@ function setOpen(open) {
   backdrop?.classList.remove('is-visible');
   backdrop?.setAttribute('aria-hidden', 'true');
   observeHeaderStack(false);
+  unlockScroll(drawer);
 
   closeTimer = window.setTimeout(() => {
     drawer.hidden = true;

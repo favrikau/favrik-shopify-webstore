@@ -1,5 +1,6 @@
 * {
   box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* Force every text element to use the global letter-spacing control */
@@ -48,10 +49,39 @@ html {
   }
 }
 
-/* Scrollbar stays visible (overflow-y: scroll above); JS freezes position */
+/* Lock every page scroll container while a modal or overlay is open. */
 html[scroll-lock],
 html[scroll-lock] .page-wrapper {
   overscroll-behavior: none;
+}
+
+html[scroll-lock] .page-wrapper {
+  overflow: hidden;
+}
+
+@media (max-width: 749px) {
+  input:not(
+      [type='button'],
+      [type='checkbox'],
+      [type='color'],
+      [type='file'],
+      [type='image'],
+      [type='radio'],
+      [type='range'],
+      [type='reset'],
+      [type='submit']
+    ),
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+}
+
+@media (max-width: 989px) {
+  html[scroll-lock],
+  html[scroll-lock] body {
+    overflow: hidden;
+  }
 }
 
 .page-wrapper {

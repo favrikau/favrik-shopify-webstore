@@ -167,6 +167,7 @@
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
+    touch-action: none;
     cursor: default;
     transition:
       opacity 0.32s var(--ease-out-cubic, cubic-bezier(0.33, 1, 0.68, 1)),
@@ -219,6 +220,7 @@
     margin: 0;
     padding: 0;
     overflow-y: auto;
+    overscroll-behavior: contain;
     background: transparent;
     border: 0;
     box-shadow: none;
@@ -283,5 +285,16 @@
     font-weight: 400;
     opacity: 1;
     color: #ffffff;
+  }
+
+  @media screen and (max-width: 749px) {
+    .catalog-nav-drawer__list {
+      gap: 0;
+    }
+
+    .catalog-nav-drawer__link {
+      padding-block: 0.3rem;
+      font-size: var(--font-size--xs, 0.8125rem);
+    }
   }
 {% endstylesheet %}

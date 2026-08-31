@@ -29,6 +29,30 @@
   else
     assign min_quantity = variant.quantity_rule.min | default: 1
   endif
+
+  assign max_quantity = variant.quantity_rule.max
+  assign initial_quantity = in_cart_quantity | default: variant.quantity_rule.min | default: 1
+  assign quantity_increment = variant.quantity_rule.increment | default: 1
+
+  if line_index != null and variant.inventory_management == 'shopify' and variant.inventory_policy == 'deny'
+    assign cart_variant_quantity = cart | item_count_for_variant: variant.id
+    assign other_line_quantity = cart_variant_quantity | minus: initial_quantity
+    assign inventory_line_max = variant.inventory_quantity | minus: other_line_quantity
+
+    if max_quantity == blank or inventory_line_max < max_quantity
+      assign max_quantity = inventory_line_max
+    endif
+  endif
+
+  assign disable_plus = false
+  if can_update_quantity == false or variant.available == false
+    assign disable_plus = true
+  elsif max_quantity != blank
+    assign next_quantity = initial_quantity | plus: quantity_increment
+    if next_quantity > max_quantity
+      assign disable_plus = true
+    endif
+  endif
 %}
 
 <div
@@ -63,7 +87,7 @@
     <input
       type="number"
       name="{% if line_index %}updates[]{% else %}quantity{% endif %}"
-      value="{{ in_cart_quantity | default: variant.quantity_rule.min | default: 1 }}"
+      value="{{ initial_quantity }}"
       data-cart-quantity="{{ cart | item_count_for_variant: variant.id }}"
       min="{{ min_quantity }}"
       data-min="{{ variant.quantity_rule.min | default: 1 }}"
@@ -75,10 +99,10 @@
       {% if line_index %}
         data-cart-line="{{ line_index | plus: 1 }}"
       {% endif %}
-      {% if variant.quantity_rule.max %}
-        max="{{ variant.quantity_rule.max }}"
+      {% if max_quantity != blank %}
+        max="{{ max_quantity }}"
       {% endif %}
-      step="{{ variant.quantity_rule.increment | default: 1 }}"
+      step="{{ quantity_increment }}"
       {% if can_update_quantity == false or variant.available == false %}
         disabled
       {% endif %}
@@ -89,7 +113,7 @@
       name="plus"
       on:click="/increaseQuantity"
       ref="plusButton"
-      {% if can_update_quantity == false %}
+      {% if disable_plus %}
         disabled
       {% endif %}
     >

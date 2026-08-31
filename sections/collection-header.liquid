@@ -334,15 +334,70 @@
     .content-for-layout[data-template='collection'] #filters-drawer .theme-drawer__dialog {
       --collection-filter-panel-top: calc(var(--header-height, 4rem) + 3rem);
 
-      right: 1rem;
-      left: 1rem;
+      right: var(--page-margin, 10px);
+      left: var(--page-margin, 10px);
       width: auto;
       max-width: none;
     }
 
     .content-for-layout[data-template='collection'] #filters-drawer .theme-drawer__dialog[open] {
-      right: 1rem;
-      left: 1rem;
+      right: var(--page-margin, 10px);
+      left: var(--page-margin, 10px);
+    }
+
+    .content-for-layout[data-template='collection'] #filters-drawer .facets__panel {
+      padding-inline: 0;
+    }
+
+    .content-for-layout[data-template='collection'] #filters-drawer .price-facet__field {
+      align-items: center;
+      height: 2.25rem;
+      min-height: 2.25rem;
+    }
+
+    .content-for-layout[data-template='collection'] #filters-drawer .price-facet__input {
+      height: 100%;
+      padding-block: 0;
+      padding-inline: calc(1rem + var(--padding-sm)) var(--padding-sm);
+      font-size: 16px !important;
+      line-height: 2.25rem;
+    }
+
+    .content-for-layout[data-template='collection'] #filters-drawer .price-facet__label {
+      inset-block-start: 50%;
+      inset-inline-start: var(--padding-sm);
+      left: auto;
+      padding: 0;
+      font-size: 16px;
+      line-height: 1;
+      transform: translateY(-50%);
+    }
+
+    .content-for-layout[data-template='collection'] #filters-drawer .theme-drawer__close-button {
+      padding: 0;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      box-shadow: none;
+    }
+
+    .content-for-layout[data-template='collection']
+      #filters-drawer
+      .theme-drawer__close-button:is(:hover, :active) {
+      background: transparent;
+      box-shadow: none;
+    }
+
+    .content-for-layout[data-template='collection']
+      #filters-drawer
+      .theme-drawer__close-button[data-initial-focus]:focus-visible {
+      outline-color: transparent;
+    }
+
+    .content-for-layout[data-template='collection'] #filters-drawer .theme-drawer__close-button .svg-wrapper,
+    .content-for-layout[data-template='collection'] #filters-drawer .theme-drawer__close-button svg {
+      width: 1rem;
+      height: 1rem;
     }
   }
 {% endstylesheet %}

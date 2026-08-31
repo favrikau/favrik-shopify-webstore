@@ -320,6 +320,26 @@
   }
 
   @media screen and (max-width: 749px) {
+    .product-details .variant-option--color {
+      --variant-min-width: 25%;
+    }
+
+    .product-details .variant-option__button-label--color,
+    .product-details .variant-option__button-label:has(.variant-option__color-chip) {
+      font-size: 0.6875rem;
+      line-height: 1.15;
+      white-space: normal;
+    }
+
+    .product-details .variant-option__button-label--color .variant-option__button-label__text,
+    .product-details
+      .variant-option__button-label:has(.variant-option__color-chip)
+      .variant-option__button-label__text {
+      line-height: 1.15;
+      text-wrap: balance;
+      overflow-wrap: anywhere;
+    }
+
     .product-details .variant-option__button-label--size,
     .product-details .variant-option__button-label--color,
     .product-details .variant-option__button-label:has(.variant-option__color-chip) {

@@ -1,9 +1,4 @@
 {% liquid
-  assign instagram_url = section.settings.instagram_url
-  if instagram_url == blank
-    assign instagram_url = 'https://www.instagram.com/favrik__/?hl=en'
-  endif
-
   assign about_url = section.settings.about_url
   if about_url == blank and pages['about'] != blank
     assign about_url = pages['about'].url
@@ -153,16 +148,6 @@
           </li>
           <li class="favrik-footer__link-item">
             <a href="{{ contact_url }}" class="favrik-footer__link">Contact Us</a>
-          </li>
-          <li class="favrik-footer__link-item">
-            <a
-              href="{{ instagram_url }}"
-              class="favrik-footer__link"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Instagram
-            </a>
           </li>
           <li class="favrik-footer__link-item">
             <a
@@ -633,11 +618,6 @@
       "type": "url",
       "id": "locations_url",
       "label": "Locations URL"
-    },
-    {
-      "type": "url",
-      "id": "instagram_url",
-      "label": "Instagram URL"
     },
     {
       "type": "url",
