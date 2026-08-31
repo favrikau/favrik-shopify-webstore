@@ -526,7 +526,6 @@
   }
 
   @media screen and (max-width: 749px) {
-    media-gallery slideshow-controls[controls-on-media]:has(.slideshow-controls__dots),
     media-gallery slideshow-controls[controls-on-media]:has(.slideshow-controls__counter),
     media-gallery slideshow-controls[controls-on-media][pagination-position='right'].slideshow-controls--compact-pager,
     slideshow-controls[controls-on-media].slideshow-controls--compact-pager {
@@ -542,56 +541,7 @@
       align-items: flex-end;
       align-self: flex-end;
       padding: 0;
-    }
-
-    media-gallery slideshow-controls:has(.slideshow-controls__dots),
-    slideshow-controls.slideshow-controls--compact-pager:has(.slideshow-controls__dots) {
-      mix-blend-mode: difference;
-    }
-
-    media-gallery slideshow-controls:has(.slideshow-controls__counter),
-    slideshow-controls.slideshow-controls--compact-pager:has(.slideshow-controls__counter) {
       mix-blend-mode: normal;
-    }
-
-    media-gallery .slideshow-controls__dots,
-    .slideshow-controls--compact-pager .slideshow-controls__dots {
-      gap: 4px;
-      padding: 0;
-      border-radius: 0;
-      overflow: visible;
-    }
-
-    media-gallery .slideshow-controls__dots button,
-    .slideshow-controls--compact-pager .slideshow-controls__dots button {
-      --size: 5px;
-      width: 10px;
-      height: 10px;
-      min-height: 0;
-      min-width: 0;
-      margin: 0;
-      padding: 0;
-      border-radius: 0;
-    }
-
-    media-gallery .slideshow-controls__dots button::after,
-    .slideshow-controls--compact-pager .slideshow-controls__dots button::after {
-      width: var(--size);
-      height: var(--size);
-      border-radius: 0;
-      box-shadow: none;
-      background-color: rgb(255 255 255 / 0.38);
-    }
-
-    media-gallery .slideshow-controls__dots button:hover::after,
-    .slideshow-controls--compact-pager .slideshow-controls__dots button:hover::after {
-      background-color: rgb(255 255 255 / 0.7);
-    }
-
-    media-gallery .slideshow-controls__dots button[aria-selected='true']::after,
-    .slideshow-controls--compact-pager .slideshow-controls__dots button[aria-selected='true']::after {
-      background-color: #fff;
-      box-shadow: none;
     }
 
     media-gallery slideshow-controls .slideshow-controls__counter,

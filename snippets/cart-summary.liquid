@@ -240,7 +240,7 @@
       class="cart-totals__item cart-totals__total"
       role="status"
     >
-      <span class="cart-totals__total-label cart-primary-typography">{{ 'content.cart_estimated_total' | t }}</span>
+      <span class="cart-totals__total-label cart-primary-typography">{{ 'content.cart_subtotal' | t }}</span>
       <text-component
         ref="cartTotal"
         value="{{ total_price | strip_html }}"
@@ -335,6 +335,8 @@
   }
 
   .cart-totals__tax-note {
+    display: block;
+    align-items: flex-start;
     color: var(--color-foreground-subdued);
   }
 
@@ -349,7 +351,8 @@
   }
 
   .cart-totals__tax-note small {
-    font-size: var(--font-size--2xs);
+    display: block;
+    font-size: 0.6875rem;
   }
 
   .cart-discounts {

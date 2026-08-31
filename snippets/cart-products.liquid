@@ -705,12 +705,17 @@
   .cart-items__price {
     grid-area: price;
     min-height: unset;
-    min-width: var(--cart-item-price-width);
+    min-width: max-content;
     text-align: end;
     display: block;
     font-size: var(--font-size--sm);
-    font-weight: 500;
+    font-weight: var(--cart-primary-font-weight);
     line-height: var(--line-height);
+    white-space: nowrap;
+  }
+
+  .cart-items__price * {
+    white-space: nowrap;
   }
 
   .cart-items__price-unit {
@@ -937,7 +942,7 @@
   .cart-items__price.cart-secondary-typography,
   .cart-totals__original-value.cart-secondary-typography,
   .cart-totals__total-value.cart-secondary-typography {
-    font-weight: 500;
+    font-weight: var(--cart-primary-font-weight);
   }
 
   .cart__ctas {

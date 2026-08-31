@@ -426,7 +426,7 @@
     {% if sorted_media.size > 1 %}
       {% liquid
         assign mobile_slideshow_controls_style = block_settings.slideshow_mobile_controls_style
-        if mobile_slideshow_controls_style == 'dots' and sorted_media.size > 8
+        if mobile_slideshow_controls_style == 'dots'
           assign mobile_slideshow_controls_style = 'counter'
         endif
       %}
@@ -794,6 +794,17 @@
   }
 
   @media screen and (max-width: 749px) {
+    /* Fill every mobile gallery slide; object-fit computes only the crop needed
+       to prevent short images from leaving gaps above and below. */
+    media-gallery
+      :not(.dialog-zoomed-gallery)
+      > .product-media-container
+      .product-media__image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
     /* Media gallery has a peeking slide on the right side always, and on the left side when the current slide is the last one */
     .media-gallery--hint
       :is(

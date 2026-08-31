@@ -175,7 +175,7 @@
 
 {% if sizing_guide_has_content %}
   {% capture sizing_guide_accordion %}
-    <details class="details" data-testid="accordion-details">
+    <details class="details product-sizing-guide" data-testid="accordion-details">
       <summary class="details__header product-section-heading">
         Measurements
         <span class="svg-wrapper icon-caret icon-animated">
@@ -393,9 +393,14 @@
     margin-block-end: 0;
   }
 
+  .product-information .product-details .product-sizing-guide__content {
+    padding-block-start: 1.75rem;
+    padding-block-end: 1.5rem;
+  }
+
   .product-sizing-guide__type {
-    margin: 0 0 var(--padding-md);
-    font-weight: 400;
+    margin: 0 0 var(--padding-lg);
+    font-weight: 500;
     color: #2e2e2e;
     text-transform: uppercase;
     letter-spacing: 0.04em;

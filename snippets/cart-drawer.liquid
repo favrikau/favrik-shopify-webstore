@@ -421,6 +421,11 @@
     width: 100%;
   }
 
+  #cart-drawer .cart-items__product-info,
+  #cart-drawer .cart-items__price {
+    align-self: baseline;
+  }
+
   #cart-drawer .cart-items__title-row {
     display: flex;
     align-items: baseline;
@@ -429,7 +434,8 @@
   #cart-drawer .cart-items__title {
     display: block;
     color: var(--color-foreground);
-    overflow-wrap: anywhere;
+    overflow-wrap: break-word;
+    line-height: 1.4;
   }
 
   #cart-drawer .cart-items__details {
@@ -448,10 +454,17 @@
   }
 
   #cart-drawer .cart-items__price {
-    align-self: start;
     min-width: max-content;
     text-align: right;
     white-space: nowrap;
+    line-height: 1.4;
+  }
+
+  #cart-drawer .cart-items__price,
+  #cart-drawer .cart-items__price * {
+    white-space: nowrap;
+    font-weight: var(--cart-drawer-type-weight);
+    line-height: 1.4;
   }
 
   #cart-drawer .cart-items__quantity {
@@ -474,7 +487,11 @@
   @media screen and (max-width: 749px) {
     #cart-drawer .cart-items__table-row,
     #cart-drawer .cart-items__table-row--full-width-variants {
-      align-items: stretch;
+      align-items: start;
+    }
+
+    #cart-drawer .cart-items__media {
+      align-self: stretch;
     }
 
     #cart-drawer .cart-items__media-container {
@@ -492,11 +509,9 @@
     }
   }
 
-  #cart-drawer .cart-items__price,
-  #cart-drawer .cart-items__price *,
   #cart-drawer .cart-totals__original-value,
   #cart-drawer .cart-totals__total-value {
-    font-weight: 500;
+    font-weight: var(--cart-drawer-type-weight);
   }
 
   #cart-drawer .cart-totals__total {
@@ -512,8 +527,6 @@
       .cart-totals__total-value,
       .cart-totals__free-shipping,
       .cart-totals__installments,
-      .cart-totals__tax-note,
-      .cart-totals__tax-note small,
       .cart-note__label,
       .cart-discount__label,
       .cart-discount__input,
@@ -522,6 +535,12 @@
     font-family: var(--font-body--family);
     font-size: var(--cart-drawer-type-size);
     font-weight: var(--cart-drawer-type-weight);
+  }
+
+  #cart-drawer .cart-totals__tax-note,
+  #cart-drawer .cart-totals__tax-note small {
+    font-size: 0.6875rem;
+    line-height: 1.3;
   }
 
   #cart-drawer .cart-totals__free-shipping {

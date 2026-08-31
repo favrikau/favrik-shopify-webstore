@@ -6,6 +6,7 @@
 {%- enddoc -%}
 
 <small>
+  {%- capture tax_info_text -%}
   {%- if cart.duties_included and cart.taxes_included -%}
     {%- if shop.shipping_policy.body == blank -%}
       {%- if has_discounts_enabled -%}
@@ -81,4 +82,6 @@
       {%- endif -%}
     {%- endif -%}
   {%- endif -%}
+  {%- endcapture -%}
+  {{ tax_info_text | strip | replace: '. ', '.<br> ' | raw }}
 </small>
