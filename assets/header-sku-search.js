@@ -16,6 +16,42 @@ let activeRoot = null;
 /** @type {HTMLElement | null} */
 let backdropEl = null;
 
+/** @type {ResizeObserver | null} */
+let headerStackObserver = null;
+
+const syncOverlayTop = () => {
+  const headerSection = document.querySelector('.header-section');
+  const fallback = Number.parseFloat(getComputedStyle(document.body).getPropertyValue('--header-height'));
+  const top =
+    headerSection instanceof HTMLElement
+      ? Math.max(0, Math.round(headerSection.getBoundingClientRect().bottom))
+      : Number.isFinite(fallback)
+        ? Math.max(0, Math.round(fallback))
+        : 0;
+
+  document.body.style.setProperty('--header-sku-search-top', `${top}px`);
+};
+
+const observeHeaderStack = (enabled) => {
+  const headerSection = document.querySelector('.header-section');
+
+  if (!enabled) {
+    headerStackObserver?.disconnect();
+    headerStackObserver = null;
+    window.removeEventListener('resize', syncOverlayTop);
+    window.removeEventListener('scroll', syncOverlayTop, true);
+    return;
+  }
+
+  if (!headerStackObserver && headerSection instanceof HTMLElement) {
+    headerStackObserver = new ResizeObserver(syncOverlayTop);
+    headerStackObserver.observe(headerSection);
+  }
+
+  window.addEventListener('resize', syncOverlayTop);
+  window.addEventListener('scroll', syncOverlayTop, true);
+};
+
 const getBackdrop = () => {
   if (backdropEl instanceof HTMLElement) return backdropEl;
 
@@ -48,6 +84,7 @@ const hideBackdrop = () => {
 const closePanel = () => {
   if (!activeRoot) return;
 
+  observeHeaderStack(false);
   unlockScroll(activeRoot);
 
   const toggle = activeRoot.querySelector(SELECTORS.toggle);
@@ -69,8 +106,10 @@ const openPanel = (root) => {
 
   document.dispatchEvent(new CustomEvent('header-sku-search:open'));
   activeRoot = root;
-  lockScroll(root);
+  syncOverlayTop();
+  observeHeaderStack(true);
   root.classList.add('is-open');
+  lockScroll(root);
   panel.hidden = false;
   toggle.setAttribute('aria-expanded', 'true');
   showBackdrop();

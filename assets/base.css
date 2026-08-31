@@ -82,6 +82,21 @@ html[scroll-lock] .page-wrapper {
   html[scroll-lock] body {
     overflow: hidden;
   }
+
+  /*
+   * Header-owned overlays keep the sticky header visible above their backdrop.
+   * `overflow: hidden` on the page wrapper makes that sticky header use the
+   * wrapper as its scroll container, so pin the header to the viewport while
+   * retaining the real overflow lock on the document underneath.
+   */
+  html[scroll-lock]:has(.header-sku-search.is-open) .header-section,
+  html[scroll-lock]:has(.catalog-nav-drawer[aria-hidden='false']) .header-section {
+    position: fixed;
+    top: -1px;
+    right: 0;
+    left: 0;
+    z-index: var(--layer-menu-drawer);
+  }
 }
 
 .page-wrapper {

@@ -394,6 +394,23 @@
       --cart-drawer-padding: 16px;
     }
 
+    /*
+     * Mobile Safari pans the modal when the discount field opens the keyboard.
+     * Keep the cart's dynamic viewport height so its footer is not cropped,
+     * and hide the underlying page for the duration of that focus state.
+     */
+    html:has(#cart-drawer .cart-discount__input:focus) body {
+      background-color: #f3eee7;
+    }
+
+    html:has(#cart-drawer .cart-discount__input:focus) .page-wrapper {
+      visibility: hidden;
+    }
+
+    #cart-drawer .theme-drawer__dialog:has(.cart-discount__input:focus)::backdrop {
+      background: #f3eee7 !important;
+    }
+
     #cart-drawer .theme-drawer__header {
       padding-inline: var(--theme-drawer-padding);
     }

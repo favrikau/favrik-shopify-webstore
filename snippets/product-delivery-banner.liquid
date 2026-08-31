@@ -2,23 +2,11 @@
   Static delivery promo banner for product pages.
 {% enddoc %}
 
-<script>
-  try {
-    if (sessionStorage.getItem('favrik-delivery-banner-dismissed') === '1') {
-      document.documentElement.classList.add('product-delivery-banner-dismissed');
-    }
-  } catch (error) {
-    /* sessionStorage can throw in private browsing */
-  }
-</script>
-
 <style>
-  html.product-delivery-banner-dismissed .product-delivery-banner {
-    display: none;
-  }
-
   .product-delivery-banner {
-    display: block;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     width: 100%;
     flex: 0 0 auto;
     overflow: hidden;
@@ -27,7 +15,7 @@
     border: none;
     position: relative;
     z-index: 2;
-    padding-block: 0.35rem;
+    padding-block: 0.5rem;
     padding-inline: 2.5rem;
     text-align: center;
   }
@@ -66,12 +54,41 @@
     display: block;
   }
 
-  /* Keep sticky header rules working when the banner sits above header-component */
+  .product-delivery-banner[hidden] {
+    display: none;
+  }
+
+  /* Keep sticky header rules working when the banner sits above header-component. */
   .header-section:has(> .product-delivery-banner):has(> #header-component[sticky='always']),
   .header-section:has(> .product-delivery-banner):has(> #header-component[sticky='scroll-up'][data-sticky-state='active']) {
     position: sticky;
     top: -1px;
     z-index: var(--layer-menu-drawer);
+  }
+
+  @media screen and (max-width: 749px) {
+    .header-section:has(> .product-delivery-banner) {
+      --product-delivery-banner-height: 0px;
+    }
+
+    .header-section:has(> .product-delivery-banner:not([hidden])) {
+      --product-delivery-banner-height: 1.875rem;
+    }
+
+    .product-delivery-banner:not([hidden]) {
+      height: var(--product-delivery-banner-height);
+    }
+
+    /*
+     * Let the full header section move upward by the banner's height before
+     * sticking. The banner leaves the viewport while the header stops at -1px.
+     */
+    .header-section:has(> .product-delivery-banner):has(> #header-component[sticky='always']),
+    .header-section:has(> .product-delivery-banner):has(
+        > #header-component[sticky='scroll-up'][data-sticky-state='active']
+      ) {
+      top: calc(-1 * var(--product-delivery-banner-height) - 1px);
+    }
   }
 </style>
 
@@ -105,15 +122,6 @@
 
     closeButton.addEventListener('click', function () {
       banner.hidden = true;
-      document.documentElement.classList.add('product-delivery-banner-dismissed');
-
-      try {
-        if (!window.Shopify || !window.Shopify.designMode) {
-          sessionStorage.setItem('favrik-delivery-banner-dismissed', '1');
-        }
-      } catch (error) {
-        /* sessionStorage can throw in private browsing */
-      }
     });
   })();
 </script>
