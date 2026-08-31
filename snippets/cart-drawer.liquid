@@ -337,6 +337,10 @@
   #cart-drawer .theme-drawer__header {
     position: relative;
     z-index: 1;
+    box-sizing: border-box;
+    height: calc(var(--header-height, 48px) + 0.5px);
+    min-height: calc(var(--header-height, 48px) + 0.5px);
+    padding-block: 0.5rem;
     background-color: var(--color-background);
     border-bottom: 0.5px solid rgb(48 33 24 / 0.12);
   }
@@ -370,10 +374,7 @@
     }
 
     #cart-drawer .theme-drawer__header {
-      min-height: 48px;
-      padding-block: 0.5rem;
       padding-inline: var(--theme-drawer-padding);
-      box-sizing: border-box;
     }
 
     #cart-drawer .theme-drawer__close-button {
