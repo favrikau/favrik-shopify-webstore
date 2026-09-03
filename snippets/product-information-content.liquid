@@ -645,7 +645,8 @@
 
   .product-information .product-details .text-block.rte,
   .product-information .product-details rte-formatter.text-block,
-  .product-information .product-details .product-description__material {
+  .product-information .product-details .product-description__material,
+  .product-information .product-details .product-description__preorder-dispatch {
     overflow: visible;
     max-height: none;
     height: auto;
@@ -682,19 +683,31 @@
   .product-information .product-details .rte,
   .product-information .product-details .text-block.rte,
   .product-information .product-details rte-formatter.text-block,
-  .product-information .product-details .product-description__material {
+  .product-information .product-details .product-description__material,
+  .product-information .product-details .product-description__preorder-dispatch {
     font-weight: 300;
     color: #000;
     line-height: 1.65;
   }
 
-  .product-information .product-details .product-description__material {
+  .product-information
+    .product-details
+    :is(.product-description__material, .product-description__preorder-dispatch) {
     display: block;
-    margin-block-start: 1rem;
     margin-block-end: 0;
   }
 
-  .product-information .product-details .product-description__material-label {
+  .product-information .product-details .product-description__material {
+    margin-block-start: 1rem;
+  }
+
+  .product-information .product-details .product-description__preorder-dispatch {
+    margin-block-start: 0;
+  }
+
+  .product-information
+    .product-details
+    :is(.product-description__material-label, .product-description__preorder-dispatch-label) {
     font-weight: 400;
     color: #2e2e2e;
   }

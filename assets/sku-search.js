@@ -80,6 +80,17 @@ export function initSkuSearchForms() {
         .slice(0, 8);
 
       if (matches.length === 0) {
+        if (isHeaderSearch) {
+          const emptyMessage = document.createElement('p');
+          emptyMessage.className = 'facets__sku-search-empty';
+          emptyMessage.setAttribute('role', 'status');
+          emptyMessage.textContent = 'No Matching Products';
+          results.append(emptyMessage);
+          results.hidden = false;
+          input.setAttribute('aria-expanded', 'true');
+          return;
+        }
+
         closeResults();
         return;
       }

@@ -58,6 +58,16 @@
     assign onboarding = true
   endif
 
+  assign is_on_sale = false
+  if product.available and product.compare_at_price > product.price
+    assign is_on_sale = true
+  endif
+  assign is_made_by_favrik = product.metafields.custom.made_by_favrik.value
+  assign is_preorder = product.metafields['custom']['preorder'].value
+  assign favrik_made_badge_color = shop.metafields['custom']['favrik_made_badge_color'].value
+  assign sale_badge_color = shop.metafields['custom']['sale_badge_color'].value
+  assign preorder_badge_color = shop.metafields['custom']['preorder_badge_color'].value
+
   if block_settings.background_color != blank
     render 'contrast-override', background_color: block_settings.background_color, text_color: block_settings.text_color, section_id: block.id
   endif
@@ -94,13 +104,31 @@
       {{ product_titlecase }}
     </span>
   </a>
-  {% if product.available and product.compare_at_price > product.price or product.metafields.custom.made_by_favrik.value %}
+  {% if is_on_sale or is_made_by_favrik or is_preorder %}
     <div class="product-card__badges">
-      {% if product.available and product.compare_at_price > product.price %}
-        <span class="product-card__sale-badge">SALE</span>
+      {% if is_on_sale %}
+        <span
+          class="product-card__sale-badge"
+          style="--sale-badge-color: {{ sale_badge_color }};"
+        >
+          SALE
+        </span>
       {% endif %}
-      {% if product.metafields.custom.made_by_favrik.value %}
-        <span class="product-card__made-by-favrik-badge">FAVRIK MADE</span>
+      {% if is_made_by_favrik %}
+        <span
+          class="product-card__made-by-favrik-badge"
+          style="--favrik-made-badge-color: {{ favrik_made_badge_color }};"
+        >
+          FAVRIK MADE
+        </span>
+      {% endif %}
+      {% if is_preorder %}
+        <span
+          class="product-card__preorder-badge"
+          style="--preorder-badge-color: {{ preorder_badge_color }};"
+        >
+          PREORDER
+        </span>
       {% endif %}
     </div>
   {% endif %}
@@ -156,18 +184,19 @@
   }
 
   .product-card__sale-badge,
-  .product-card__made-by-favrik-badge {
+  .product-card__made-by-favrik-badge,
+  .product-card__preorder-badge {
     display: flex;
     align-items: center;
     justify-content: center;
-    min-height: 2rem;
-    padding: 0.375rem 0.625rem;
+    min-height: 1.75rem;
+    padding: 0.3rem 0.5rem;
     box-sizing: border-box;
     -webkit-backdrop-filter: blur(10px);
     backdrop-filter: blur(10px);
     font-family: var(--font-body--family);
-    font-size: var(--product-card-title-font-size);
-    font-weight: 500;
+    font-size: var(--product-card-price-font-size, 0.6875rem);
+    font-weight: 300;
     line-height: 1.25;
     letter-spacing: 0.08em;
     text-align: center;
@@ -176,13 +205,18 @@
   }
 
   .product-card__sale-badge {
-    background: rgb(201 31 74 / 0.82);
+    background: var(--sale-badge-color);
     color: #ffffff;
   }
 
   .product-card__made-by-favrik-badge {
-    background: rgb(48 33 24 / 0.78);
+    background: var(--favrik-made-badge-color);
     color: #fff7ec;
+  }
+
+  .product-card__preorder-badge {
+    background: var(--preorder-badge-color);
+    color: #ffffff;
   }
 
   product-card .product-card__content.border-style {
@@ -445,9 +479,10 @@
     }
 
     .product-card__sale-badge,
-    .product-card__made-by-favrik-badge {
-      min-height: 1.875rem;
-      padding: 0.3rem 0.5rem;
+    .product-card__made-by-favrik-badge,
+    .product-card__preorder-badge {
+      min-height: 1.125rem;
+      padding: 0.1rem 0.35rem;
     }
 
     .product-card slideshow-arrows .slideshow-control {

@@ -110,6 +110,7 @@ const openPanel = (root) => {
   observeHeaderStack(true);
   root.classList.add('is-open');
   lockScroll(root);
+  window.requestAnimationFrame(syncOverlayTop);
   panel.hidden = false;
   toggle.setAttribute('aria-expanded', 'true');
   showBackdrop();

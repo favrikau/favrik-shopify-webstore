@@ -2,6 +2,7 @@
   assign output = description | default: ''
   assign material_product = product | default: closest.product
   assign material_value = blank
+  assign preorder_dispatch_value = blank
 
   if material_product != blank
     assign material_metafield = material_product.metafields.custom.material
@@ -11,13 +12,18 @@
     if material_metafield.value != blank
       assign material_value = material_metafield.value
     endif
+
+    assign preorder_dispatch_metafield = material_product.metafields['custom']['preorder_dispatch_date']
+    if preorder_dispatch_metafield.value != blank
+      assign preorder_dispatch_value = preorder_dispatch_metafield.value | date: '%d/%m/%y'
+    endif
   endif
 
   if material_value != blank
     assign material_value = material_value | strip
   endif
 -%}
-{%- if output == blank and material_value == blank -%}
+{%- if output == blank and material_value == blank and preorder_dispatch_value == blank -%}
 {%- else -%}
   {%- liquid
     assign paragraphs = output | split: '</p>'
@@ -61,6 +67,12 @@
     <p class="product-description__material">
       <span class="product-description__material-label">Material:</span>
       {{ material_value | escape }}
+    </p>
+  {%- endif -%}
+  {%- if preorder_dispatch_value != blank -%}
+    <p class="product-description__preorder-dispatch">
+      <span class="product-description__preorder-dispatch-label">Preorder Dispatch:</span>
+      {{ preorder_dispatch_value | escape }}
     </p>
   {%- endif -%}
 {%- endif -%}

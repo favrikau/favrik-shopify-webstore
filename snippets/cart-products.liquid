@@ -199,16 +199,26 @@
                       if context == 'drawer'
                         assign cart_disclosure_unique_id = 'drawer-' | append: item.index
                       endif
+
+                      assign cart_item_is_preorder = item.product.metafields['custom']['preorder'].value
+                      if item.variant.inventory_management == 'shopify' and item.variant.inventory_policy == 'continue' and item.variant.inventory_quantity <= 0
+                        assign cart_item_is_preorder = true
+                      endif
+
+                      assign cart_item_title = item.product.title
+                      if cart_item_is_preorder
+                        assign cart_item_title = cart_item_title | append: ' PREORDER'
+                      endif
                     -%}
                     <div class="cart-items__title-row">
                       <a
                         href="{{ item.url }}"
                         class="cart-items__title"
                         {% if item.parent_relationship.parent != null %}
-                          aria-label="{{ 'accessibility.nested_product' | t: product_title: item.product.title, parent_title: item.parent_relationship.parent.title | escape }}"
+                          aria-label="{{ 'accessibility.nested_product' | t: product_title: cart_item_title, parent_title: item.parent_relationship.parent.title | escape }}"
                         {% endif %}
                       >
-                        {{- item.product.title -}}
+                        {{- cart_item_title -}}
                       </a>
                       {% render 'cart-disclosure-tooltip',
                         product: item.product,

@@ -29,6 +29,10 @@
     assign current_variant = product.selected_or_first_available_variant
     # Get the initial quantity based on quantity rules
     assign initial_quantity = current_variant.quantity_rule.min | default: 1
+    assign current_variant_is_preorder = false
+    if current_variant.inventory_management == 'shopify' and current_variant.inventory_policy == 'continue' and current_variant.inventory_quantity <= 0
+      assign current_variant_is_preorder = true
+    endif
   %}
 
   <sticky-add-to-cart
@@ -136,7 +140,11 @@
           <span class="add-to-cart-text__content">
             <span>
               {%- if current_variant.available -%}
-                {{- 'products.product.add_to_cart' | t -}}
+                {%- if current_variant_is_preorder -%}
+                  ADD PREORDER
+                {%- else -%}
+                  {{- 'products.product.add_to_cart' | t -}}
+                {%- endif -%}
               {%- elsif current_variant == blank -%}
                 {{- 'products.product.unavailable' | t -}}
               {%- else -%}

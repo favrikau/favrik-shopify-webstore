@@ -75,16 +75,6 @@
         {{ 'lifestyle-1' | placeholder_svg_tag: 'about-page__placeholder-svg' }}
       </div>
     {% endif %}
-
-    <img
-      src="{{ 'favrik_logo.png' | asset_url }}"
-      class="about-page__media-logo"
-      alt=""
-      width="120"
-      height="40"
-      loading="lazy"
-      aria-hidden="true"
-    >
   </div>
 
   {% if section.settings.story_copy != blank or section.settings.approach_copy != blank or section.settings.melbourne_copy != blank %}
@@ -184,17 +174,6 @@
     object-position: center center;
   }
 
-  .about-page__media-logo {
-    position: absolute;
-    right: clamp(1rem, 2.5vw, 2rem);
-    bottom: clamp(1rem, 2.5vw, 2rem);
-    z-index: 2;
-    width: clamp(4rem, 7vw, 7.5rem);
-    height: auto;
-    filter: brightness(0);
-    pointer-events: none;
-  }
-
   .about-page__image-pool .resource-image__random-image {
     position: absolute;
     inset: 0;
@@ -239,7 +218,9 @@
     }
 
     .about-page__media {
-      aspect-ratio: 4 / 5;
+      height: calc(100svh - var(--header-height, 48px));
+      min-height: calc(100svh - var(--header-height, 48px));
+      aspect-ratio: auto;
     }
 
     .about-page__story {

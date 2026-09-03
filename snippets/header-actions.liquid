@@ -39,22 +39,7 @@
 {% endcapture %}
 
 {% capture account_icon %}
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="15"
-    height="17"
-    viewBox="0 0 15 17"
-    fill="none"
-    slot="signed-out-avatar"
-    class="account-button__icon"
-  >
-    <path
-      stroke="currentColor"
-      stroke-linejoin="round"
-      stroke-width="var(--icon-stroke-width)"
-      d="M10.375 3.813a3.063 3.063 0 1 1-6.125 0 3.063 3.063 0 0 1 6.125 0ZM7.313 9.5c-3.667 0-6.24 2.691-6.563 6.125h13.125C13.552 12.191 10.979 9.5 7.312 9.5Z"
-    />
-  </svg>
+  {{ 'icon-account.svg' | inline_asset_content }}
 {% endcapture %}
 
 <header-actions
@@ -171,7 +156,7 @@
 
           <span
             slot="signed-out-avatar"
-            class="{% if display_style != 'icon' %}desktop:hidden{% endif %}"
+            class="svg-wrapper account-button__icon{% if display_style != 'icon' %} desktop:hidden{% endif %}"
             aria-hidden="true"
           >
             {{ account_icon }}
@@ -186,7 +171,7 @@
       aria-label="Log in"
     >
       <span class="{% if display_style == 'icon' %}hidden{% else %}mobile:hidden{% endif %}">Log in</span>
-      <span class="svg-wrapper {% if display_style != 'icon' %}desktop:hidden{% endif %}" aria-hidden="true">
+      <span class="svg-wrapper account-button__icon{% if display_style != 'icon' %} desktop:hidden{% endif %}" aria-hidden="true">
         {{ account_icon }}
       </span>
     </a>
@@ -273,8 +258,14 @@
 
   .account-button__icon {
     display: block;
-    width: 15px;
-    height: 17px;
+    width: var(--icon-size-md);
+    height: var(--icon-size-md);
+  }
+
+  .account-button__icon svg {
+    display: block;
+    width: 100%;
+    height: 100%;
   }
 
   .account-button__fallback {
@@ -341,12 +332,18 @@
     }
 
     .header__column--right .account-button shopify-account {
-      --shopify-account-signed-in-avatar-size: 24px;
+      --shopify-account-avatar-size: 40px;
+      --shopify-account-signed-in-avatar-size: 10px !important;
+    }
+
+    .account-button__icon {
+      width: 18px;
+      height: 18px;
     }
 
     .account-button__fallback {
-      width: 24px;
-      height: 24px;
+      width: 10px;
+      height: 10px;
     }
 
     .header-sku-search {

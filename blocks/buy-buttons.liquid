@@ -17,15 +17,24 @@
 
   assign can_add_to_cart = false
   assign add_to_cart_text = 'products.product.unavailable' | t
+  assign is_preorder = false
 
   if variant
+    if inventory_managed and inventory_policy == 'continue' and inventory_quantity <= 0
+      assign is_preorder = true
+    endif
+
     if variant.quantity_rule.min > variant.inventory_quantity and inventory_managed and inventory_policy == 'deny'
       assign quantity_rule_soldout = true
     endif
 
     if variant.available
       assign can_add_to_cart = true
-      assign add_to_cart_text = 'products.product.add_to_cart' | t
+      if is_preorder
+        assign add_to_cart_text = 'ADD PREORDER'
+      else
+        assign add_to_cart_text = 'products.product.add_to_cart' | t
+      endif
     elsif inventory_managed and inventory_quantity <= 0 and inventory_policy == 'deny' or quantity_rule_soldout
       assign can_add_to_cart = false
       assign add_to_cart_text = 'products.product.sold_out' | t
