@@ -93,26 +93,8 @@
 </product-price>
 
 {% stylesheet %}
-  .product-information .product-price__collection {
-    display: block;
-    width: fit-content;
+  .product-information .product-price__labels {
     margin-block-start: 0.3rem;
-    color: rgb(48 33 24 / 0.45);
-    font-family: var(--font-body--family);
-    font-size: 0.75rem;
-    font-weight: var(--font-body--weight);
-    line-height: 1.35;
-    text-decoration: none;
-    text-transform: uppercase;
-  }
-
-  .product-information .product-price__collection:is(:hover, :focus-visible) {
-    color: rgb(48 33 24 / 0.7);
-  }
-
-  .product-information .product-price__collection--on-sale,
-  .product-information .product-price__collection--on-sale:is(:hover, :focus-visible) {
-    color: #c91f4a;
   }
 {% endstylesheet %}
 

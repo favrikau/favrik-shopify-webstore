@@ -1,6 +1,6 @@
 {%- doc -%}
   Small solid color rectangles for product cards — bottom-right of the card.
-  Uses variant option values + keyword color library (product-color-from-name).
+  Uses Shopify variant swatch colors when available.
 
   @param {object} product - The product object
   @param {number} [max_colors] - Maximum values to display (default: 6)
@@ -41,11 +41,8 @@
   assign unique_color_count = 0
   if variant_color_option != null
     for product_option_value in variant_color_option.values
-      capture chip_color
-        render 'product-color-from-name', color_name: product_option_value.name
-      endcapture
-      assign chip_color = chip_color | strip
-      if chip_color == blank and product_option_value.swatch.color != blank
+      assign chip_color = blank
+      if product_option_value.swatch.color != blank
         assign chip_color = product_option_value.swatch.color | append: '' | strip
       endif
       if chip_color != blank
@@ -82,11 +79,8 @@
         {% break %}
       {% endif %}
 
-      {% capture chip_color %}
-        {% render 'product-color-from-name', color_name: product_option_value.name %}
-      {% endcapture %}
-      {% assign chip_color = chip_color | strip %}
-      {% if chip_color == blank and product_option_value.swatch.color != blank %}
+      {% assign chip_color = blank %}
+      {% if product_option_value.swatch.color != blank %}
         {% assign chip_color = product_option_value.swatch.color | append: '' | strip %}
       {% endif %}
 

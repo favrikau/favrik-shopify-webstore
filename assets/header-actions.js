@@ -84,8 +84,9 @@ const ACCOUNT_SHEET_CSS = `
     background-color: transparent !important;
     box-shadow: none !important;
     filter: none !important;
-    border: ${ACCOUNT_SHEET_LINE} solid rgb(48 33 24 / 0.35) !important;
+    border: 0 !important;
     border-radius: 0 !important;
+    outline: none !important;
   }
 
   .account__close:hover,
@@ -97,6 +98,8 @@ const ACCOUNT_SHEET_CSS = `
     background-color: transparent !important;
     box-shadow: none !important;
     filter: none !important;
+    border: 0 !important;
+    outline: none !important;
   }
 
   .button.outline,

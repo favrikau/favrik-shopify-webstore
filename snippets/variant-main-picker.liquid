@@ -72,7 +72,7 @@
           assign is_color_option = false
           assign is_size_option = false
           assign is_shoe_size_option = false
-          if option_name_downcase contains 'color' or option_name_downcase contains 'colour' or option_name_downcase contains '컬러' or option_name_downcase contains '색상'
+          if option_name_downcase contains 'color' or option_name_downcase contains 'colour' or option_name_downcase contains '컬러' or option_name_downcase contains '색상' or option_name_downcase == 'title'
             assign is_color_option = true
           endif
           if option_name_downcase contains 'size' or option_name_downcase contains '사이즈'
@@ -84,19 +84,15 @@
 
           # Some products name the option after its colors (e.g. "Grey & Black") instead of "Color".
           unless is_color_option or is_size_option
-            assign color_chip_hits = 0
             for product_option_value in product_option.values
-              capture probe_color
-                render 'product-color-from-name', color_name: product_option_value.name
+              capture color_name_hit
+                render 'is-color-name', color_name: product_option_value.name
               endcapture
-              assign probe_color = probe_color | strip
-              if probe_color != blank or product_option_value.swatch.color != blank
-                assign color_chip_hits = color_chip_hits | plus: 1
+              if color_name_hit != blank or product_option_value.swatch.color != blank or product_option_value.swatch.image != blank
+                assign is_color_option = true
+                break
               endif
             endfor
-            if color_chip_hits > 0
-              assign is_color_option = true
-            endif
           endunless
 
           if swatch_count > 0 and block_settings.show_swatches and is_color_option == false
@@ -125,7 +121,7 @@
           >
             <legend class="{% if variant_style == 'swatch' and is_color_option == false %}visually-hidden{% else %}variant-option__label{% endif %}">
               {%- if is_color_option -%}
-                COLOR
+                COLOUR
               {%- elsif is_shoe_size_option -%}
                 SHOE SIZE (US)
               {%- elsif variant_style == 'swatch' -%}
@@ -149,9 +145,7 @@
                   aria-label="{{ product_option_value.name | escape }}{% if product_option_value.available == false %} - {{ 'products.product.sold_out' | t }}{% endif %}"
                   {% if product_option_value.available == false %}
                     aria-disabled="true"
-                    {% if is_color_option or is_size_option %}
-                      disabled
-                    {% endif %}
+                    disabled
                   {% endif %}
                   data-previous-checked="false"
                   data-fieldset-index="{{ fieldset_index }}"
@@ -185,25 +179,9 @@
                   {% render 'swatch',
                     swatch: product_option_value.swatch,
                     variant_image: featured_media,
-                    mode: 'unscaled',
-                    color_name: product_option_value.name
+                    mode: 'unscaled'
                   %}
                 {% else %}
-                  {% capture variant_chip_color %}{% render 'product-color-from-name', color_name: product_option_value.name %}{% endcapture %}
-                  {% assign variant_chip_color = variant_chip_color | strip %}
-                  {% if variant_chip_color == blank and product_option_value.swatch.color != blank %}
-                    {% assign variant_chip_color = product_option_value.swatch.color %}
-                  {% endif %}
-                  {% if variant_chip_color == blank and is_color_option %}
-                    {% assign variant_chip_color = '#d8d0c7' %}
-                  {% endif %}
-                  {% if variant_chip_color != blank %}
-                    <span
-                      class="variant-option__color-chip{% if variant_chip_color == '#f4f1ea' or variant_chip_color == '#c9c9c9' or variant_chip_color == '#9eb5d4' or variant_chip_color == '#e8dfd0' or variant_chip_color == '#a8c5b0' or variant_chip_color == '#b7a7c7' %} variant-option__color-chip--light{% endif %}"
-                      style="--variant-color-chip: {{ variant_chip_color }};"
-                      aria-hidden="true"
-                    ></span>
-                  {% endif %}
                   {% if product_option_value.available == true and is_color_option == false and is_size_option == false %}
                     <span
                       class="variant-option__button-label__pill"
@@ -217,9 +195,6 @@
                     {{- product_option_value | escape -}}
                   </span>
                 {% endif %}
-                {% unless product_option_value.available == false and is_color_option == false and is_size_option == false %}
-                  {% render 'strikethrough-variant', product_option: product_option_value %}
-                {% endunless %}
               </label>
             {%- endfor -%}
             {% if option_id_attribute %}

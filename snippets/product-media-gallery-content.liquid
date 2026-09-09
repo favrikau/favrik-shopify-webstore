@@ -539,6 +539,7 @@
         <dialog
           class="dialog-zoomed-gallery__dialog"
           ref="dialog"
+          tabindex="-1"
           on:keydown="/handleKeyDown"
           scroll-lock
         >
@@ -824,6 +825,15 @@
     view-transition-name: zoom-dialog-ui;
   }
 
+  .dialog-zoomed-gallery__dialog:focus,
+  .dialog-zoomed-gallery__dialog:focus-visible {
+    outline: none;
+  }
+
+  .dialog-zoomed-gallery__close-button:focus:not(:focus-visible) {
+    outline: none;
+  }
+
   .dialog-zoomed-gallery {
     cursor: zoom-out;
   }
@@ -918,6 +928,11 @@
     color: #fff;
     mix-blend-mode: difference;
     z-index: var(--layer-raised);
+  }
+
+  .dialog-zoomed-gallery__close-button svg {
+    width: 1.125rem;
+    height: 1.125rem;
   }
 
   /* Mobile thumbnails styling */

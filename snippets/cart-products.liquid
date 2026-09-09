@@ -205,10 +205,12 @@
                         assign cart_item_is_preorder = true
                       endif
 
-                      assign cart_item_title = item.product.title
-                      if cart_item_is_preorder
-                        assign cart_item_title = cart_item_title | append: ' PREORDER'
+                      assign cart_item_is_sale = false
+                      if item.original_price != item.final_price or item.variant.compare_at_price > item.original_price
+                        assign cart_item_is_sale = true
                       endif
+
+                      assign cart_item_title = item.product.title
                     -%}
                     <div class="cart-items__title-row">
                       <a
@@ -316,7 +318,7 @@
                     <div>
                       {% if item.original_price != item.final_price %}
                         <span class="visually-hidden">{{ 'content.price_sale' | t }}</span>
-                        <span>{{ item.final_price | money }}</span>
+                        <span class="price-item--sale">{{ item.final_price | money }}</span>
                         <span class="visually-hidden">{{ 'content.price_regular' | t }}</span>
                         <s class="compare-at-price">
                           {% if item.variant.compare_at_price > item.original_price %}
@@ -332,7 +334,7 @@
                           <span class="visually-hidden">{{ 'content.price' | t }}</span>
                         {% endif %}
 
-                        <span>{{ item.original_price | money }}</span>
+                        <span{% if cart_item_is_sale %} class="price-item--sale"{% endif %}>{{ item.original_price | money }}</span>
 
                         {% if item.variant.compare_at_price > item.original_price %}
                           <span class="visually-hidden">{{ 'content.price_regular' | t }}</span>
@@ -358,14 +360,21 @@
                       quantity: item.quantity
                     %}
 
-                    {% render 'quantity-selector',
-                      product: item.product,
-                      variant: item.variant,
-                      in_cart_quantity: item.quantity,
-                      line_index: item.index,
-                      class: 'cart-primary-typography',
-                      can_update_quantity: can_update_quantity
-                    %}
+                    <div class="cart-items__quantity-selector-group">
+                      {% render 'quantity-selector',
+                        product: item.product,
+                        variant: item.variant,
+                        in_cart_quantity: item.quantity,
+                        line_index: item.index,
+                        class: 'cart-primary-typography',
+                        can_update_quantity: can_update_quantity
+                      %}
+
+                      {% render 'product-collection-label',
+                        product: item.product,
+                        force_preorder: cart_item_is_preorder
+                      %}
+                    </div>
 
                     <button
                       class="button cart-items__remove"
@@ -411,7 +420,7 @@
                   endif
                 -%}
                 <td
-                  class="cart-items__price cart-secondary-typography"
+                  class="cart-items__price cart-secondary-typography{% if cart_item_is_sale %} price-item--sale{% endif %}"
                   role="cell"
                   headers="productTotal"
                 >
@@ -663,6 +672,28 @@
     display: inline;
   }
 
+  .cart-items__quantity-selector-group {
+    --cart-qty-control-height: 1.75rem;
+
+    display: inline-flex;
+    align-items: stretch;
+    gap: 0.35rem;
+  }
+
+  .cart-items__quantity-selector-group .quantity-selector-wrapper {
+    height: var(--cart-qty-control-height);
+    align-items: stretch;
+  }
+
+  .cart-items__quantity-selector-group .product-price__labels {
+    margin: 0;
+    align-self: center;
+  }
+
+  .cart-items .price-item--sale {
+    color: #c91f4a;
+  }
+
   .cart-items__variant dt,
   .cart-items__variant dd {
     display: inline;
@@ -694,7 +725,20 @@
   .cart-items__quantity .quantity-selector {
     display: inline-flex;
     font-size: var(--font-size--sm);
-    height: auto;
+    height: var(--cart-qty-control-height);
+    box-sizing: border-box;
+  }
+
+  .cart-items .quantity-selector :is(.quantity-minus, .quantity-plus) {
+    height: 100%;
+    min-height: 0;
+  }
+
+  .cart-items .quantity-selector input[type='number'] {
+    height: 100%;
+    min-height: 0;
+    padding-block: 0;
+    line-height: 1;
   }
 
   .cart-items__remove {
@@ -759,6 +803,19 @@
   @media screen and (max-width: 749px) {
     .cart-items__table-row {
       align-items: stretch;
+      grid-template-rows: min-content 1fr auto;
+    }
+
+    .cart-items__quantity-selector-group {
+      --cart-qty-control-height: 1.5rem;
+    }
+
+    .cart-items__quantity {
+      align-self: end;
+    }
+
+    .cart-items__quantity-controls {
+      align-items: end;
     }
 
     .cart-items__media {
@@ -788,13 +845,18 @@
 
       width: var(--quantity-selector-width);
       flex: 0 0 var(--quantity-selector-width);
-      height: var(--quantity-button-size);
-      align-self: center;
+      height: var(--cart-qty-control-height);
+      align-self: stretch;
     }
 
     .cart-items .quantity-selector :is(.quantity-minus, .quantity-plus) {
       width: var(--quantity-button-size);
-      height: var(--quantity-button-size);
+      height: 100%;
+    }
+
+    .cart-items .quantity-selector svg {
+      width: 0.75rem;
+      height: 0.75rem;
     }
 
     .cart-items .quantity-selector input[type='number'] {
@@ -950,9 +1012,12 @@
   }
 
   .cart-items__price.cart-secondary-typography,
-  .cart-totals__original-value.cart-secondary-typography,
-  .cart-totals__total-value.cart-secondary-typography {
+  .cart-totals__original-value.cart-secondary-typography {
     font-weight: var(--cart-primary-font-weight);
+  }
+
+  .cart-totals__total-value.cart-secondary-typography {
+    font-weight: 600;
   }
 
   .cart__ctas {
@@ -1024,13 +1089,13 @@
   @media screen and (min-width: 750px) {
     .cart-items .quantity-selector {
       --quantity-selector-width: 105px;
-      height: var(--button-size-md);
+      height: var(--cart-qty-control-height);
       width: var(--quantity-selector-width);
     }
 
     .cart-items .quantity-selector button {
       width: var(--button-size-md);
-      height: var(--button-size-md);
+      height: 100%;
     }
 
     .cart-items .quantity-selector input {

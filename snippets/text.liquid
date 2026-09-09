@@ -149,9 +149,18 @@
     {{ fallback_text }}
   </div>
 {% elsif plain_text != blank %}
-  <{{ element }} {{ attributes | strip_newlines | strip }}>
-    {{ display_text }}
-  </{{ element }}>
+  {% if is_product_title_block %}
+    <div class="product-title-stack">
+      {% render 'product-collection-label', product: product_resource, output: 'heading' %}
+      <{{ element }} {{ attributes | strip_newlines | strip }}>
+        {{ display_text }}
+      </{{ element }}>
+    </div>
+  {% else %}
+    <{{ element }} {{ attributes | strip_newlines | strip }}>
+      {{ display_text }}
+    </{{ element }}>
+  {% endif %}
 {% endif %}
 
 {% stylesheet %}
@@ -186,6 +195,38 @@
     flex-direction: column;
     align-items: var(--horizontal-alignment);
     color: var(--color, var(--color-foreground));
+  }
+
+  .product-title-stack {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.1rem;
+    width: 100%;
+  }
+
+  .product-title-stack .product-title__collection {
+    display: block;
+    margin: 0;
+    padding: 0;
+    color: rgb(48 33 24 / 0.5);
+    font-family: var(--font-body--family);
+    font-size: 0.6875rem;
+    font-weight: 400;
+    line-height: 1.1;
+    letter-spacing: 0.08em;
+    text-decoration: none;
+    text-transform: uppercase;
+  }
+
+  .product-title-stack .product-title__collection:is(:hover, :focus-visible) {
+    color: rgb(48 33 24 / 0.75);
+  }
+
+  .product-title-stack .text-block,
+  .product-title-stack .text-block > * {
+    margin-block: 0;
+    line-height: 1.15;
   }
 
   .text-block > * {

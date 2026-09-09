@@ -150,7 +150,7 @@
             <li class="variant-option__swatch">
               <label
                 data-media-id="{{ featured_media.id }}"
-                class="variant-option__button-label variant-option__button-label--has-swatch"
+                class="variant-option__button-label variant-option__button-label--has-swatch{% if product_option_value.available == false %} variant-option__button-label--unavailable{% endif %}"
                 on:pointerenter="product-card/previewVariant/{{ featured_media.id }}"
                 on:pointerleave="product-card/resetVariant"
               >
@@ -164,6 +164,10 @@
                   data-option-media-id="{{ featured_media.id }}"
                   data-option-value-id="{{ product_option_value.id }}"
                   data-option-available="{{ product_option_value.available }}"
+                  {% if product_option_value.available == false %}
+                    aria-disabled="true"
+                    disabled
+                  {% endif %}
                   data-connected-product-url="{{ product_option_value.product_url }}"
                   {% if allow_preselection and product_option_value.selected %}
                     checked
@@ -174,10 +178,8 @@
                 {% render 'swatch',
                   swatch: product_option_value.swatch,
                   variant_image: featured_media,
-                  color_name: product_option_value.name,
                   label: product_option_value.name
                 %}
-                {% render 'strikethrough-variant', product_option: product_option_value %}
               </label>
             </li>
           {%- endfor -%}

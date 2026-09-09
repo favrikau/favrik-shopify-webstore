@@ -50,7 +50,12 @@ export class ZoomDialog extends Component {
     const targetThumbnail = thumbnails.children[index];
 
     const open = () => {
+      if (!dialog.hasAttribute('tabindex')) {
+        dialog.tabIndex = -1;
+      }
+
       dialog.showModal();
+      dialog.focus({ preventScroll: true });
 
       for (const target of [targetThumbnail, targetImage]) {
         target?.scrollIntoView({ behavior: 'instant' });

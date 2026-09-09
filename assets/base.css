@@ -2542,6 +2542,17 @@ deferred-media[class] :is(.deferred-media__poster-button img, .deferred-media__p
   cursor: pointer;
 }
 
+.variant-option__strikethrough {
+  display: none;
+}
+
+.variant-option__button-label--unavailable,
+.variant-option__button-label:has([data-option-available='false']),
+.variant-option__button-label:has(:disabled) {
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
 .variant-option__button-label svg {
   position: absolute;
   left: var(--options-border-width);

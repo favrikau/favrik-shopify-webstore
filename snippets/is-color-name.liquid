@@ -1,0 +1,18 @@
+{%- doc -%}
+  Returns 1 when a variant option value looks like a colour name.
+  Used only to detect colour pickers (e.g. Shopify's default "Title" option).
+
+  @param {string} color_name - Variant option value (e.g. "Navy", "Olive Green")
+{%- enddoc -%}
+
+{% liquid
+  assign name = color_name | downcase | strip
+  assign is_color = false
+
+  if name == blank
+    assign is_color = false
+  elsif name contains 'black' or name contains 'white' or name contains 'ivory' or name contains 'cream' or name contains 'ecru' or name contains 'natural' or name contains 'brown' or name contains 'chocolate' or name contains 'coffee' or name contains 'espresso' or name contains 'camel' or name contains 'tan' or name contains 'taupe' or name contains 'sand' or name contains 'beige' or name contains 'oat' or name contains 'stone' or name contains 'charcoal' or name contains 'grey' or name contains 'gray' or name contains 'silver' or name contains 'pewter' or name contains 'navy' or name contains 'blue' or name contains 'denim' or name contains 'indigo' or name contains 'teal' or name contains 'aqua' or name contains 'turquoise' or name contains 'green' or name contains 'olive' or name contains 'sage' or name contains 'mint' or name contains 'forest' or name contains 'khaki' or name contains 'red' or name contains 'burgundy' or name contains 'maroon' or name contains 'wine' or name contains 'pink' or name contains 'blush' or name contains 'rose' or name contains 'coral' or name contains 'orange' or name contains 'rust' or name contains 'terracotta' or name contains 'yellow' or name contains 'gold' or name contains 'mustard' or name contains 'purple' or name contains 'lilac' or name contains 'lavender' or name contains 'plum' or name contains 'violet'
+    assign is_color = true
+  endif
+%}
+{%- if is_color -%}1{%- endif -%}

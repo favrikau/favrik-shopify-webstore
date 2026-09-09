@@ -1,10 +1,13 @@
 {%- doc -%}
-  Displays the most relevant collection associated with a product.
+  Displays product labels (sale / favrik made / preorder) or the collection heading.
 
   @param {product} product - Product whose collection should be displayed.
+  @param {string} [output] - `labels` (default) or `heading`
+  @param {boolean} [force_preorder] - Show the PREORDER tag even if the product metafield is unset.
 {%- enddoc -%}
 
 {%- liquid
+  assign output_mode = output | default: 'labels'
   assign product_collection = collection
 
   if product_collection.handle == 'all' or product_collection.handle == 'frontpage'
@@ -36,13 +39,92 @@
       endunless
     endfor
   endif
+
+  assign collection_title_downcase = product_collection.title | downcase | strip
+  assign show_collection_heading = false
+  if product_collection != blank
+    unless product_collection.handle == 'on-sale' or collection_title_downcase == 'on sale'
+      assign show_collection_heading = true
+    endunless
+  endif
+
+  assign is_on_sale = false
+  if product.available and product.compare_at_price > product.price
+    assign is_on_sale = true
+  endif
+
+  assign is_made_by_favrik = product.metafields.custom.made_by_favrik.value
+  assign is_preorder = product.metafields['custom']['preorder'].value
+  if force_preorder
+    assign is_preorder = true
+  endif
+  assign sale_badge_color = shop.metafields['custom']['sale_badge_color'].value
+  assign favrik_made_badge_color = shop.metafields['custom']['favrik_made_badge_color'].value
+  assign preorder_badge_color = shop.metafields['custom']['preorder_badge_color'].value
 -%}
 
-{%- if product_collection != blank -%}
-  <a
-    class="product-price__collection{% if product_collection.handle == 'on-sale' %} product-price__collection--on-sale{% endif %}"
-    href="{{ product_collection.url }}"
-  >
-    {{- product_collection.title | escape -}}
-  </a>
+{%- if output_mode == 'heading' -%}
+  {%- if show_collection_heading -%}
+    <a
+      class="product-title__collection"
+      href="{{ product_collection.url }}"
+    >
+      {{- product_collection.title | escape -}}
+    </a>
+  {%- endif -%}
+{%- elsif is_on_sale or is_made_by_favrik or is_preorder -%}
+  <div class="product-price__labels">
+    {%- if is_on_sale -%}
+      <span
+        class="product-price__tag"
+        style="--product-price-tag-color: {{ sale_badge_color }};"
+      >
+        SALE
+      </span>
+    {%- endif -%}
+    {%- if is_made_by_favrik -%}
+      <span
+        class="product-price__tag"
+        style="--product-price-tag-color: {{ favrik_made_badge_color }};"
+      >
+        FAVRIK MADE
+      </span>
+    {%- endif -%}
+    {%- if is_preorder -%}
+      <span
+        class="product-price__tag"
+        style="--product-price-tag-color: {{ preorder_badge_color }};"
+      >
+        PREORDER
+      </span>
+    {%- endif -%}
+  </div>
 {%- endif -%}
+
+{% stylesheet %}
+  .product-price__labels {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem;
+    width: fit-content;
+  }
+
+  .product-price__tag {
+    display: inline-flex;
+    align-items: center;
+    width: fit-content;
+    margin: 0;
+    padding: 0.1rem 0.3rem;
+    border: 0.5px solid var(--product-price-tag-color);
+    border-radius: 0;
+    color: var(--product-price-tag-color);
+    font-family: var(--font-body--family);
+    font-size: 0.75rem;
+    font-weight: var(--font-body--weight);
+    line-height: 1.35;
+    text-transform: uppercase;
+    white-space: nowrap;
+    background: transparent;
+  }
+{% endstylesheet %}

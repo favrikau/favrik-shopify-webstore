@@ -40,7 +40,7 @@
     {%- endif -%}
   </div>
 
-  {% if settings.show_cart_note or settings.show_add_discount_code %}
+  {% if settings.show_cart_note %}
     <div class="cart-actions">
       {% if settings.show_cart_note %}
         <script
@@ -91,10 +91,7 @@
           %}
         </cart-note>
       {% endif %}
-      {% if settings.show_cart_note and settings.show_add_discount_code %}
-        <div class="cart-actions__divider"></div>
-      {% endif %}
-      {% if settings.show_add_discount_code %}
+      {% if false %}
         {% liquid
           assign discount_codes = cart.cart_level_discount_applications | where: 'type', 'discount_code' | map: 'title'
           for item in cart.items
@@ -233,6 +230,18 @@
       assign free_shipping_remaining_cents = free_shipping_threshold_cents | minus: cart.items_subtotal_price
       assign free_shipping_remaining = free_shipping_remaining_cents | money
     endif
+
+    assign cart_has_preorder = false
+    for item in cart.items
+      if item.product.metafields['custom']['preorder'].value
+        assign cart_has_preorder = true
+        break
+      endif
+      if item.variant.inventory_management == 'shopify' and item.variant.inventory_policy == 'continue' and item.variant.inventory_quantity <= 0
+        assign cart_has_preorder = true
+        break
+      endif
+    endfor
   -%}
 
   <div class="cart-totals__container{% if settings.show_installments %} cart-totals__container--has-installments{% endif %}">
@@ -266,6 +275,23 @@
           {{ free_shipping_remaining }} away from free shipping
         {% endif %}
       </p>
+      {%- if cart_has_preorder -%}
+        <details
+          class="cart-totals__preorder-note"
+          open
+          data-skip-node-update
+        >
+          <summary class="cart-totals__preorder-note-summary">
+            <span class="cart-totals__preorder-note-title">Important: this preorder will not ship yet</span>
+            <span class="icon-plus cart-totals__preorder-note-toggle" aria-hidden="true">
+              {{- 'icon-plus.svg' | inline_asset_content -}}
+            </span>
+          </summary>
+          <p class="cart-totals__preorder-note-text">
+            Orders containing both in-stock and preorder items will be dispatched together once all items are available. To receive in-stock items sooner, please place them in a separate order.
+          </p>
+        </details>
+      {%- endif -%}
     {% endif %}
     {% if settings.show_installments %}
       <span class="cart-totals__item cart-totals__installments">
@@ -274,9 +300,6 @@
         {% endform %}
       </span>
     {% endif %}
-    <div class="cart-totals__item cart-totals__tax-note cart-primary-typography">
-      {% render 'tax-info', has_discounts_enabled: settings.show_add_discount_code %}
-    </div>
   </div>
 </div>
 
@@ -323,9 +346,9 @@
   }
 
   .cart-totals:not(:has(.cart-actions)) {
-    margin-block-start: var(--margin-3xs);
-    border-block-start: 0.5px solid rgb(var(--color-foreground-rgb) / var(--opacity-10-25));
-    padding-block-start: var(--margin-xl);
+    margin-block-start: 0;
+    border-block-start: none;
+    padding-block-start: 0;
   }
 
   .cart-totals__item {
@@ -419,9 +442,12 @@
     font-size: var(--cart-font-size--sm);
   }
 
-  .cart-totals__original-value,
-  .cart-totals__total-value {
+  .cart-totals__original-value {
     font-weight: 500;
+  }
+
+  .cart-totals__total-value {
+    font-weight: 600;
   }
 
   .cart-totals__total {
@@ -468,6 +494,80 @@
   .cart-totals__free-shipping-icon svg {
     width: 100%;
     height: 100%;
+  }
+
+  .cart-totals__preorder-note {
+    width: 100%;
+    box-sizing: border-box;
+    margin: 0.65rem 0 0;
+    background: rgb(var(--color-foreground-rgb) / 0.06);
+    border: 0.5px solid var(--color-foreground);
+    color: var(--color-foreground);
+  }
+
+  .cart-totals__preorder-note-summary {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    width: 100%;
+    padding: 0.7rem 0.75rem;
+    box-sizing: border-box;
+    cursor: pointer;
+    list-style: none;
+    color: var(--color-foreground);
+  }
+
+  .cart-totals__preorder-note-summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .cart-totals__preorder-note-summary:hover {
+    color: var(--color-foreground);
+  }
+
+  .cart-totals__preorder-note-toggle {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 0.875rem;
+    height: 0.875rem;
+    margin-inline-start: auto;
+    color: var(--color-foreground);
+  }
+
+  .cart-totals__preorder-note-toggle svg {
+    width: 100%;
+    height: 100%;
+  }
+
+  .cart-totals__preorder-note-title,
+  .cart-totals__preorder-note-text {
+    margin: 0;
+    letter-spacing: 0;
+    text-transform: none;
+  }
+
+  .cart-totals__preorder-note-title {
+    flex: 1 1 auto;
+    min-width: 0;
+    color: var(--color-foreground);
+    font-family: var(--font-body--family);
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1.3;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .cart-totals__preorder-note-text {
+    margin: 0;
+    padding: 0 0.75rem 0.7rem;
+    color: var(--color-foreground);
+    font-family: var(--font-body--family);
+    font-size: 0.75rem;
+    font-weight: 400;
+    line-height: 1.4;
   }
 
   .cart-totals__installments {
@@ -544,8 +644,8 @@
   }
 
   .cart-drawer__summary .cart-totals:not(:has(.cart-totals__original-container:empty)) {
-    border-block-start: var(--style-border-width) solid rgb(var(--color-foreground-rgb) / var(--opacity-10-25));
-    padding-block-start: var(--padding-2xl);
+    border-block-start: none;
+    padding-block-start: 0;
   }
 
   .cart-drawer__summary .cart-note {
@@ -689,11 +789,11 @@
     }
 
     .cart-totals:not(:has(.cart-actions)) {
-      padding-block-start: 0.75rem;
+      padding-block-start: 0;
     }
 
     .cart-drawer__summary .cart-totals:not(:has(.cart-totals__original-container:empty)) {
-      padding-block-start: 0.75rem;
+      padding-block-start: 0;
     }
 
     .cart-totals__container {
