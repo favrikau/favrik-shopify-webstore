@@ -30,6 +30,15 @@ const syncOverlayTop = () => {
         : 0;
 
   document.body.style.setProperty('--header-sku-search-top', `${top}px`);
+  document.body.style.setProperty('--page-scrollbar-width', `${getPageScrollbarWidth()}px`);
+};
+
+const getPageScrollbarWidth = () => {
+  const pageWrapper = document.querySelector('.page-wrapper');
+  if (window.matchMedia('(min-width: 990px)').matches && pageWrapper instanceof HTMLElement) {
+    return Math.max(0, pageWrapper.offsetWidth - pageWrapper.clientWidth);
+  }
+  return Math.max(0, window.innerWidth - document.documentElement.clientWidth);
 };
 
 const observeHeaderStack = (enabled) => {

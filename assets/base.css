@@ -59,6 +59,26 @@ html[scroll-lock] .page-wrapper {
   overflow: hidden;
 }
 
+/*
+ * Header overlays (search / SHOP) keep the page scrollbar visible on desktop;
+ * scrolling is blocked in JS by lockScroll instead.
+ */
+@media (min-width: 990px) {
+  html[scroll-lock]:has(.header-sku-search.is-open, .catalog-nav-drawer[aria-hidden='false']) .page-wrapper {
+    overflow-y: scroll;
+  }
+}
+
+@media (min-width: 750px) and (max-width: 989px) {
+  html[scroll-lock]:has(.header-sku-search.is-open, .catalog-nav-drawer[aria-hidden='false']) {
+    overflow-y: scroll;
+  }
+
+  html[scroll-lock]:has(.header-sku-search.is-open, .catalog-nav-drawer[aria-hidden='false']) body {
+    overflow: visible;
+  }
+}
+
 @media (max-width: 749px) {
   input:not(
       [type='button'],
@@ -1003,7 +1023,9 @@ body:has(.header[transparent]) .content-for-layout[data-template='index']
     .favrik-bilingual-heading__en,
     .collection-hero-button__en,
     .collection-image-trio__caption,
-    .collection-image-duo__caption-en
+    .collection-image-duo__caption-en,
+    .category-hero-grid__title,
+    .category-hero-grid__cta
   ) {
   text-transform: uppercase;
 }
@@ -1014,8 +1036,11 @@ body:has(.header[transparent]) .content-for-layout[data-template='index']
     .collection-title-bilingual .collection-title__en,
     .section-resource-list__header .favrik-bilingual-heading,
     .section-resource-list__header .favrik-bilingual-heading__en,
+    .shop-social__header .favrik-bilingual-heading,
+    .shop-social__header .favrik-bilingual-heading__en,
     .collection-image-trio__heading-kicker,
-    .collection-image-duo__caption-en
+    .collection-image-duo__caption-en,
+    .category-hero-grid__title
   ) {
   font-size: var(--homepage-title-font-size);
   line-height: 1.25;

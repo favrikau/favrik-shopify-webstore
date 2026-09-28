@@ -287,6 +287,30 @@
     color: #ffffff;
   }
 
+  @media screen and (min-width: 750px) {
+    .catalog-nav-drawer__backdrop,
+    .catalog-nav-drawer {
+      right: auto;
+      width: calc((100% - var(--page-scrollbar-width, 0px)) / 3);
+      max-width: calc((100% - var(--page-scrollbar-width, 0px)) / 3);
+    }
+
+    .catalog-nav-drawer {
+      box-sizing: border-box;
+      padding-inline: var(--page-margin, 40px);
+    }
+
+    .catalog-nav-drawer__panel {
+      width: 100%;
+      max-width: none;
+    }
+
+    .catalog-nav-drawer__divider {
+      width: 100%;
+      max-width: none;
+    }
+  }
+
   @media screen and (max-width: 749px) {
     .catalog-nav-drawer__list {
       gap: 0;

@@ -5,7 +5,7 @@
   Consolidates common image rendering logic across resource components.
 
   @param {string} content_type - Type of content: 'articles' | 'collections'
-  @param {object} [image_source] - Image object for articles (auto-determined for collections)
+  @param {object} [image_source] - Image object for articles; for collections, overrides the auto-determined image
   @param {string} parent_block_id - Parent block ID for CSS targeting
   @param {object} block_settings - Block settings object
   @param {object} [section_settings] - Section settings for layout-aware sizing
@@ -51,7 +51,9 @@
     assign image_resource = image_source
   elsif content_type == 'collections'
     assign collection = closest.collection
-    if randomize_collection_image
+    if image_source != blank
+      assign image_resource = image_source
+    elsif randomize_collection_image
       assign products_with_images = collection.products | where: 'featured_image'
       if products_with_images.size > 0
         assign image_resource = products_with_images.first.featured_image

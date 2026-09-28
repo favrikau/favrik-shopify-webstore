@@ -1,0 +1,593 @@
+{% liquid
+  assign outer_image = shop.metafields.custom.outer_hero_image.value
+  assign bottoms_image = shop.metafields.custom.bottoms_hero_image.value
+  assign tops_image = shop.metafields.custom.tops_hero_image.value
+  assign acc_image = shop.metafields.custom.acc_hero_image.value
+
+  assign outer_collection = section.settings.outer_collection
+  assign bottoms_collection = section.settings.bottoms_collection
+  assign tops_collection = section.settings.tops_collection
+  assign acc_collection = section.settings.acc_collection
+
+  if outer_collection == blank
+    assign outer_collection = collections['outer']
+  endif
+  if bottoms_collection == blank
+    assign bottoms_collection = collections['bottom']
+  endif
+  if bottoms_collection == blank
+    assign bottoms_collection = collections['bottoms']
+  endif
+  if tops_collection == blank
+    assign tops_collection = collections['top']
+  endif
+  if tops_collection == blank
+    assign tops_collection = collections['tops']
+  endif
+  if acc_collection == blank
+    assign acc_collection = collections['accessories']
+  endif
+  if acc_collection == blank
+    assign acc_collection = collections['acc']
+  endif
+
+  assign outer_type_link = blank
+  assign bottoms_type_link = blank
+  assign tops_type_link = blank
+  assign acc_type_link = blank
+  assign outer_type_label = blank
+  assign bottoms_type_label = blank
+  assign tops_type_label = blank
+  assign acc_type_label = blank
+
+  for product_type in shop.types
+    if product_type == blank
+      continue
+    endif
+
+    assign type_normalized = product_type | strip
+    assign type_normalized = type_normalized | replace: '𝗔', 'A' | replace: '𝗕', 'B' | replace: '𝗖', 'C' | replace: '𝗗', 'D' | replace: '𝗘', 'E' | replace: '𝗙', 'F' | replace: '𝗚', 'G' | replace: '𝗛', 'H' | replace: '𝗜', 'I' | replace: '𝗝', 'J' | replace: '𝗞', 'K' | replace: '𝗟', 'L' | replace: '𝗠', 'M' | replace: '𝗡', 'N' | replace: '𝗢', 'O' | replace: '𝗣', 'P' | replace: '𝗤', 'Q' | replace: '𝗥', 'R' | replace: '𝗦', 'S' | replace: '𝗧', 'T' | replace: '𝗨', 'U' | replace: '𝗩', 'V' | replace: '𝗪', 'W' | replace: '𝗫', 'X' | replace: '𝗬', 'Y' | replace: '𝗭', 'Z'
+    assign type_normalized = type_normalized | replace: '𝗮', 'A' | replace: '𝗯', 'B' | replace: '𝗰', 'C' | replace: '𝗱', 'D' | replace: '𝗲', 'E' | replace: '𝗳', 'F' | replace: '𝗴', 'G' | replace: '𝗵', 'H' | replace: '𝗶', 'I' | replace: '𝗷', 'J' | replace: '𝗸', 'K' | replace: '𝗹', 'L' | replace: '𝗺', 'M' | replace: '𝗻', 'N' | replace: '𝗼', 'O' | replace: '𝗽', 'P' | replace: '𝗾', 'Q' | replace: '𝗿', 'R' | replace: '𝘀', 'S' | replace: '𝘁', 'T' | replace: '𝘂', 'U' | replace: '𝘃', 'V' | replace: '𝘄', 'W' | replace: '𝘅', 'X' | replace: '𝘆', 'Y' | replace: '𝘇', 'Z'
+    assign type_label = type_normalized | upcase | strip
+    assign type_key = type_normalized | downcase | strip
+
+    if type_key == 'outer' and outer_type_link == blank
+      assign outer_type_link = product_type | url_for_type
+      assign outer_type_label = type_label
+    elsif type_key == 'bottom' or type_key == 'bottoms'
+      if bottoms_type_link == blank or type_key == 'bottom'
+        assign bottoms_type_link = product_type | url_for_type
+        assign bottoms_type_label = type_label
+      endif
+    elsif type_key == 'top' or type_key == 'tops'
+      if tops_type_link == blank or type_key == 'top'
+        assign tops_type_link = product_type | url_for_type
+        assign tops_type_label = type_label
+      endif
+    elsif type_key == 'accessories' or type_key == 'acc'
+      if acc_type_link == blank
+        assign acc_type_link = product_type | url_for_type
+        assign acc_type_label = type_label
+      endif
+    endif
+  endfor
+
+  assign outer_link = section.settings.outer_link
+  if outer_link == blank and outer_collection != blank
+    assign outer_link = outer_collection.url
+  endif
+  if outer_link == blank and outer_type_link != blank
+    assign outer_link = outer_type_link
+  endif
+
+  assign bottoms_link = section.settings.bottoms_link
+  if bottoms_link == blank and bottoms_collection != blank
+    assign bottoms_link = bottoms_collection.url
+  endif
+  if bottoms_link == blank and bottoms_type_link != blank
+    assign bottoms_link = bottoms_type_link
+  endif
+
+  assign tops_link = section.settings.tops_link
+  if tops_link == blank and tops_collection != blank
+    assign tops_link = tops_collection.url
+  endif
+  if tops_link == blank and tops_type_link != blank
+    assign tops_link = tops_type_link
+  endif
+
+  assign acc_link = section.settings.acc_link
+  if acc_link == blank and acc_collection != blank
+    assign acc_link = acc_collection.url
+  endif
+  if acc_link == blank and acc_type_link != blank
+    assign acc_link = acc_type_link
+  endif
+
+  assign panel_height = section.settings.panel_height | default: 105
+  assign sizes = '(min-width: 750px) 50vw, 50vw'
+  assign widths = '640, 832, 960, 1200, 1600, 2000, 2560'
+
+  if section.settings.background_color != blank
+    render 'contrast-override', background_color: section.settings.background_color, section_id: section.id
+  endif
+
+  assign windows = 'outer|bottoms|tops|acc' | split: '|'
+%}
+
+<div
+  class="section-background{% if section.settings.background_color != blank %} color-custom-{{ section.id }}{% endif %}"
+></div>
+
+<div
+  class="section section--{{ section.settings.section_width }} spacing-style category-hero-grid-section{% if section.settings.background_color != blank %} color-custom-{{ section.id }}{% endif %}"
+  style="
+    {% render 'spacing-style', settings: section.settings %}
+    --category-hero-panel-height: {{ panel_height }}svh;
+    --category-hero-panel-height-mobile: {{ section.settings.panel_height_mobile | default: 55 }}svh;
+  "
+  data-testid="category-hero-grid"
+  {% if request.page_type == 'index' %}
+    data-homepage-section="categories"
+  {% endif %}
+>
+  <div class="category-hero-grid">
+    {% for window_key in windows %}
+      {% liquid
+        case window_key
+          when 'outer'
+            assign window_image = outer_image
+            assign window_link = outer_link
+            assign window_collection = outer_collection
+            assign window_type_label = outer_type_label
+            assign window_label = 'Outer'
+            assign placeholder_index = 1
+          when 'bottoms'
+            assign window_image = bottoms_image
+            assign window_link = bottoms_link
+            assign window_collection = bottoms_collection
+            assign window_type_label = bottoms_type_label
+            assign window_label = 'Bottoms'
+            assign placeholder_index = 2
+          when 'tops'
+            assign window_image = tops_image
+            assign window_link = tops_link
+            assign window_collection = tops_collection
+            assign window_type_label = tops_type_label
+            assign window_label = 'Tops'
+            assign placeholder_index = 3
+          when 'acc'
+            assign window_image = acc_image
+            assign window_link = acc_link
+            assign window_collection = acc_collection
+            assign window_type_label = acc_type_label
+            assign window_label = 'Accessories'
+            assign placeholder_index = 4
+        endcase
+
+        assign window_title = window_label | upcase
+        if window_key == 'tops' or window_key == 'bottoms'
+          # Keep the plural labels even though the linked collections are "TOP" / "BOTTOM"
+        elsif window_collection != blank
+          assign window_title = window_collection.title | strip | upcase
+        elsif window_type_label != blank
+          assign window_title = window_type_label
+        endif
+
+        if window_title contains 'COLLECTION'
+          assign window_title = window_title | remove: 'COLLECTION' | replace: '  ', ' ' | strip
+        endif
+
+        assign focal_setting_id = window_key | append: '_object_position'
+        assign window_object_position = section.settings[focal_setting_id] | strip
+        if window_object_position == blank and window_image.presentation.focal_point != blank
+          assign window_object_position = window_image.presentation.focal_point
+        endif
+        if window_object_position == blank
+          assign window_object_position = 'center center'
+        endif
+      %}
+
+      <div
+        class="category-hero-grid__window category-hero-grid__window--{{ window_key }}"
+        style="--category-hero-object-position: {{ window_object_position | escape }};"
+      >
+        {% if window_link != blank %}
+          <a
+            class="category-hero-grid__link"
+            href="{{ window_link }}"
+            aria-label="{{ window_title | escape }} — Shop now"
+          >
+        {% endif %}
+
+        <div class="category-hero-grid__media{% if window_image == blank %} category-hero-grid__media--placeholder{% endif %}">
+          {% if window_image != blank %}
+            {{
+              window_image
+              | image_url: width: 2560
+              | image_tag:
+                widths: widths,
+                sizes: sizes,
+                class: 'category-hero-grid__img',
+                loading: 'lazy',
+                alt: window_label
+            }}
+          {% else %}
+            {% case placeholder_index %}
+              {% when 1 %}
+                {{ 'collection-apparel-1' | placeholder_svg_tag: 'category-hero-grid__placeholder' }}
+              {% when 2 %}
+                {{ 'collection-apparel-2' | placeholder_svg_tag: 'category-hero-grid__placeholder' }}
+              {% when 3 %}
+                {{ 'collection-apparel-3' | placeholder_svg_tag: 'category-hero-grid__placeholder' }}
+              {% else %}
+                {{ 'collection-apparel-4' | placeholder_svg_tag: 'category-hero-grid__placeholder' }}
+            {% endcase %}
+          {% endif %}
+        </div>
+
+        <div class="category-hero-grid__caption">
+          <span class="category-hero-grid__title" data-text="{{ window_title | escape }}">{{ window_title | escape }}</span>
+          <span class="category-hero-grid__cta" data-text="Shop now">Shop now</span>
+        </div>
+
+        {% if window_link != blank %}
+          </a>
+        {% endif %}
+      </div>
+    {% endfor %}
+  </div>
+</div>
+
+{% stylesheet %}
+  .category-hero-grid-section {
+    padding-inline: 0;
+  }
+
+  .category-hero-grid-section.spacing-style {
+    --padding-inline-start: 0px;
+    --padding-inline-end: 0px;
+  }
+
+  .category-hero-grid {
+    /* Shared editorial grade — tweak these to adjust all four images together */
+    --category-hero-saturation: 1;
+    --category-hero-contrast: 1;
+    --category-hero-brightness: 0.99;
+    --category-hero-sepia: 0.04;
+    --category-hero-warm-overlay: rgb(235 226 215 / 0.045);
+    --category-hero-grain-opacity: 0.02;
+    --category-hero-grain-size: 180px;
+    --category-hero-filter:
+      saturate(var(--category-hero-saturation))
+      contrast(var(--category-hero-contrast))
+      brightness(var(--category-hero-brightness))
+      sepia(var(--category-hero-sepia));
+
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: repeat(2, minmax(0, 1fr));
+    gap: 0;
+    width: 100%;
+  }
+
+  .category-hero-grid__window {
+    position: relative;
+    min-height: var(--category-hero-panel-height, 105svh);
+    overflow: hidden;
+    background-color: rgb(var(--color-foreground-rgb) / var(--opacity-5));
+  }
+
+  .category-hero-grid__link {
+    position: relative;
+    display: block;
+    width: 100%;
+    height: 100%;
+    min-height: inherit;
+    text-decoration: none;
+    color: #fff7ec;
+  }
+
+  .category-hero-grid__caption {
+    position: absolute;
+    inset-inline: 0;
+    bottom: 0;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.35rem;
+    margin: 0;
+    padding: 2.5rem var(--page-margin) var(--page-margin);
+    text-align: center;
+    background: linear-gradient(to top, rgb(48 33 24 / 0.52) 0%, rgb(48 33 24 / 0) 100%);
+    pointer-events: none;
+  }
+
+  .category-hero-grid__title,
+  .category-hero-grid__cta {
+    margin: 0;
+    font-family: var(--font-body--family);
+    font-style: var(--font-body--style);
+    font-weight: var(--font-body--weight);
+    text-transform: uppercase;
+  }
+
+  .category-hero-grid__title {
+    font-size: var(--homepage-title-font-size, var(--font-h4--size));
+    line-height: 1.25;
+    letter-spacing: var(--font-h4--letter-spacing);
+    color: rgb(255 247 236 / 0.96);
+    transition:
+      opacity 0.4s var(--ease-out-cubic, ease),
+      transform 0.4s var(--ease-out-cubic, ease);
+  }
+
+  .category-hero-grid__cta {
+    font-size: clamp(0.6875rem, 1.2vw, 0.75rem);
+    line-height: 1.25;
+    letter-spacing: 0.12em;
+    color: rgb(255 247 236 / 0.82);
+    transition:
+      opacity 0.4s var(--ease-out-cubic, ease),
+      letter-spacing 0.4s var(--ease-out-cubic, ease),
+      transform 0.4s var(--ease-out-cubic, ease);
+  }
+
+  .category-hero-grid__link:is(:hover, :focus-visible) .category-hero-grid__title {
+    opacity: 0.88;
+    transform: translateY(-0.14em);
+  }
+
+  .category-hero-grid__link:is(:hover, :focus-visible) .category-hero-grid__cta {
+    opacity: 1;
+    letter-spacing: 0.16em;
+    transform: translateY(-0.08em);
+  }
+
+  .category-hero-grid__media {
+    position: relative;
+    isolation: isolate;
+    width: 100%;
+    height: 100%;
+    min-height: var(--category-hero-panel-height, 105svh);
+    overflow: hidden;
+  }
+
+  .category-hero-grid__media::before,
+  .category-hero-grid__media::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+  }
+
+  .category-hero-grid__media::before {
+    background: var(--category-hero-warm-overlay);
+  }
+
+  .category-hero-grid__media::after {
+    opacity: var(--category-hero-grain-opacity);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size: var(--category-hero-grain-size) var(--category-hero-grain-size);
+    background-repeat: repeat;
+  }
+
+  .category-hero-grid__img,
+  .category-hero-grid__placeholder {
+    display: block;
+    width: 100%;
+    height: 100%;
+    min-height: var(--category-hero-panel-height, 105svh);
+    object-fit: cover;
+    /* !important beats the inline object-position image_tag adds for Shopify focal points */
+    object-position: var(--category-hero-object-position, center center) !important;
+    filter: var(--category-hero-filter);
+  }
+
+  .category-hero-grid__media--placeholder {
+    display: flex;
+    align-items: stretch;
+  }
+
+  .category-hero-grid__placeholder {
+    flex: 1;
+  }
+
+  @media screen and (max-width: 749px) {
+    .category-hero-grid {
+      --category-hero-panel-height: var(--category-hero-panel-height-mobile, 55svh);
+    }
+
+    .category-hero-grid__caption {
+      padding-block: 2rem var(--page-margin);
+    }
+
+    .category-hero-grid__title {
+      font-size: 0.875rem;
+    }
+
+    .category-hero-grid__cta {
+      font-size: 0.6875rem;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .category-hero-grid__title,
+    .category-hero-grid__cta {
+      transition: none;
+    }
+
+    .category-hero-grid__link:is(:hover, :focus-visible) .category-hero-grid__title,
+    .category-hero-grid__link:is(:hover, :focus-visible) .category-hero-grid__cta {
+      transform: none;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Category hero grid",
+  "tag": "section",
+  "class": "category-hero-grid-wrapper",
+  "disabled_on": {
+    "groups": ["header", "footer"]
+  },
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "Images are loaded from shop metafields: custom.outer_hero_image, custom.bottoms_hero_image, custom.tops_hero_image, and custom.acc_hero_image. Layout order: top-left Outer, top-right Bottoms, bottom-left Tops, bottom-right Accessories."
+    },
+    {
+      "type": "range",
+      "id": "panel_height",
+      "label": "Panel height",
+      "min": 100,
+      "max": 130,
+      "step": 1,
+      "unit": "svh",
+      "default": 105,
+      "info": "Each window height as a percentage of the viewport. 105 is slightly taller than one screen."
+    },
+    {
+      "type": "range",
+      "id": "panel_height_mobile",
+      "label": "Panel height (mobile)",
+      "min": 40,
+      "max": 80,
+      "step": 1,
+      "unit": "svh",
+      "default": 55,
+      "info": "Each window on phones. Two rows stack, so 50 fills exactly one screen."
+    },
+    {
+      "type": "header",
+      "content": "Collection links"
+    },
+    {
+      "type": "collection",
+      "id": "outer_collection",
+      "label": "Outer collection"
+    },
+    {
+      "type": "url",
+      "id": "outer_link",
+      "label": "Outer link override"
+    },
+    {
+      "type": "text",
+      "id": "outer_object_position",
+      "label": "Outer image focal point",
+      "placeholder": "50% 30%",
+      "info": "CSS object-position, e.g. \"50% 30%\" or \"center top\". Leave blank to use the image's focal point from Shopify Files."
+    },
+    {
+      "type": "collection",
+      "id": "bottoms_collection",
+      "label": "Bottoms collection"
+    },
+    {
+      "type": "url",
+      "id": "bottoms_link",
+      "label": "Bottoms link override"
+    },
+    {
+      "type": "text",
+      "id": "bottoms_object_position",
+      "label": "Bottoms image focal point",
+      "placeholder": "50% 30%"
+    },
+    {
+      "type": "collection",
+      "id": "tops_collection",
+      "label": "Tops collection"
+    },
+    {
+      "type": "url",
+      "id": "tops_link",
+      "label": "Tops link override"
+    },
+    {
+      "type": "text",
+      "id": "tops_object_position",
+      "label": "Tops image focal point",
+      "placeholder": "50% 30%"
+    },
+    {
+      "type": "collection",
+      "id": "acc_collection",
+      "label": "Accessories collection"
+    },
+    {
+      "type": "url",
+      "id": "acc_link",
+      "label": "Accessories link override"
+    },
+    {
+      "type": "text",
+      "id": "acc_object_position",
+      "label": "Accessories image focal point",
+      "placeholder": "50% 30%"
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "t:settings.background_color",
+      "placeholder": "t:settings.default"
+    },
+    {
+      "type": "select",
+      "id": "section_width",
+      "label": "t:settings.width",
+      "options": [
+        {
+          "value": "page-width",
+          "label": "t:options.page"
+        },
+        {
+          "value": "full-width",
+          "label": "t:options.full"
+        }
+      ],
+      "default": "full-width"
+    },
+    {
+      "type": "header",
+      "content": "t:content.padding"
+    },
+    {
+      "type": "range",
+      "id": "padding-block-start",
+      "label": "t:settings.top",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding-block-end",
+      "label": "t:settings.bottom",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    }
+  ],
+  "presets": [
+    {
+      "name": "Category hero grid",
+      "category": "t:categories.collections",
+      "settings": {
+        "section_width": "full-width",
+        "panel_height": 105,
+        "padding-block-start": 0,
+        "padding-block-end": 0
+      }
+    }
+  ]
+}
+{% endschema %}

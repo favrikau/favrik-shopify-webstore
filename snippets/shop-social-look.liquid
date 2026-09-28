@@ -1,0 +1,91 @@
+{%- doc -%}
+  Content for one Shop Social "look", rendered into a <template> and cloned into the
+  Shop Social modal on click. Kept data-source agnostic so a metaobject can feed it later.
+
+  @param {object} [image] - Look image; renders a placeholder when blank
+  @param {string} [placeholder] - Placeholder SVG name
+  @param {string} [caption] - Description of the look
+  @param {string} [author] - Handle credited in the meta line, e.g. "@favrik"
+  @param {string} [date] - Display date for the meta line
+  @param {string} [source_label] - Platform name for the meta line, defaults to "Instagram"
+  @param {string} [source_url] - Link to the original post
+  @param {object[]} [products] - Products worn in the look
+  @param {object} [product] - Single product worn in the look (used when products is blank)
+  @param {boolean} [show_product_slots] - Render empty product slots when no products are attached
+{%- enddoc -%}
+
+{% liquid
+  assign source_label = source_label | default: 'Instagram'
+  assign placeholder = placeholder | default: 'lifestyle-1'
+  assign product_count = 0
+  if products != blank
+    assign product_count = products.size
+  elsif product != blank
+    assign product_count = 1
+  endif
+%}
+
+<template data-shop-social-look>
+  <div class="shop-social-look__media" data-look-media>
+    {% if image != blank %}
+      {{
+        image
+        | image_url: width: 1600
+        | image_tag:
+          widths: '640, 900, 1200, 1600',
+          sizes: '(min-width: 750px) 50vw, 100vw',
+          class: 'shop-social-look__img',
+          alt: image.alt
+      }}
+    {% else %}
+      {{ placeholder | placeholder_svg_tag: 'shop-social-look__img shop-social-look__img--placeholder' }}
+    {% endif %}
+  </div>
+
+  <div class="shop-social-look__content" data-look-content>
+    {% if product_count > 0 %}
+      <ul class="shop-social-look__products list-unstyled" data-count="{{ product_count }}">
+        {% if products != blank %}
+          {% for look_product in products limit: 4 %}
+            <li>{% render 'shop-social-look-product', product: look_product %}</li>
+          {% endfor %}
+        {% else %}
+          <li>{% render 'shop-social-look-product', product: product %}</li>
+        {% endif %}
+      </ul>
+    {% elsif show_product_slots %}
+      <ul class="shop-social-look__products list-unstyled" data-count="2">
+        {% for i in (1..2) %}
+          <li class="shop-social-look__slot">
+            <span class="shop-social-look__slot-media">{{ 'product-apparel-1' | placeholder_svg_tag }}</span>
+            <span class="shop-social-look__slot-label">Product {{ i }}</span>
+          </li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+
+    {% if caption != blank %}
+      <div class="shop-social-look__caption">{{ caption | escape | newline_to_br }}</div>
+    {% endif %}
+
+    {% if author != blank or date != blank %}
+      <p class="shop-social-look__meta">
+        {%- if author != blank -%}
+          <span>{{ author | escape }}</span>
+        {%- endif -%}
+        {%- if source_label != blank -%}
+          <span aria-hidden="true"> // </span>
+          {%- if source_url != blank -%}
+            <a href="{{ source_url }}" target="_blank" rel="noopener">{{ source_label | escape }}</a>
+          {%- else -%}
+            <span>{{ source_label | escape }}</span>
+          {%- endif -%}
+        {%- endif -%}
+        {%- if date != blank -%}
+          <span aria-hidden="true"> // </span>
+          <span>{{ date | escape }}</span>
+        {%- endif -%}
+      </p>
+    {% endif %}
+  </div>
+</template>

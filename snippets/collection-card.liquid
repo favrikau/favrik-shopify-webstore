@@ -181,7 +181,12 @@
     object-position: center center;
   }
 
-  /* Homepage heroes: stack full-width */
+  /* Homepage hero: full-screen portrait panels — side-by-side on desktop, stacked on mobile */
+  [id*='collection_list_showcase'],
+  .collection-list-showcase {
+    --hero-showcase-panel-height: 100svh;
+  }
+
   [id*='collection_list_showcase'] .resource-list--grid,
   .collection-list-showcase .resource-list--grid {
     grid-template-columns: 1fr !important;
@@ -190,51 +195,43 @@
   [id*='collection_list_showcase'] .resource-list__item,
   .collection-list-showcase .resource-list__item {
     width: 100%;
+    min-height: var(--hero-showcase-panel-height);
   }
 
   [id*='collection_list_showcase'] .collection-card,
   [id*='collection_list_showcase'] .collection-card.collection-card--image-bg,
   .collection-list-showcase .collection-card,
   .collection-list-showcase .collection-card.collection-card--image-bg {
-    --ratio: 16 / 9;
     width: 100%;
-  }
-
-  /*
-    First hero must fit below the sticky header in the opening viewport.
-    Use --header-height (not --header-group-height, which is 0 for non-transparent headers).
-  */
-  [id*='collection_list_showcase'] .resource-list__item:first-child,
-  .collection-list-showcase .resource-list__item:first-child {
-    height: calc(100svh - var(--header-height, 60px));
-    max-height: calc(100svh - var(--header-height, 60px));
-  }
-
-  [id*='collection_list_showcase'] .resource-list__item:first-child .collection-card,
-  [id*='collection_list_showcase'] .resource-list__item:first-child .collection-card.collection-card--image-bg,
-  .collection-list-showcase .resource-list__item:first-child .collection-card,
-  .collection-list-showcase .resource-list__item:first-child .collection-card.collection-card--image-bg {
     aspect-ratio: unset !important;
-    height: 100% !important;
-    max-height: 100%;
-    min-height: 0;
+    min-height: var(--hero-showcase-panel-height);
+    height: 100%;
   }
 
-  [id*='collection_list_showcase'] .resource-list__item:first-child .collection-card .resource-image,
-  [id*='collection_list_showcase'] .resource-list__item:first-child .collection-card .collection-card__image,
-  .collection-list-showcase .resource-list__item:first-child .collection-card .resource-image,
-  .collection-list-showcase .resource-list__item:first-child .collection-card .collection-card__image {
+  [id*='collection_list_showcase'] .resource-list__item .collection-card .resource-image,
+  [id*='collection_list_showcase'] .resource-list__item .collection-card .collection-card__image,
+  .collection-list-showcase .resource-list__item .collection-card .resource-image,
+  .collection-list-showcase .resource-list__item .collection-card .collection-card__image {
     aspect-ratio: unset !important;
     width: 100%;
     height: 100%;
+    min-height: var(--hero-showcase-panel-height);
     max-height: none;
   }
 
-  [id*='collection_list_showcase'] .resource-list__item:first-child .collection-card__inner,
-  [id*='collection_list_showcase'] .resource-list__item:first-child .collection-card__content,
-  .collection-list-showcase .resource-list__item:first-child .collection-card__inner,
-  .collection-list-showcase .resource-list__item:first-child .collection-card__content {
+  [id*='collection_list_showcase'] .resource-list__item .collection-card .resource-image__image,
+  .collection-list-showcase .resource-list__item .collection-card .resource-image__image {
+    aspect-ratio: unset !important;
     height: 100%;
+    min-height: inherit;
+  }
+
+  [id*='collection_list_showcase'] .resource-list__item .collection-card__inner,
+  [id*='collection_list_showcase'] .resource-list__item .collection-card__content,
+  .collection-list-showcase .resource-list__item .collection-card__inner,
+  .collection-list-showcase .resource-list__item .collection-card__content {
+    height: 100%;
+    min-height: inherit;
   }
 
   [id*='collection_list_showcase'] .collection-card.collection-card--image-bg .collection-card__content,
@@ -248,18 +245,26 @@
     box-sizing: border-box;
   }
 
-  /* Later heroes stay landscape but never taller than the remaining viewport */
-  [id*='collection_list_showcase'] .resource-list__item:not(:first-child) .collection-card.collection-card--image-bg,
-  .collection-list-showcase .resource-list__item:not(:first-child) .collection-card.collection-card--image-bg {
-    aspect-ratio: 16 / 9;
-    max-height: calc(100svh - var(--header-height, 60px));
+  @media screen and (max-width: 749px) {
+    [id*='collection_list_showcase'] .resource-list__item,
+    .collection-list-showcase .resource-list__item {
+      height: var(--hero-showcase-panel-height);
+    }
   }
 
-  [id*='collection_list_showcase'] .resource-list__item:not(:first-child) .collection-card .resource-image,
-  .collection-list-showcase .resource-list__item:not(:first-child) .collection-card .resource-image {
-    aspect-ratio: unset;
-    width: 100%;
-    height: 100%;
+  @media screen and (min-width: 750px) {
+    [id*='collection_list_showcase'] .resource-list--grid,
+    .collection-list-showcase .resource-list--grid {
+      grid-template-columns: repeat(2, 1fr) !important;
+      min-height: var(--hero-showcase-panel-height);
+      height: var(--hero-showcase-panel-height);
+    }
+
+    [id*='collection_list_showcase'] .resource-list__item,
+    .collection-list-showcase .resource-list__item {
+      height: 100%;
+      min-height: var(--hero-showcase-panel-height);
+    }
   }
 
   [id*='collection_list_showcase'] .collection-card .collection-hero-button,

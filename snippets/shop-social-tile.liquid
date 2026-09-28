@@ -1,0 +1,75 @@
+{%- doc -%}
+  Single Shop Social carousel tile with hover overlay (Instagram logo + label).
+  Clicking opens the Shop Social modal; the look <template> must stay the tile's next sibling.
+
+  @param {object} [image] - Image to display; renders a placeholder when blank
+  @param {string} [label] - Overlay label, defaults to "SHOP THE LOOK"
+  @param {string} [placeholder] - Placeholder SVG name
+  @param {string} [caption] - Look description shown in the modal
+  @param {string} [author] - Handle credited in the modal meta line
+  @param {string} [date] - Display date for the modal meta line
+  @param {string} [source_url] - Link to the original post
+  @param {object[]} [products] - Products worn in the look
+  @param {object} [product] - Single product worn in the look
+  @param {boolean} [show_product_slots] - Render empty product slots when no products are attached
+  @param {string} [attributes] - Theme editor attributes (block.shopify_attributes)
+{%- enddoc -%}
+
+{% liquid
+  assign label = label | default: 'SHOP THE LOOK'
+  assign placeholder = placeholder | default: 'lifestyle-1'
+%}
+
+<button
+  type="button"
+  class="shop-social__tile"
+  aria-label="{{ label | escape }}"
+  aria-haspopup="dialog"
+  data-shop-social-tile
+  {{ attributes }}
+>
+  {% if image != blank %}
+    {{
+      image
+      | image_url: width: 900
+      | image_tag:
+        widths: '320, 480, 640, 900',
+        sizes: '(min-width: 750px) 25vw, 62vw',
+        class: 'shop-social__img',
+        loading: 'lazy',
+        alt: image.alt
+    }}
+  {% else %}
+    {{ placeholder | placeholder_svg_tag: 'shop-social__img shop-social__img--placeholder' }}
+  {% endif %}
+
+  <span class="shop-social__overlay" aria-hidden="true">
+    <svg
+      class="shop-social__icon"
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="1.6"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      focusable="false"
+    >
+      <rect x="2.75" y="2.75" width="18.5" height="18.5" rx="5.25"/>
+      <circle cx="12" cy="12" r="4.25"/>
+      <circle cx="17.4" cy="6.6" r="0.9" fill="currentColor" stroke="none"/>
+    </svg>
+    <span class="shop-social__label">{{ label | escape }}</span>
+  </span>
+</button>
+{%- render 'shop-social-look',
+    image: image,
+    placeholder: placeholder,
+    caption: caption,
+    author: author,
+    date: date,
+    source_url: source_url,
+    products: products,
+    product: product,
+    show_product_slots: show_product_slots
+-%}

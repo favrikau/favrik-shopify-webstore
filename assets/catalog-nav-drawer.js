@@ -53,6 +53,18 @@ function getHeaderStackBottom() {
 function syncOverlayTop() {
   const top = getHeaderStackBottom();
   document.body.style.setProperty('--catalog-nav-top', `${top}px`);
+  document.body.style.setProperty('--page-scrollbar-width', `${getPageScrollbarWidth()}px`);
+}
+
+/**
+ * @returns {number}
+ */
+function getPageScrollbarWidth() {
+  const pageWrapper = document.querySelector('.page-wrapper');
+  if (window.matchMedia('(min-width: 990px)').matches && pageWrapper instanceof HTMLElement) {
+    return Math.max(0, pageWrapper.offsetWidth - pageWrapper.clientWidth);
+  }
+  return Math.max(0, window.innerWidth - document.documentElement.clientWidth);
 }
 
 /**
@@ -177,11 +189,16 @@ function handleDocumentClick(event) {
   if (target.closest('.catalog-nav-drawer__link')) return;
 
   const trigger = target.closest('[data-catalog-nav-trigger]');
-  if (!trigger) return;
+  if (trigger) {
+    event.preventDefault();
+    event.stopPropagation();
+    toggleDrawer();
+    return;
+  }
 
-  event.preventDefault();
-  event.stopPropagation();
-  toggleDrawer();
+  if (isOpen() && !target.closest('[data-catalog-nav-drawer]')) {
+    closeDrawer();
+  }
 }
 
 /**

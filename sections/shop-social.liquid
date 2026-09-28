@@ -1,0 +1,953 @@
+{% liquid
+  assign collection = section.settings.collection
+  assign label = section.settings.overlay_label | default: 'SHOP THE LOOK'
+  assign default_link = section.settings.instagram_url
+  assign product_limit = 24
+
+  if section.blocks.size > 0
+    assign source = 'blocks'
+    assign total = section.blocks.size
+  elsif collection != blank and collection.products_count > 0
+    assign source = 'collection'
+    assign total = collection.products_count
+    if total > product_limit
+      assign total = product_limit
+    endif
+  else
+    assign source = 'placeholder'
+    assign total = 12
+  endif
+
+  assign split_rows = false
+
+  if section.settings.background_color != blank
+    render 'contrast-override', background_color: section.settings.background_color, section_id: section.id
+  endif
+%}
+
+{%- for row in (1..1) -%}
+  {%- assign row_mod = row | minus: 1 -%}
+
+  {%- capture items -%}
+    {%- case source -%}
+      {%- when 'blocks' -%}
+        {%- for block in section.blocks -%}
+          {%- assign item_mod = forloop.index0 | modulo: 2 -%}
+          {%- if split_rows and item_mod != row_mod -%}
+            {%- continue -%}
+          {%- endif -%}
+          {%- assign tile_link = block.settings.link | default: default_link -%}
+          {%- assign tile_author = block.settings.author | default: section.settings.handle -%}
+          {%- render 'shop-social-tile',
+            image: block.settings.image,
+            label: label,
+            caption: block.settings.caption,
+            author: tile_author,
+            date: block.settings.date,
+            source_url: tile_link,
+            products: block.settings.products,
+            show_product_slots: request.design_mode,
+            attributes: block.shopify_attributes
+          -%}
+        {%- endfor -%}
+      {%- when 'collection' -%}
+        {%- for product in collection.products limit: product_limit -%}
+          {%- assign item_mod = forloop.index0 | modulo: 2 -%}
+          {%- if split_rows and item_mod != row_mod -%}
+            {%- continue -%}
+          {%- endif -%}
+          {%- render 'shop-social-tile',
+            image: product.featured_image,
+            label: label,
+            author: section.settings.handle,
+            source_url: default_link,
+            product: product
+          -%}
+        {%- endfor -%}
+      {%- else -%}
+        {%- for i in (1..total) -%}
+          {%- assign item_mod = forloop.index0 | modulo: 2 -%}
+          {%- if split_rows and item_mod != row_mod -%}
+            {%- continue -%}
+          {%- endif -%}
+          {%- liquid
+            assign placeholder_index = forloop.index0 | modulo: 2 | plus: 1
+            assign placeholder_name = 'lifestyle-' | append: placeholder_index
+          -%}
+          {%- render 'shop-social-tile',
+            label: label,
+            placeholder: placeholder_name,
+            caption: 'Spotted styling our latest pieces. Shop the look in store and online.',
+            author: section.settings.handle,
+            source_url: default_link,
+            show_product_slots: true
+          -%}
+        {%- endfor -%}
+    {%- endcase -%}
+  {%- endcapture -%}
+
+  {%- if row == 1 -%}
+    {%- assign row_one_items = items -%}
+  {%- else -%}
+    {%- assign row_two_items = items -%}
+  {%- endif -%}
+{%- endfor -%}
+
+<div
+  class="section-background{% if section.settings.background_color != blank %} color-custom-{{ section.id }}{% endif %}"
+></div>
+
+<div
+  class="section section--{{ section.settings.section_width }} spacing-style{% if section.settings.background_color != blank %} color-custom-{{ section.id }}{% endif %}"
+  style="{% render 'spacing-style', settings: section.settings %}"
+  data-testid="shop-social"
+>
+  <shop-social-carousel
+    class="shop-social"
+    style="--shop-social-gap: {{ section.settings.gap }}px;"
+  >
+    {% if section.settings.heading_en != blank %}
+      <div class="shop-social__header">
+        {% render 'bilingual-section-heading',
+          heading_en: section.settings.heading_en,
+          heading_ko: section.settings.heading_ko,
+          color: section.settings.heading_color
+        %}
+        {% if section.settings.handle != blank %}
+          {% if section.settings.instagram_url != blank %}
+            <a
+              class="shop-social__handle"
+              href="{{ section.settings.instagram_url }}"
+              target="_blank"
+              rel="noopener"
+            >
+              {{- section.settings.handle | escape -}}
+            </a>
+          {% else %}
+            <p class="shop-social__handle">{{ section.settings.handle | escape }}</p>
+          {% endif %}
+        {% endif %}
+      </div>
+    {% endif %}
+
+    <div class="shop-social__viewport">
+      <div class="shop-social__rows">
+        <div class="shop-social__row" data-shop-social-row>
+          {{- row_one_items -}}
+        </div>
+      </div>
+
+      <button
+        type="button"
+        class="shop-social__arrow shop-social__arrow--prev"
+        aria-label="Previous images"
+        data-shop-social-prev
+        disabled
+      >
+        <svg width="10" height="16" viewBox="0 0 6 10" fill="none" aria-hidden="true" focusable="false">
+          <path d="M5 1L1 5L5 9" stroke="currentColor" stroke-width="0.75" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="8"/>
+        </svg>
+      </button>
+      <button
+        type="button"
+        class="shop-social__arrow shop-social__arrow--next"
+        aria-label="Next images"
+        data-shop-social-next
+      >
+        <svg width="10" height="16" viewBox="0 0 6 10" fill="none" aria-hidden="true" focusable="false">
+          <path d="M1 1L5 5L1 9" stroke="currentColor" stroke-width="0.75" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="8"/>
+        </svg>
+      </button>
+    </div>
+  </shop-social-carousel>
+
+  <shop-social-modal>
+    <dialog class="shop-social-modal" aria-label="{{ label | escape }}" data-shop-social-dialog>
+      <div class="shop-social-modal__inner">
+        <div class="shop-social-modal__media" data-modal-media></div>
+        <div class="shop-social-modal__panel">
+          <div class="shop-social-modal__header">
+            <div class="shop-social-modal__nav">
+              <button type="button" class="shop-social-modal__icon-button" aria-label="Previous look" data-modal-prev>
+                <svg width="14" height="24" viewBox="0 0 6 10" fill="none" aria-hidden="true" focusable="false">
+                  <path d="M5 1L1 5L5 9" stroke="currentColor" stroke-width="0.5"/>
+                </svg>
+              </button>
+              <button type="button" class="shop-social-modal__icon-button" aria-label="Next look" data-modal-next>
+                <svg width="14" height="24" viewBox="0 0 6 10" fill="none" aria-hidden="true" focusable="false">
+                  <path d="M1 1L5 5L1 9" stroke="currentColor" stroke-width="0.5"/>
+                </svg>
+              </button>
+            </div>
+            <button type="button" class="shop-social-modal__icon-button" aria-label="Close" data-modal-close>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false">
+                <path d="M3 3L21 21M21 3L3 21" stroke="currentColor" stroke-width="1"/>
+              </svg>
+            </button>
+          </div>
+          <div class="shop-social-modal__content" data-modal-content></div>
+          <img
+            src="{{ 'favrik_logo.png' | asset_url }}"
+            class="shop-social-modal__logo"
+            alt="{{ shop.name | escape }}"
+            width="60"
+            height="20"
+            loading="lazy"
+          >
+        </div>
+      </div>
+    </dialog>
+  </shop-social-modal>
+</div>
+
+<script src="{{ 'shop-social-modal.js' | asset_url }}" type="module" fetchpriority="low"></script>
+
+{% javascript %}
+  class ShopSocialCarousel extends HTMLElement {
+    connectedCallback() {
+      this.rows = [...this.querySelectorAll('[data-shop-social-row]')];
+      this.prevButton = this.querySelector('[data-shop-social-prev]');
+      this.nextButton = this.querySelector('[data-shop-social-next]');
+      if (!this.rows.length || !this.prevButton || !this.nextButton) return;
+
+      this.update = this.update.bind(this);
+      this.onPrev = () => this.page(-1);
+      this.onNext = () => this.page(1);
+
+      this.prevButton.addEventListener('click', this.onPrev);
+      this.nextButton.addEventListener('click', this.onNext);
+      this.rows.forEach((row) => row.addEventListener('scroll', this.update, { passive: true }));
+
+      this.resizeObserver = new ResizeObserver(this.update);
+      this.rows.forEach((row) => this.resizeObserver.observe(row));
+      this.update();
+    }
+
+    disconnectedCallback() {
+      this.prevButton?.removeEventListener('click', this.onPrev);
+      this.nextButton?.removeEventListener('click', this.onNext);
+      this.rows?.forEach((row) => row.removeEventListener('scroll', this.update));
+      this.resizeObserver?.disconnect();
+    }
+
+    page(direction) {
+      const row = this.rows[0];
+      const tile = row.querySelector('.shop-social__tile');
+      if (!tile) return;
+
+      const gap = parseFloat(getComputedStyle(row).columnGap) || 0;
+      const step = tile.getBoundingClientRect().width + gap;
+      const tilesPerPage = Math.max(1, Math.floor((row.clientWidth + gap) / step));
+      const behavior = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
+
+      this.rows.forEach((r) => r.scrollBy({ left: direction * tilesPerPage * step, behavior }));
+    }
+
+    update() {
+      const atStart = this.rows.every((row) => row.scrollLeft <= 1);
+      const atEnd = this.rows.every((row) => row.scrollLeft + row.clientWidth >= row.scrollWidth - 1);
+      this.prevButton.disabled = atStart;
+      this.nextButton.disabled = atEnd;
+      this.toggleAttribute('data-static', atStart && atEnd);
+    }
+  }
+
+  if (!customElements.get('shop-social-carousel')) {
+    customElements.define('shop-social-carousel', ShopSocialCarousel);
+  }
+{% endjavascript %}
+
+{% stylesheet %}
+  .shop-social {
+    --shop-social-tile-width: clamp(13rem, 25vw, 28rem);
+    --shop-social-tile-ratio: 4 / 5;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    width: 100%;
+  }
+
+  .shop-social__header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-inline: var(--page-margin);
+  }
+
+  .shop-social__header .favrik-bilingual-heading {
+    display: flex;
+    align-items: baseline;
+    gap: 1rem;
+    color: var(--favrik-bilingual-heading-color, #302118);
+  }
+
+  .shop-social__header .favrik-bilingual-heading__en,
+  .shop-social__header .favrik-bilingual-heading__ko {
+    margin: 0;
+  }
+
+  .shop-social__header .favrik-bilingual-heading__en {
+    font-family: var(--font-body--family);
+    font-style: var(--font-body--style);
+    font-weight: var(--font-body--weight);
+    letter-spacing: var(--font-h4--letter-spacing);
+  }
+
+  .shop-social__header .favrik-bilingual-heading__ko {
+    font-family: var(--font-korean--family);
+    font-size: 0.72em;
+    font-weight: 400;
+    line-height: 1.25;
+  }
+
+  .shop-social__handle {
+    margin: 0;
+    font-family: var(--font-body--family);
+    font-size: 0.8125rem;
+    letter-spacing: 0.06em;
+    color: rgb(48 33 24 / 0.72);
+    text-decoration: none;
+  }
+
+  a.shop-social__handle:hover {
+    color: rgb(48 33 24);
+  }
+
+  .shop-social__viewport {
+    position: relative;
+  }
+
+  .shop-social__rows {
+    display: flex;
+    flex-direction: column;
+    gap: var(--shop-social-gap);
+  }
+
+  .shop-social__row {
+    display: flex;
+    gap: var(--shop-social-gap);
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+  }
+
+  .shop-social__row::-webkit-scrollbar {
+    display: none;
+  }
+
+  .shop-social__arrow {
+    position: absolute;
+    top: 50%;
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: var(--minimum-touch-target, 44px);
+    min-height: var(--minimum-touch-target, 44px);
+    padding: 0 var(--padding-xs, 0.5rem);
+    border: 0;
+    color: var(--color-white, #fff);
+    background: transparent;
+    mix-blend-mode: difference;
+    cursor: pointer;
+    transform: translateY(-50%);
+    transition: opacity 0.2s ease;
+  }
+
+  .shop-social__arrow:hover {
+    opacity: 0.7;
+  }
+
+  .shop-social__arrow:disabled {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .shop-social__arrow svg {
+    display: block;
+    width: 10px;
+    height: 16px;
+    max-width: none;
+  }
+
+  .shop-social__arrow--prev {
+    left: var(--page-margin);
+  }
+
+  .shop-social__arrow--next {
+    right: var(--page-margin);
+  }
+
+  .shop-social[data-static] .shop-social__arrow {
+    display: none;
+  }
+
+  .shop-social__tile {
+    position: relative;
+    display: block;
+    flex: 0 0 var(--shop-social-tile-width);
+    width: var(--shop-social-tile-width);
+    aspect-ratio: var(--shop-social-tile-ratio);
+    overflow: hidden;
+    scroll-snap-align: start;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    font: inherit;
+    color: rgb(255 255 255);
+    text-decoration: none;
+    background-color: rgb(var(--color-foreground-rgb) / var(--opacity-5));
+    cursor: pointer;
+  }
+
+  .shop-social__img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+  }
+
+  .shop-social__overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    background-color: rgb(0 0 0 / 0.45);
+    opacity: 0;
+    transition: opacity 0.2s ease-out;
+    pointer-events: none;
+  }
+
+  .shop-social__tile:hover .shop-social__overlay,
+  .shop-social__tile:focus-visible .shop-social__overlay {
+    opacity: 1;
+  }
+
+  .shop-social__icon {
+    width: clamp(1.75rem, 2.6vw, 2.5rem);
+    height: auto;
+    transform: scale(0.9);
+    transition: transform 0.2s ease-out;
+  }
+
+  .shop-social__tile:hover .shop-social__icon,
+  .shop-social__tile:focus-visible .shop-social__icon {
+    transform: scale(1);
+  }
+
+  .shop-social__label {
+    font-family: var(--font-body--family);
+    font-size: clamp(0.625rem, 0.9vw, 0.8125rem);
+    font-weight: 500;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+
+  @media screen and (max-width: 749px) {
+    .shop-social {
+      --shop-social-tile-width: 62vw;
+      gap: 1rem;
+    }
+
+  }
+
+  /* Look modal */
+  .shop-social-modal {
+    --shop-social-modal-bg: rgb(38 38 38 / 0.82);
+    --shop-social-modal-line: rgb(255 255 255 / 0.28);
+    --shop-social-modal-muted: rgb(255 255 255 / 0.6);
+    width: min(64rem, calc(100vw - 2rem));
+    max-width: none;
+    max-height: calc(100dvh - 2rem);
+    margin: auto;
+    padding: 1.25rem;
+    border: 0;
+    color: #fff;
+    background: var(--shop-social-modal-bg);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    overflow: hidden;
+  }
+
+  .shop-social-modal::backdrop {
+    background: rgb(20 20 20 / 0.35);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+  }
+
+  .shop-social-modal[open] {
+    animation: shop-social-modal-in 0.25s var(--ease-out-cubic, ease);
+  }
+
+  @keyframes shop-social-modal-in {
+    from {
+      opacity: 0;
+      transform: translateY(0.5rem);
+    }
+  }
+
+  .shop-social-modal__inner {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 2rem;
+    height: min(46rem, calc(100dvh - 4.5rem));
+  }
+
+  .shop-social-modal__media {
+    min-height: 0;
+    background-color: rgb(255 255 255 / 0.06);
+  }
+
+  .shop-social-look__media,
+  .shop-social-look__img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .shop-social-modal__panel {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  .shop-social-modal__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-block-end: 1.5rem;
+  }
+
+  .shop-social-modal__nav {
+    display: flex;
+    gap: 1.5rem;
+  }
+
+  .shop-social-modal__icon-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: var(--minimum-touch-target, 44px);
+    min-height: var(--minimum-touch-target, 44px);
+    padding: 0;
+    border: 0;
+    color: inherit;
+    background: transparent;
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+  }
+
+  .shop-social-modal__icon-button:hover {
+    opacity: 0.6;
+  }
+
+  .shop-social-modal__icon-button svg {
+    display: block;
+    max-width: none;
+  }
+
+  .shop-social-modal__content {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .shop-social-modal__logo {
+    flex: 0 0 auto;
+    align-self: flex-end;
+    width: auto;
+    height: 1.25rem;
+    margin-block-start: 1rem;
+    filter: brightness(0) invert(1);
+  }
+
+  .shop-social-look__content {
+    display: flex;
+    flex-direction: column;
+    gap: 1.75rem;
+    padding-inline: 0.5rem;
+    text-align: center;
+  }
+
+  .shop-social-look__products {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.5rem 1rem;
+    margin: 0;
+    padding: 0;
+  }
+
+  .shop-social-look__products[data-count='1'] {
+    grid-template-columns: minmax(0, 12rem);
+    justify-content: center;
+  }
+
+  .shop-social-look__product,
+  .shop-social-look__slot {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .shop-social-look__product-media,
+  .shop-social-look__slot-media {
+    display: block;
+    width: min(100%, 8.5rem);
+    aspect-ratio: 2 / 3;
+    margin-block-end: 0.75rem;
+    overflow: hidden;
+    background-color: rgb(255 255 255 / 0.06);
+  }
+
+  .shop-social-look__product-img,
+  .shop-social-look__slot-media svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .shop-social-look__slot-media {
+    border: 1px dashed var(--shop-social-modal-line);
+    background: transparent;
+  }
+
+  .shop-social-look__product-price,
+  .shop-social-look__product-title,
+  .shop-social-look__slot-label {
+    margin: 0;
+    font-family: var(--font-body--family);
+    font-size: 0.75rem;
+    font-weight: var(--font-body--weight);
+    letter-spacing: 0.04em;
+    line-height: 1.3;
+    text-transform: uppercase;
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .shop-social-look__slot-label {
+    color: var(--shop-social-modal-muted);
+  }
+
+  .shop-social-look__product-compare {
+    margin-inline-end: 0.35em;
+    color: var(--shop-social-modal-muted);
+  }
+
+  a.shop-social-look__product-title:hover {
+    opacity: 0.65;
+  }
+
+  .shop-social-look__product-form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.4rem;
+    width: min(100%, 8.5rem);
+    margin-block-start: 0.35rem;
+  }
+
+  .shop-social-look__variant {
+    width: 100%;
+    padding: 0.35rem 0.5rem;
+    border: 1px solid var(--shop-social-modal-line);
+    border-radius: 0;
+    font-family: var(--font-body--family);
+    font-size: 0.6875rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: inherit;
+    background: transparent;
+  }
+
+  .shop-social-look__variant option {
+    color: #262626;
+    background: #fff;
+  }
+
+  .shop-social-look__add {
+    width: 100%;
+    padding: 0.6rem 0.75rem;
+    border: 0;
+    border-radius: 0;
+    font-family: var(--font-body--family);
+    font-size: 0.625rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #262626;
+    background: #fff;
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+  }
+
+  .shop-social-look__add:hover {
+    opacity: 0.85;
+  }
+
+  .shop-social-look__add:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  .shop-social-look__add[aria-busy='true'] {
+    opacity: 0.6;
+    cursor: progress;
+  }
+
+  .shop-social-look__caption {
+    font-family: var(--font-body--family);
+    font-size: 0.875rem;
+    font-weight: var(--font-body--weight);
+    line-height: 1.65;
+  }
+
+  .shop-social-look__meta {
+    margin: 0;
+    font-family: var(--font-body--family);
+    font-size: 0.6875rem;
+    letter-spacing: 0.12em;
+    line-height: 1.4;
+    text-transform: uppercase;
+    color: var(--shop-social-modal-muted);
+  }
+
+  .shop-social-look__meta a {
+    color: inherit;
+  }
+
+  .shop-social-look__error {
+    margin: 0;
+    font-size: 0.6875rem;
+    color: #ffb4a6;
+  }
+
+  @media screen and (max-width: 749px) {
+    .shop-social-modal {
+      width: 100vw;
+      max-height: 100dvh;
+      height: 100dvh;
+      padding: 1.25rem;
+    }
+
+    .shop-social-modal__inner {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      height: 100%;
+      overflow-y: auto;
+    }
+
+    .shop-social-modal__media {
+      flex: 0 0 auto;
+      height: 72dvh;
+    }
+
+    .shop-social-modal__panel {
+      position: static;
+      flex: 1 0 auto;
+    }
+
+    .shop-social-modal__header {
+      position: absolute;
+      inset: 1.25rem 1.25rem auto;
+      z-index: 2;
+      padding: 0.25rem;
+      color: #fff;
+      mix-blend-mode: difference;
+    }
+
+    .shop-social-modal__content {
+      flex: 0 0 auto;
+      overflow: visible;
+      padding: 2rem 0.75rem 2.5rem;
+    }
+
+    .shop-social-modal__logo {
+      margin: auto 0 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .shop-social__overlay,
+    .shop-social__icon,
+    .shop-social__arrow,
+    .shop-social-modal__icon-button,
+    .shop-social-look__add {
+      transition: none;
+    }
+
+    .shop-social-modal[open] {
+      animation: none;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Shop Social",
+  "tag": "section",
+  "class": "shop-social-section",
+  "disabled_on": {
+    "groups": ["header", "footer"]
+  },
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading_en",
+      "label": "Heading (English)",
+      "default": "Shop Social"
+    },
+    {
+      "type": "text",
+      "id": "heading_ko",
+      "label": "Heading (Korean)"
+    },
+    {
+      "type": "color",
+      "id": "heading_color",
+      "label": "Heading color",
+      "default": "#302118"
+    },
+    {
+      "type": "text",
+      "id": "handle",
+      "label": "Instagram handle",
+      "default": "@favrik"
+    },
+    {
+      "type": "url",
+      "id": "instagram_url",
+      "label": "Instagram URL",
+      "info": "Used for the handle link and for looks without their own post link."
+    },
+    {
+      "type": "text",
+      "id": "overlay_label",
+      "label": "Hover label",
+      "default": "SHOP THE LOOK"
+    },
+    {
+      "type": "collection",
+      "id": "collection",
+      "label": "t:settings.collection",
+      "info": "Used for images when no image blocks are added."
+    },
+    {
+      "type": "range",
+      "id": "gap",
+      "label": "Image gap",
+      "min": 0,
+      "max": 24,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "t:settings.background_color",
+      "placeholder": "t:settings.default"
+    },
+    {
+      "type": "select",
+      "id": "section_width",
+      "label": "t:settings.width",
+      "options": [
+        {
+          "value": "page-width",
+          "label": "t:options.page"
+        },
+        {
+          "value": "full-width",
+          "label": "t:options.full"
+        }
+      ],
+      "default": "full-width"
+    },
+    {
+      "type": "header",
+      "content": "t:content.padding"
+    },
+    {
+      "type": "range",
+      "id": "padding-block-start",
+      "label": "t:settings.top",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 48
+    },
+    {
+      "type": "range",
+      "id": "padding-block-end",
+      "label": "t:settings.bottom",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 48
+    }
+  ],
+  "blocks": [
+    {
+      "type": "image",
+      "name": "Image",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Image"
+        },
+        {
+          "type": "product_list",
+          "id": "products",
+          "label": "Products in this look",
+          "limit": 4
+        },
+        {
+          "type": "textarea",
+          "id": "caption",
+          "label": "Description"
+        },
+        {
+          "type": "text",
+          "id": "author",
+          "label": "Credit handle",
+          "info": "Defaults to the section Instagram handle."
+        },
+        {
+          "type": "text",
+          "id": "date",
+          "label": "Date",
+          "placeholder": "27 September 2026"
+        },
+        {
+          "type": "url",
+          "id": "link",
+          "label": "Original post link",
+          "info": "Links the platform name in the modal. Falls back to the section Instagram URL."
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Shop Social",
+      "category": "t:categories.collections"
+    }
+  ]
+}
+{% endschema %}

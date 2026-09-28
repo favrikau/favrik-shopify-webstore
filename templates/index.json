@@ -31,7 +31,7 @@
               "name": "t:names.collection_card_image",
               "static": true,
               "settings": {
-                "image_ratio": "landscape",
+                "image_ratio": "portrait",
                 "toggle_overlay": true,
                 "overlay_color": "#00000026",
                 "overlay_style": "gradient",
@@ -67,7 +67,7 @@
         ],
         "layout_type": "grid",
         "carousel_on_mobile": false,
-        "columns": 1,
+        "columns": 2,
         "mobile_columns": "1",
         "mobile_card_size": "60cqw",
         "columns_gap": 0,
@@ -230,6 +230,18 @@
         "padding-block-end": 48
       }
     },
+    "category_hero_grid": {
+      "type": "category-hero-grid",
+      "name": "Category hero grid",
+      "settings": {
+        "panel_height": 105,
+        "panel_height_mobile": 55,
+        "section_width": "full-width",
+        "background_color": "{{ settings.color_palette.background }}",
+        "padding-block-start": 0,
+        "padding-block-end": 0
+      }
+    },
     "collection_image_trio_fw2026": {
       "type": "collection-image-trio",
       "name": "Collection image trio",
@@ -255,12 +267,32 @@
         "padding-block-start": 0,
         "padding-block-end": 0
       }
+    },
+    "shop_social": {
+      "type": "shop-social",
+      "name": "Shop Social",
+      "settings": {
+        "heading_en": "Shop Social",
+        "heading_ko": "",
+        "heading_color": "#302118",
+        "handle": "@favrik",
+        "instagram_url": "",
+        "overlay_label": "SHOP THE LOOK",
+        "collection": "fw2026",
+        "gap": 0,
+        "section_width": "full-width",
+        "background_color": "{{ settings.color_palette.background }}",
+        "padding-block-start": 48,
+        "padding-block-end": 48
+      }
     }
   },
   "order": [
     "collection_list_showcase",
     "product_list_fa6P9H",
+    "category_hero_grid",
     "collection_image_trio_fw2026",
-    "collection_image_duo_fw2026"
+    "collection_image_duo_fw2026",
+    "shop_social"
   ]
 }

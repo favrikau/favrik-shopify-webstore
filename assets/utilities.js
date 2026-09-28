@@ -351,6 +351,44 @@ function freezeScrollLockPosition() {
   }
 }
 
+const SCROLL_KEYS = new Set([' ', 'PageUp', 'PageDown', 'Home', 'End', 'ArrowUp', 'ArrowDown']);
+
+/**
+ * @param {EventTarget | null} target
+ */
+function isInsideScrollLockOwner(target) {
+  if (!(target instanceof Node)) return false;
+  for (const owner of scrollLockOwners) {
+    if (owner.contains(target)) return true;
+  }
+  return false;
+}
+
+/**
+ * The page scrollbar can stay visible while locked, so block page-scrolling input directly.
+ * @param {Event} event
+ */
+function blockLockedPageScroll(event) {
+  if (isInsideScrollLockOwner(event.target)) return;
+
+  if (event instanceof KeyboardEvent) {
+    if (!SCROLL_KEYS.has(event.key)) return;
+    const target = event.target;
+    if (target instanceof HTMLElement && (target.isContentEditable || target.matches('input, textarea, select'))) {
+      return;
+    }
+  }
+
+  if (event.cancelable) event.preventDefault();
+}
+
+function setLockedPageScrollBlocking(enabled) {
+  const method = enabled ? 'addEventListener' : 'removeEventListener';
+  window[method]('wheel', blockLockedPageScroll, { passive: false });
+  window[method]('touchmove', blockLockedPageScroll, { passive: false });
+  window[method]('keydown', blockLockedPageScroll);
+}
+
 function pruneDisconnectedScrollLockOwners() {
   for (const owner of scrollLockOwners) {
     if (!owner.isConnected) {
@@ -369,6 +407,7 @@ function syncScrollLock() {
       scrollLockScrollElement = getScrollLockScrollElement();
       scrollLockScrollTop = scrollLockScrollElement.scrollTop;
       scrollLockScrollElement.addEventListener('scroll', freezeScrollLockPosition);
+      setLockedPageScrollBlocking(true);
     }
 
     if (!scrollLockObserver) {
@@ -380,6 +419,7 @@ function syncScrollLock() {
   }
 
   document.documentElement.removeAttribute('scroll-lock');
+  if (scrollLockScrollElement) setLockedPageScrollBlocking(false);
   scrollLockScrollElement?.removeEventListener('scroll', freezeScrollLockPosition);
   scrollLockScrollElement = null;
   scrollLockObserver?.disconnect();

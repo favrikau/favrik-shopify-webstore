@@ -328,6 +328,26 @@
     color: rgb(255 255 255 / 0.7);
   }
 
+  @media screen and (min-width: 750px) {
+    .header-sku-search-backdrop,
+    .header-sku-search__panel {
+      right: var(--page-scrollbar-width, 0px);
+      left: auto;
+      width: calc((100% - var(--page-scrollbar-width, 0px)) / 3);
+      max-width: calc((100% - var(--page-scrollbar-width, 0px)) / 3);
+    }
+
+    .header-sku-search__panel {
+      box-sizing: border-box;
+      padding-inline: var(--page-margin, 40px);
+    }
+
+    .header-sku-search__form {
+      width: 100%;
+      margin-inline: 0;
+    }
+  }
+
   @media screen and (max-width: 749px) {
     .header-sku-search__form {
       width: 100%;

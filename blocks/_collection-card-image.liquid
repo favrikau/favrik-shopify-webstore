@@ -14,13 +14,27 @@
 {% comment %} Note: image_source auto-determined from closest.collection for collections {% endcomment %}
 {% liquid
   assign randomize_collection_image = false
+  assign hero_image = blank
   if template.name == 'index' and section.id contains 'collection_list_showcase'
     assign randomize_collection_image = true
+
+    for hero_collection in section.settings.collection_list
+      if hero_collection.handle == closest.collection.handle
+        assign hero_metafield_key = 'hero_image_' | append: forloop.index
+        assign hero_image = shop.metafields.custom[hero_metafield_key].value
+        break
+      endif
+    endfor
+
+    if hero_image != blank
+      assign randomize_collection_image = false
+    endif
   endif
 %}
 
 {% render 'resource-image',
   content_type: 'collections',
+  image_source: hero_image,
   parent_block_id: parent_block_id,
   block_settings: block.settings,
   section_settings: section.settings,
