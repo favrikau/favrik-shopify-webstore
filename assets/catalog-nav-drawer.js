@@ -14,7 +14,7 @@ let closeTimer = null;
 /** @type {ResizeObserver | null} */
 let headerStackObserver = null;
 
-const FADE_MS = 320;
+const FADE_MS = 380;
 
 /**
  * @returns {HTMLElement | null}
@@ -99,6 +99,7 @@ function setOpen(open) {
 
     drawer.hidden = false;
     drawer.setAttribute('aria-hidden', 'false');
+    document.documentElement.setAttribute('data-header-overlay-lock', '');
     lockScroll(drawer);
     if (backdrop) {
       backdrop.hidden = false;
@@ -121,6 +122,7 @@ function setOpen(open) {
   backdrop?.setAttribute('aria-hidden', 'true');
   observeHeaderStack(false);
   unlockScroll(drawer);
+  document.documentElement.removeAttribute('data-header-overlay-lock');
 
   closeTimer = window.setTimeout(() => {
     drawer.hidden = true;

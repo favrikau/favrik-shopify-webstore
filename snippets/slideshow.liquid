@@ -74,6 +74,10 @@
   endfor
 
   assign timeline_scope = timeline_scope | strip | split: ',' | compact | join: ','
+  assign disable_previous = false
+  if infinite == false
+    assign disable_previous = true
+  endif
 -%}
 
 <slideshow-component
@@ -102,7 +106,12 @@
   {% endif %}
   <slideshow-container ref="slideshowContainer">
     {% if show_arrows %}
-      {% render 'slideshow-arrows', icon_style: icon_style, icon_shape: icon_shape, arrows_position: arrows_position %}
+      {% render 'slideshow-arrows',
+        icon_style: icon_style,
+        icon_shape: icon_shape,
+        arrows_position: arrows_position,
+        disable_previous: disable_previous
+      %}
     {% endif %}
     {% if slideshow_arrows %}
       {{ slideshow_arrows }}

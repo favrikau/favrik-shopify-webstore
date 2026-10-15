@@ -1,0 +1,15 @@
+# Non-theme files — Shopify CLI should not upload or delete these
+AGENTS.md
+README.md
+CODEX_CONTEXT.md
+SITEMAP.md
+*.md
+.git
+.cursor
+.gitignore
+.DS_Store
+node_modules
+package.json
+package-lock.json
+.tmp-*
+templates/i.txt

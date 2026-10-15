@@ -5,9 +5,10 @@
   @param {string} [icon_style] - { 'arrow' | 'chevron' } The style of the icon, defaults to 'arrow'.
   @param {string} [icon_shape] - { 'none' | 'circle' | 'square' } The shape of the icon background, defaults to 'none'.
   @param {string} [icon_size] - { 'small' | 'medium' | 'large' } The size of the icon, defaults to 'medium'.
+  @param {boolean} [disabled] - Whether the arrow starts disabled (e.g. previous on a non-looping slideshow).
 
   @example
-  {%- render 'slideshow-arrow', action: 'previous' -%}
+    {%- render 'slideshow-arrow', action: 'previous' -%}
 {%- enddoc -%}
 
 {%- liquid
@@ -31,6 +32,9 @@
     aria-label="{{ 'accessibility.slideshow_previous' | t }}"
   {% else %}
     aria-label="{{ 'accessibility.slideshow_next' | t }}"
+  {% endif %}
+  {% if disabled %}
+    disabled
   {% endif %}
   on:click="/{{ action }}"
   ref="{{ action }}"

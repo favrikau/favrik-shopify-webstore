@@ -284,39 +284,52 @@
   {% endcapture %}
 {% endif %}
 
-<div
-  class="product-shipping-returns accordion accordion--plus accordion--dividers"
-  style="
-    --summary-font-family: var(--font-body--family);
-    --summary-font-style: var(--font-body--style);
-    --summary-font-weight: 400;
-    --summary-font-size: var(--font-body--size);
-    --summary-font-line-height: var(--font-body--line-height);
-    --summary-font-case: uppercase;
-  "
->
-  {% if sizing_guide_has_content %}
+{% capture product_details_accordion_style %}
+  --summary-font-family: var(--font-body--family);
+  --summary-font-style: var(--font-body--style);
+  --summary-font-weight: 400;
+  --summary-font-size: var(--font-body--size);
+  --summary-font-line-height: var(--font-body--line-height);
+  --summary-font-case: uppercase;
+{% endcapture %}
+
+{% if sizing_guide_has_content %}
+  <div
+    class="product-details-accordion product-shipping-returns accordion accordion--plus"
+    style="{{ product_details_accordion_style }}"
+  >
     {% render 'accordion-custom-component', children: sizing_guide_accordion %}
-  {% endif %}
-  {% if care_guide_content != blank %}
+  </div>
+{% endif %}
+{% if care_guide_content != blank %}
+  <div
+    class="product-details-accordion product-shipping-returns accordion accordion--plus"
+    style="{{ product_details_accordion_style }}"
+  >
     {% render 'accordion-custom-component', children: care_guide_accordion %}
-  {% endif %}
+  </div>
+{% endif %}
+<div
+  class="product-details-accordion product-shipping-returns accordion accordion--plus"
+  style="{{ product_details_accordion_style }}"
+>
   {% render 'accordion-custom-component', children: shipping_returns_content %}
 </div>
 
 {% render 'accordion-styles' %}
 
 {% stylesheet %}
-  .product-shipping-returns {
+  .product-details-accordion {
     --color-border: rgb(48 33 24 / 0.22);
     --style-border-width: 0.5px;
-    margin-block-start: 0;
-    padding-block-start: 0;
-    border-block-start: none;
   }
 
-  .product-shipping-returns.accordion--dividers accordion-custom:not(:first-child) .details {
-    border-block-start: 0.5px solid rgb(48 33 24 / 0.22);
+  .product-details-accordion .details {
+    border: none;
+  }
+
+  .product-details-accordion accordion-custom {
+    display: block;
   }
 
   .product-shipping-returns .details__header {
@@ -330,7 +343,7 @@
     font-style: var(--font-body--style);
     font-size: var(--font-body--size);
     line-height: var(--font-body--line-height);
-    font-weight: 300;
+    font-weight: 200;
     color: #000;
   }
 
@@ -394,8 +407,8 @@
   }
 
   .product-information .product-details .product-sizing-guide__content {
-    padding-block-start: 1.75rem;
-    padding-block-end: 1.5rem;
+    padding-block-start: 1.25rem;
+    padding-block-end: 0;
   }
 
   .product-sizing-guide__type {
@@ -443,7 +456,7 @@
 
   .product-sizing-guide__row dd {
     text-align: end;
-    font-weight: 300;
+    font-weight: 200;
     color: #000;
   }
 

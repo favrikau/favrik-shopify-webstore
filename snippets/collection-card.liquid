@@ -181,6 +181,19 @@
     object-position: center center;
   }
 
+  [id*='collection_list_showcase'] .resource-list__item:nth-child(2) .collection-card__image :is(.resource-image__image, .resource-image__random-image),
+  .collection-list-showcase .resource-list__item:nth-child(2) .collection-card__image :is(.resource-image__image, .resource-image__random-image) {
+    object-position: center top;
+  }
+
+  .collection-list-showcase .resource-list__item:nth-child(2) .collection-card__image .overlay {
+    opacity: 0.5;
+  }
+
+  .collection-list-showcase .resource-list__item:nth-child(2) .collection-hero-button__caption {
+    background: linear-gradient(to top, rgb(48 33 24 / 0.28) 0%, rgb(48 33 24 / 0) 100%);
+  }
+
   /* Homepage hero: full-screen portrait panels — side-by-side on desktop, stacked on mobile */
   [id*='collection_list_showcase'],
   .collection-list-showcase {
@@ -239,10 +252,19 @@
     position: absolute;
     inset: 0;
     z-index: 2;
+    --horizontal-alignment: center;
     justify-content: flex-end;
-    padding-block: var(--page-margin);
-    padding-inline: var(--page-margin);
+    align-items: stretch;
+    padding: 0;
     box-sizing: border-box;
+    pointer-events: none;
+  }
+
+  [id*='collection_list_showcase'] .collection-card.collection-card--image-bg .collection-card__content > *,
+  .collection-list-showcase .collection-card.collection-card--image-bg .collection-card__content > * {
+    width: 100%;
+    max-width: 100%;
+    align-self: stretch;
   }
 
   @media screen and (max-width: 749px) {
@@ -271,6 +293,7 @@
   .collection-list-showcase .collection-card .collection-hero-button {
     position: relative;
     z-index: 2;
+    pointer-events: auto;
   }
 
   .collection-card--image-bg .collection-card__image {

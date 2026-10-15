@@ -9,7 +9,6 @@
 
   assign image_limit = 24
   assign images_rendered = 0
-  assign fallback_product = null
   assign fallback_image = null
 
   if section.settings.background_color != blank
@@ -53,7 +52,6 @@
             {% endif %}
 
             {% if fallback_image == blank %}
-              {% assign fallback_product = product %}
               {% assign fallback_image = product.featured_image %}
             {% endif %}
 

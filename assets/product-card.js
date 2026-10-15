@@ -433,6 +433,7 @@ export class ProductCard extends ProductCardLink {
    */
   previewImage(event) {
     if (event.pointerType !== 'mouse') return;
+    if (!mediaQueryLarge.matches) return;
 
     const { slideshow } = this.refs;
 
@@ -454,6 +455,7 @@ export class ProductCard extends ProductCardLink {
    */
   resetImage(event) {
     if (event.pointerType !== 'mouse') return;
+    if (!mediaQueryLarge.matches) return;
 
     const { slideshow } = this.refs;
 
@@ -512,6 +514,10 @@ export class ProductCard extends ProductCardLink {
 
     // Don't navigate if this product card is marked as no-navigation (e.g., in theme editor)
     if (this.hasAttribute('data-no-navigation')) return;
+    if (this.hasAttribute('data-card-swiping') || this.querySelector('[data-card-swiping], [dragging]')) {
+      event.preventDefault();
+      return;
+    }
 
     const interactiveElement = event.target.closest('button, input, label, select, [tabindex="1"]');
 

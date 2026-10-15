@@ -16,10 +16,7 @@ export class QuickAddComponent extends Component {
 
   get productPageUrl() {
     const productCard = /** @type {import('./product-card').ProductCard | null} */ (this.closest('product-card'));
-    const hotspotProduct = /** @type {import('./product-hotspot').ProductHotspotComponent | null} */ (
-      this.closest('product-hotspot-component')
-    );
-    const productLink = productCard?.getProductCardLink() || hotspotProduct?.getHotspotProductLink();
+    const productLink = productCard?.getProductCardLink();
 
     if (!productLink?.href) return '';
 

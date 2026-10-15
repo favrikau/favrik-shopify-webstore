@@ -3,10 +3,15 @@
   if (!nav) return;
 
   const ticks = [...nav.querySelectorAll('[data-homepage-tick]')];
+  const sectionFallback = {
+    'shop-social': '[data-testid="shop-social"], .shop-social-section',
+  };
   const sections = ticks
     .map((tick) => {
       const key = tick.getAttribute('data-homepage-tick');
-      const target = document.querySelector(`[data-homepage-section="${key}"]`);
+      const target =
+        document.querySelector(`[data-homepage-section="${key}"]`) ??
+        (sectionFallback[key] ? document.querySelector(sectionFallback[key]) : null);
       return { tick, key, target, box: target?.closest('.shopify-section') ?? target };
     })
     .filter((item) => item.box);
@@ -42,13 +47,35 @@
     });
   };
 
+  const scrollMetrics = (scroller) => {
+    if (scroller === window) {
+      return {
+        scrollTop: window.scrollY,
+        viewport: window.innerHeight,
+        scrollHeight: document.documentElement.scrollHeight,
+      };
+    }
+
+    return {
+      scrollTop: scroller.scrollTop,
+      viewport: scroller.clientHeight,
+      scrollHeight: scroller.scrollHeight,
+    };
+  };
+
   const updateActiveFromScroll = () => {
     const marker = window.innerHeight * 0.42;
+    const { scrollTop, viewport, scrollHeight } = scrollMetrics(getScroller());
+    const atBottom = scrollTop + viewport >= scrollHeight - 16;
     let activeKey = sections[0].key;
 
+    if (atBottom) {
+      setActive(sections[sections.length - 1].key);
+      return;
+    }
+
     sections.forEach(({ key, box }) => {
-      const rect = box.getBoundingClientRect();
-      if (rect.top <= marker && rect.bottom > marker) {
+      if (box.getBoundingClientRect().top <= marker) {
         activeKey = key;
       }
     });
@@ -61,16 +88,23 @@
     if (!match) return;
 
     const scroller = getScroller();
-    const offset = key === 'hero' ? 0 : headerOffset();
+    const titlePad = key === 'signature' || key === 'fw2026' || key === 'shop-social' ? 32 : 0;
+    const offset = key === 'hero' ? 0 : headerOffset() + titlePad;
+    const { scrollTop, viewport, scrollHeight } = scrollMetrics(scroller);
+    const maxScroll = Math.max(0, scrollHeight - viewport);
+    let top;
 
     if (scroller === window) {
-      const top = match.box.getBoundingClientRect().top + window.scrollY - offset;
-      window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
-      return;
+      top = match.box.getBoundingClientRect().top + window.scrollY - offset;
+    } else {
+      top =
+        match.box.getBoundingClientRect().top - scroller.getBoundingClientRect().top + scrollTop - offset;
     }
 
-    const top =
-      match.box.getBoundingClientRect().top - scroller.getBoundingClientRect().top + scroller.scrollTop - offset;
+    if (key === sections[sections.length - 1].key) {
+      top = Math.min(top, maxScroll);
+    }
+
     scroller.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
   };
 

@@ -159,9 +159,11 @@
     z-index: calc(var(--layer-menu-drawer) - 1);
     margin: 0;
     padding: 0;
+    box-sizing: border-box;
     border: 0;
-    background: rgb(50 50 50 / 0.65);
-    background-color: rgb(50 50 50 / 0.65);
+    border-inline-end: 0.5px solid rgb(48 33 24 / 0.22);
+    background: var(--color-background);
+    background-color: var(--color-background);
     backdrop-filter: blur(18px);
     -webkit-backdrop-filter: blur(18px);
     opacity: 0;
@@ -180,8 +182,8 @@
     opacity: 1;
     visibility: visible;
     pointer-events: auto;
-    background: rgb(50 50 50 / 0.65);
-    background-color: rgb(50 50 50 / 0.65);
+    background: var(--color-background);
+    background-color: var(--color-background);
   }
 
   .catalog-nav-drawer {
@@ -251,13 +253,13 @@
     height: 0;
     margin-block: 0.85rem 0.7rem;
     border: 0;
-    border-block-start: 0.5px solid rgb(255 255 255 / 0.35);
+    border-block-start: 0.5px solid rgb(48 33 24 / 0.28);
   }
 
   .catalog-nav-drawer__link {
     display: block;
     padding: 0.45rem 0;
-    color: #ffffff;
+    color: #302118;
     font-family: var(--font-body--family);
     font-size: 0.9375rem;
     font-weight: 300;
@@ -269,7 +271,7 @@
   }
 
   .catalog-nav-drawer__link--secondary {
-    color: rgb(255 255 255 / 0.58);
+    color: rgb(48 33 24 / 0.58);
   }
 
   .catalog-nav-drawer__link:hover {
@@ -278,13 +280,13 @@
 
   .catalog-nav-drawer__link--secondary:hover {
     opacity: 1;
-    color: rgb(255 255 255 / 0.82);
+    color: rgb(48 33 24 / 0.82);
   }
 
   .catalog-nav-drawer__link--active {
     font-weight: 400;
     opacity: 1;
-    color: #ffffff;
+    color: #302118;
   }
 
   @media screen and (min-width: 750px) {
@@ -312,6 +314,21 @@
   }
 
   @media screen and (max-width: 749px) {
+    .catalog-nav-drawer__backdrop,
+    .catalog-nav-drawer {
+      transform: translateX(-100%);
+      opacity: 1;
+      will-change: transform;
+      transition:
+        transform 0.38s var(--ease-out-cubic, cubic-bezier(0.33, 1, 0.68, 1)),
+        visibility 0.38s var(--ease-out-cubic, cubic-bezier(0.33, 1, 0.68, 1));
+    }
+
+    .catalog-nav-drawer__backdrop.is-visible,
+    .catalog-nav-drawer.is-open {
+      transform: translateX(0);
+    }
+
     .catalog-nav-drawer__list {
       gap: 0;
     }
@@ -319,6 +336,13 @@
     .catalog-nav-drawer__link {
       padding-block: 0.3rem;
       font-size: var(--font-size--xs, 0.8125rem);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .catalog-nav-drawer__backdrop,
+    .catalog-nav-drawer {
+      transition: none;
     }
   }
 {% endstylesheet %}

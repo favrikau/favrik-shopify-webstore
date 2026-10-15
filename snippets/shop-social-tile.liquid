@@ -12,6 +12,8 @@
   @param {object[]} [products] - Products worn in the look
   @param {object} [product] - Single product worn in the look
   @param {boolean} [show_product_slots] - Render empty product slots when no products are attached
+  @param {boolean} [force_four_product_preview] - Always render four carousel slides on this look
+  @param {object} [preview_collection] - Collection used to resolve four preview products
   @param {string} [attributes] - Theme editor attributes (block.shopify_attributes)
 {%- enddoc -%}
 
@@ -20,9 +22,10 @@
   assign placeholder = placeholder | default: 'lifestyle-1'
 %}
 
-<button
-  type="button"
+<div
   class="shop-social__tile"
+  role="button"
+  tabindex="0"
   aria-label="{{ label | escape }}"
   aria-haspopup="dialog"
   data-shop-social-tile
@@ -61,7 +64,7 @@
     </svg>
     <span class="shop-social__label">{{ label | escape }}</span>
   </span>
-</button>
+</div>
 {%- render 'shop-social-look',
     image: image,
     placeholder: placeholder,
@@ -71,5 +74,7 @@
     source_url: source_url,
     products: products,
     product: product,
-    show_product_slots: show_product_slots
+    show_product_slots: show_product_slots,
+    force_four_product_preview: force_four_product_preview,
+    preview_collection: preview_collection
 -%}

@@ -19,6 +19,11 @@ let backdropEl = null;
 /** @type {ResizeObserver | null} */
 let headerStackObserver = null;
 
+/** @type {number | null} */
+let closeTimer = null;
+
+const PANEL_TRANSITION_MS = 380;
+
 const syncOverlayTop = () => {
   const headerSection = document.querySelector('.header-section');
   const fallback = Number.parseFloat(getComputedStyle(document.body).getPropertyValue('--header-height'));
@@ -93,17 +98,28 @@ const hideBackdrop = () => {
 const closePanel = () => {
   if (!activeRoot) return;
 
+  const root = activeRoot;
+  const toggle = root.querySelector(SELECTORS.toggle);
+  const panel = root.querySelector(SELECTORS.panel);
+
   observeHeaderStack(false);
-  unlockScroll(activeRoot);
+  unlockScroll(root);
+  document.documentElement.removeAttribute('data-header-overlay-lock');
 
-  const toggle = activeRoot.querySelector(SELECTORS.toggle);
-  const panel = activeRoot.querySelector(SELECTORS.panel);
-
-  activeRoot.classList.remove('is-open');
+  root.classList.remove('is-open');
   hideBackdrop();
-  if (panel instanceof HTMLElement) panel.hidden = true;
   if (toggle instanceof HTMLElement) toggle.setAttribute('aria-expanded', 'false');
   activeRoot = null;
+
+  if (closeTimer != null) window.clearTimeout(closeTimer);
+  const shouldAnimate =
+    window.matchMedia('(max-width: 749px)').matches &&
+    !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const delay = shouldAnimate ? PANEL_TRANSITION_MS : 0;
+  closeTimer = window.setTimeout(() => {
+    if (panel instanceof HTMLElement && !root.classList.contains('is-open')) panel.hidden = true;
+    closeTimer = null;
+  }, delay);
 };
 
 const openPanel = (root) => {
@@ -113,21 +129,30 @@ const openPanel = (root) => {
 
   if (!(panel instanceof HTMLElement) || !(toggle instanceof HTMLElement)) return;
 
+  if (closeTimer != null) {
+    window.clearTimeout(closeTimer);
+    closeTimer = null;
+  }
+
   document.dispatchEvent(new CustomEvent('header-sku-search:open'));
   activeRoot = root;
   syncOverlayTop();
   observeHeaderStack(true);
-  root.classList.add('is-open');
-  lockScroll(root);
-  window.requestAnimationFrame(syncOverlayTop);
   panel.hidden = false;
+  document.documentElement.setAttribute('data-header-overlay-lock', '');
+  lockScroll(root);
   toggle.setAttribute('aria-expanded', 'true');
-  showBackdrop();
   initSkuSearchForms();
 
-  if (input instanceof HTMLInputElement) {
-    window.requestAnimationFrame(() => input.focus({ preventScroll: true }));
-  }
+  // Render the off-canvas state before adding the open class so mobile can slide in.
+  void panel.offsetWidth;
+  window.requestAnimationFrame(() => {
+    if (activeRoot !== root) return;
+    root.classList.add('is-open');
+    showBackdrop();
+    syncOverlayTop();
+    if (input instanceof HTMLInputElement) input.focus({ preventScroll: true });
+  });
 };
 
 const initHeaderSkuSearch = () => {

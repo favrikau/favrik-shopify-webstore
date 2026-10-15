@@ -21,12 +21,14 @@
       endcase
     endif
 
-    assign button_en = button_en | escape
+    assign button_title = button_en | strip | upcase
+    assign button_title = button_title | escape
   %}
 
   <a
     href="{{ closest.collection.url }}"
     class="collection-hero-button text-block text-block--{{ block.id }}"
+    aria-label="{{ button_title }} — Shop now"
     style="
       {% if block.settings.text_color != blank %}
         --color: {{ block.settings.text_color }};
@@ -35,63 +37,106 @@
     "
     {{ block.shopify_attributes }}
   >
-    <span class="collection-hero-button__en" data-text="{{ button_en }}">{{ button_en }}</span>
+    <span class="collection-hero-button__caption">
+      <span class="collection-hero-button__title" data-text="{{ button_title }}">{{ button_title }}</span>
+      <span class="collection-hero-button__cta" data-text="Shop now">Shop now</span>
+    </span>
   </a>
 {% endif %}
 
 {% stylesheet %}
   .collection-hero-button {
-    display: inline-flex;
+    display: flex;
     flex-direction: column;
-    align-items: flex-start;
-    gap: 1px;
-    width: fit-content;
+    align-items: stretch;
+    width: 100%;
     max-width: 100%;
+    --width: 100%;
     text-decoration: none;
     color: var(--collection-hero-button-color, var(--color, #fff7ec));
     cursor: pointer;
   }
 
-  .collection-hero-button__en,
-  .collection-hero-button__ko {
-    margin: 0;
+  .collection-hero-button.text-block {
+    align-items: stretch;
   }
 
-  .collection-hero-button__en {
+  .collection-hero-button__caption {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.35rem;
+    margin: 0;
+    padding: 2.5rem var(--page-margin) calc(var(--page-margin) + 2.25rem);
+    text-align: center;
+    background: linear-gradient(to top, rgb(48 33 24 / 0.52) 0%, rgb(48 33 24 / 0) 100%);
+    box-sizing: border-box;
+  }
+
+  .collection-hero-button__title,
+  .collection-hero-button__cta {
+    margin: 0;
     font-family: var(--font-body--family);
     font-style: var(--font-body--style);
-    font-size: var(--font-h4--size);
-    line-height: var(--font-h4--line-height);
-    letter-spacing: var(--font-h4--letter-spacing);
     font-weight: var(--font-body--weight);
-    transition: opacity 0.4s var(--ease-out-cubic, ease), transform 0.4s var(--ease-out-cubic, ease);
+    text-transform: uppercase;
   }
 
-  .collection-hero-button__ko {
-    font-family: var(--font-korean--family);
-    font-size: calc(var(--font-h4--size) * 0.72);
-    font-weight: 400;
+  .collection-hero-button__title {
+    font-size: var(--homepage-title-font-size, var(--font-h4--size));
     line-height: 1.25;
-    transition: opacity 0.4s var(--ease-out-cubic, ease);
+    letter-spacing: var(--font-h4--letter-spacing);
+    color: rgb(255 247 236 / 0.96);
+    transition:
+      opacity 0.4s var(--ease-out-cubic, ease),
+      transform 0.4s var(--ease-out-cubic, ease);
   }
 
-  .collection-hero-button:is(:hover, :focus-visible) .collection-hero-button__en {
-    opacity: 0.85;
-    transform: translateX(0.18em);
+  .collection-hero-button__cta {
+    font-size: clamp(0.6875rem, 1.2vw, 0.75rem);
+    line-height: 1.25;
+    letter-spacing: 0.12em;
+    color: rgb(255 247 236 / 0.82);
+    transition:
+      opacity 0.4s var(--ease-out-cubic, ease),
+      letter-spacing 0.4s var(--ease-out-cubic, ease),
+      transform 0.4s var(--ease-out-cubic, ease);
   }
 
-  .collection-hero-button:is(:hover, :focus-visible) .collection-hero-button__ko {
-    opacity: 0.85;
+  .collection-hero-button:is(:hover, :focus-visible) .collection-hero-button__title {
+    opacity: 0.88;
+    transform: translateY(-0.14em);
+  }
+
+  .collection-hero-button:is(:hover, :focus-visible) .collection-hero-button__cta {
+    opacity: 1;
+    letter-spacing: 0.16em;
+    transform: translateY(-0.08em);
   }
 
   @media screen and (max-width: 749px) {
-    .collection-hero-button__en {
-      font-size: 0.875rem;
-      line-height: 1.25;
+    .collection-hero-button__caption {
+      padding-block: 2rem calc(var(--page-margin) + 5.5rem);
     }
 
-    .collection-hero-button__ko {
-      font-size: calc(0.875rem * 0.72);
+    .collection-hero-button__title {
+      font-size: 0.875rem;
+    }
+
+    .collection-hero-button__cta {
+      font-size: 0.6875rem;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .collection-hero-button__title,
+    .collection-hero-button__cta {
+      transition: none;
+    }
+
+    .collection-hero-button:is(:hover, :focus-visible) .collection-hero-button__title,
+    .collection-hero-button:is(:hover, :focus-visible) .collection-hero-button__cta {
+      transform: none;
     }
   }
 {% endstylesheet %}

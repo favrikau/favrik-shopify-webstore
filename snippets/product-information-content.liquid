@@ -568,7 +568,7 @@
     font-family: var(--font-body--family);
     font-size: var(--font-body--size);
     line-height: var(--font-body--line-height);
-    font-weight: var(--font-body--weight);
+    font-weight: 200;
     text-transform: none;
   }
 
@@ -683,9 +683,14 @@
   .product-information .product-details .rte,
   .product-information .product-details .text-block.rte,
   .product-information .product-details rte-formatter.text-block,
+  .product-information .product-details .rte :is(p, li, span, div),
+  .product-information .product-details .text-block.rte :is(p, li, span, div),
+  .product-information .product-details rte-formatter.text-block :is(p, li, span, div),
   .product-information .product-details .product-description__material,
   .product-information .product-details .product-description__preorder-dispatch {
-    font-weight: 300;
+    --font-size: 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 200;
     color: #000;
     line-height: 1.65;
   }
@@ -708,8 +713,37 @@
   .product-information
     .product-details
     :is(.product-description__material-label, .product-description__preorder-dispatch-label) {
-    font-weight: 400;
+    font-weight: 200;
     color: #2e2e2e;
+  }
+
+  .product-information .product-details > .group-block > .group-block-content > *:has(.product-details-accordion),
+  .product-information .product-details > .group-block > .group-block-content *:has(> .product-details-accordion) {
+    display: contents;
+  }
+
+  .product-information .product-details .product-details-accordion {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    align-self: stretch;
+    flex: 0 0 auto;
+    padding-block: 1.125rem;
+    padding-inline: var(--page-margin);
+    border-style: solid;
+    border-color: var(--product-details-section-border-color);
+    border-width: 0 0 var(--product-details-section-border-width);
+  }
+
+  .product-information .product-details .product-details-accordion .details__header,
+  .product-information .product-details .product-details-accordion .accordion .details__header {
+    min-height: 0;
+    padding-block: 0;
+  }
+
+  .product-information .product-details .product-details-accordion .details-content {
+    padding-block-end: 0;
   }
 
   .product-information .product-details .product-shipping-returns__content {
@@ -720,6 +754,10 @@
   @media screen and (max-width: 749px) {
     .product-information .product-details > .group-block > .group-block-content {
       --product-details-section-padding: 1.25rem var(--page-margin);
+    }
+
+    .product-information .product-details .product-details-accordion {
+      padding-block: 0.75rem;
     }
   }
 
@@ -792,12 +830,12 @@
     .product-information .product-details .text-block > h1,
     .product-information .product-details .text-block.custom-typography > h1,
     .product-information .product-details h1 {
-      --font-size: 1rem;
+      --font-size: 0.9375rem;
       --max-width: 100%;
       width: 100%;
       max-width: 100%;
       max-inline-size: 100%;
-      font-size: 1rem !important;
+      font-size: 0.9375rem !important;
       text-wrap: wrap;
     }
   }

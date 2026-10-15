@@ -2,16 +2,6 @@
 import { updateAllHeaderCustomProperties } from '@theme/utilities';
 
 /** @type {{ activeSlideIndex: number | null }} */
-const layeredSlideshowState = {
-  activeSlideIndex: null,
-};
-
-/** @type {{ activeSlideIndex: number | null }} */
-const carouselState = {
-  activeSlideIndex: null,
-};
-
-/** @type {{ activeSlideIndex: number | null }} */
 const slideshowState = {
   activeSlideIndex: null,
 };
@@ -64,51 +54,6 @@ document.addEventListener('shopify:block:select', function (event) {
         slideshow.pause();
         slideshow.select(index, undefined, { animate: isAlreadyActive ? false : true });
       }
-    }
-
-    // Keep track of the selected slide for the carousel
-    const carouselCard = event.target.closest('[data-carousel-card]');
-
-    if (carouselCard) {
-      /** @type {import('./slideshow').Slideshow | null} */
-      const slideshow = carouselCard.closest('slideshow-component');
-
-      if (slideshow) {
-        const cards = Array.from(carouselCard.parentElement?.children ?? []);
-        if (!cards) return;
-
-        const index = cards.indexOf(carouselCard);
-
-        if (index === -1) return;
-
-        // Compare before updating to detect if same slide is selected again
-        const isAlreadyActive = index === carouselState.activeSlideIndex;
-        carouselState.activeSlideIndex = index;
-        const targetCard = cards[index];
-
-        if (targetCard instanceof HTMLElement) {
-          targetCard.scrollIntoView({ behavior: isAlreadyActive ? 'instant' : 'smooth', inline: 'center' });
-        }
-      }
-    }
-
-    // Keep track of the selected slide for the layered slideshow
-    const layeredSlideshowPanel = event.target.closest('layered-slideshow-component [role="tabpanel"]');
-
-    if (layeredSlideshowPanel) {
-      /** @type {import('./layered-slideshow').LayeredSlideshowComponent | null} */
-      const layeredSlideshow = layeredSlideshowPanel.closest('layered-slideshow-component');
-      if (!layeredSlideshow) return;
-
-      const index = Array.from(layeredSlideshow.querySelectorAll('[role="tabpanel"]')).indexOf(layeredSlideshowPanel);
-      if (index === -1) return;
-
-      // Compare before updating to detect if same slide is selected again
-      const isAlreadyActive = index === layeredSlideshowState.activeSlideIndex;
-      layeredSlideshowState.activeSlideIndex = index;
-
-      // Use instant transition if the same slide is selected again
-      layeredSlideshow.select(index, { instant: isAlreadyActive });
     }
   }
 });

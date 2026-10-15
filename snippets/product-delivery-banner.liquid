@@ -1,5 +1,6 @@
 {% doc %}
-  Static delivery promo banner for product pages.
+  Static delivery promo banner at the top of every page.
+  Visible only while the page is scrolled to the top; not dismissable.
 {% enddoc %}
 
 <style>
@@ -15,8 +16,9 @@
     border: none;
     position: relative;
     z-index: 2;
+    height: var(--product-delivery-banner-height, 1.875rem);
     padding-block: 0.5rem;
-    padding-inline: 2.5rem;
+    padding-inline: 1rem;
     text-align: center;
   }
 
@@ -30,65 +32,8 @@
     white-space: nowrap;
   }
 
-  .product-delivery-banner__close {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: absolute;
-    right: 0;
-    top: 0;
-    bottom: 0;
-    width: 2.5rem;
-    padding: 0;
-    border: 0;
-    background: transparent;
-    color: inherit;
-    cursor: pointer;
-    appearance: none;
-  }
-
-  .product-delivery-banner__close .svg-wrapper,
-  .product-delivery-banner__close svg {
-    width: 14px;
-    height: 14px;
-    display: block;
-  }
-
-  .product-delivery-banner[hidden] {
-    display: none;
-  }
-
-  /* Keep sticky header rules working when the banner sits above header-component. */
-  .header-section:has(> .product-delivery-banner):has(> #header-component[sticky='always']),
-  .header-section:has(> .product-delivery-banner):has(> #header-component[sticky='scroll-up'][data-sticky-state='active']) {
-    position: sticky;
-    top: -1px;
-    z-index: var(--layer-menu-drawer);
-  }
-
-  @media screen and (max-width: 749px) {
-    .header-section:has(> .product-delivery-banner) {
-      --product-delivery-banner-height: 0px;
-    }
-
-    .header-section:has(> .product-delivery-banner:not([hidden])) {
-      --product-delivery-banner-height: 1.875rem;
-    }
-
-    .product-delivery-banner:not([hidden]) {
-      height: var(--product-delivery-banner-height);
-    }
-
-    /*
-     * Let the full header section move upward by the banner's height before
-     * sticking. The banner leaves the viewport while the header stops at -1px.
-     */
-    .header-section:has(> .product-delivery-banner):has(> #header-component[sticky='always']),
-    .header-section:has(> .product-delivery-banner):has(
-        > #header-component[sticky='scroll-up'][data-sticky-state='active']
-      ) {
-      top: calc(-1 * var(--product-delivery-banner-height) - 1px);
-    }
+  .header-section:has(> .product-delivery-banner) {
+    --product-delivery-banner-height: 1.875rem;
   }
 </style>
 
@@ -100,28 +45,4 @@
   <span class="product-delivery-banner__message">
     Free delivery on orders over $150
   </span>
-  <button
-    type="button"
-    class="product-delivery-banner__close"
-    aria-label="{{ 'actions.close' | t }}"
-    data-product-delivery-banner-close
-  >
-    <span class="svg-wrapper" aria-hidden="true">
-      {{- 'icon-close.svg' | inline_asset_content -}}
-    </span>
-  </button>
 </div>
-
-<script>
-  (function () {
-    var banner = document.getElementById('product-delivery-banner');
-    if (!banner) return;
-
-    var closeButton = banner.querySelector('[data-product-delivery-banner-close]');
-    if (!closeButton) return;
-
-    closeButton.addEventListener('click', function () {
-      banner.hidden = true;
-    });
-  })();
-</script>

@@ -1,12 +1,13 @@
 {% doc %}
-  Homepage vertical ticker — four ticks for hero, signature, FW2026, and bottom images.
+  Homepage vertical ticker — one tick per homepage section.
 {% enddoc %}
 
 <nav class="homepage-section-nav" aria-label="Homepage sections">
   <button type="button" class="homepage-section-nav__tick is-active" data-homepage-tick="hero" aria-label="Hero" aria-current="true"></button>
-  <button type="button" class="homepage-section-nav__tick" data-homepage-tick="signature" aria-label="Signature Collection"></button>
+  <button type="button" class="homepage-section-nav__tick" data-homepage-tick="signature" aria-label="New Arrivals"></button>
+  <button type="button" class="homepage-section-nav__tick" data-homepage-tick="categories" aria-label="Categories"></button>
   <button type="button" class="homepage-section-nav__tick" data-homepage-tick="fw2026" aria-label="FW2026 Collection"></button>
-  <button type="button" class="homepage-section-nav__tick" data-homepage-tick="bottom" aria-label="Collection images"></button>
+  <button type="button" class="homepage-section-nav__tick" data-homepage-tick="shop-social" aria-label="Shop Social"></button>
 </nav>
 
 <script src="{{ 'homepage-section-nav.js' | asset_url }}" defer></script>

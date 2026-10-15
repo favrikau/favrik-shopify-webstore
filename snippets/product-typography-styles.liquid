@@ -37,10 +37,47 @@
       font-style: var(--font-body--style);
     }
 
-    /* Match product-card title weight. */
+    /* Uppercase product chrome stays regular; sentence-case copy is lighter. */
     .product-details .text-block :is(h2, h3, h4, h5, h6),
-    .sticky-add-to-cart__title {
-      font-weight: var(--font-body--weight);
+    .product-details :is(
+      p,
+      li,
+      dd,
+      .rte,
+      .rte :is(p, li, span, div),
+      .text-block.rte,
+      .text-block.rte > *,
+      rte-formatter.text-block,
+      rte-formatter.text-block > *,
+      .product-description__material,
+      .product-description__preorder-dispatch,
+      .product-description__material-label,
+      .product-description__preorder-dispatch-label,
+      .product-shipping-returns__content,
+      .product-shipping-returns__content :is(p, li, dd, span, div),
+      .variant-option__button-label,
+      .variant-option__button-label__text,
+      .quantity-rules,
+      .quantity-label,
+      .product-section-heading
+    ) {
+      font-weight: 200;
+    }
+
+    .sticky-add-to-cart__title,
+    .product-details :is(
+      h1,
+      .details__header,
+      .details__header.product-section-heading,
+      .product-shipping-returns__heading,
+      .product-shipping-returns__subheading,
+      .product-sizing-guide__type,
+      .product-sizing-guide__row dt,
+      .variant-option__label,
+      .product-title__collection,
+      .add-to-cart-button
+    ) {
+      font-weight: 400;
     }
 
     .product-details .text-block > h1,
@@ -57,12 +94,12 @@
       .product-details .text-block > h1,
       .product-details .text-block.custom-typography > h1,
       .product-details h1 {
-        --font-size: 1rem;
+        --font-size: 0.9375rem;
         --max-width: 100%;
         width: 100%;
         max-width: 100%;
         max-inline-size: 100%;
-        font-size: 1rem !important;
+        font-size: 0.9375rem !important;
         text-wrap: wrap;
       }
     }

@@ -186,6 +186,19 @@
 {%- endif -%}
 
 {% style %}
+  .product-media-container--png,
+  .product-media-container--png .product-media,
+  .product-media-container--png .product-media__image,
+  .product-media-container--png .product-media-constraint-wrapper,
+  .product-media-container--png .product-media__drag-zoom-wrapper {
+    background-color: #ebe6e0;
+  }
+
+  .product-media-container--png .product-media__image {
+    transform: scale(0.8);
+    transform-origin: center center;
+  }
+
   {% unless block_settings.aspect_ratio == 'adapt' %}
     .product-media-container {
       --media-preview-ratio: {{ block_settings.aspect_ratio }};
@@ -376,6 +389,12 @@
           assign media_natural_ratio = media.preview_image.aspect_ratio | default: 1.0
           assign media_display_ratio = media_natural_ratio
           assign slide_media_fit_class = 'media-fit-contain'
+          assign media_filename = media.preview_image.src | default: media.src | split: '?' | first | downcase
+          assign media_extension = media_filename | split: '.' | last
+          assign media_is_png = false
+          if media_extension == 'png'
+            assign media_is_png = true
+          endif
 
           if block_settings.aspect_ratio == 'adapt' and media_natural_ratio < max_tall_media_ratio
             assign media_display_ratio = max_tall_media_ratio
@@ -392,14 +411,14 @@
           {% if block_settings.aspect_ratio != 'adapt' and block_settings.constrain_to_viewport %}
             <div
               class="product-media-constraint-wrapper">
-              {%- render 'product-media', media: media, sizes: media_sizes, is_main_product_media: forloop.first -%}
+              {%- render 'product-media', media: media, sizes: media_sizes, is_main_product_media: forloop.first, keep_png: media_is_png -%}
             </div>
           {% else %}
-            {%- render 'product-media', media: media, sizes: media_sizes, is_main_product_media: forloop.first -%}
+            {%- render 'product-media', media: media, sizes: media_sizes, is_main_product_media: forloop.first, keep_png: media_is_png -%}
           {% endif %}
         {% endcapture %}
         {% capture class %}
-          {{ product_media_container_class }} {{ slide_media_fit_class }} product-media-container--{{ media.media_type }}{% if block_settings.zoom %} product-media-container--zoomable{% endif %}{% if forloop.index0 == lowest_aspect_ratio_index and block_settings.aspect_ratio == 'adapt' %} product-media-container--tallest{% endif %}
+          {{ product_media_container_class }} {{ slide_media_fit_class }} product-media-container--{{ media.media_type }}{% if media_is_png %} product-media-container--png-candidate{% endif %}{% if block_settings.zoom %} product-media-container--zoomable{% endif %}{% if forloop.index0 == lowest_aspect_ratio_index and block_settings.aspect_ratio == 'adapt' %} product-media-container--tallest{% endif %}
         {% endcapture %}
         {% if block_settings.aspect_ratio == 'adapt' %}
           {% capture style %}
@@ -485,6 +504,12 @@
             assign media_natural_ratio = media.preview_image.aspect_ratio | default: 1.0
             assign media_display_ratio = media_natural_ratio
             assign slide_media_fit_class = 'media-fit-contain'
+            assign media_filename = media.preview_image.src | default: media.src | split: '?' | first | downcase
+            assign media_extension = media_filename | split: '.' | last
+            assign media_is_png = false
+            if media_extension == 'png'
+              assign media_is_png = true
+            endif
 
             if block_settings.aspect_ratio == 'adapt' and media_natural_ratio < max_tall_media_ratio
               assign media_display_ratio = max_tall_media_ratio
@@ -499,7 +524,7 @@
           -%}
           <li
             ref="media[]"
-            class="{{ product_media_container_class }} {{ slide_media_fit_class }} product-media-container--{{ media.media_type }} {% unless block_settings.aspect_ratio == 'adapt' %}product-media-container--force-aspect{% endunless %}"
+            class="{{ product_media_container_class }} {{ slide_media_fit_class }} product-media-container--{{ media.media_type }}{% if media_is_png %} product-media-container--png-candidate{% endif %} {% unless block_settings.aspect_ratio == 'adapt' %}product-media-container--force-aspect{% endunless %}"
             style="{% if block_settings.aspect_ratio == 'adapt' %} --media-preview-ratio: {{ media_display_ratio }};{% endif %} --media-radius: {{ block_settings.media_radius }}px;"
             {% if settings.transition_to_main_product and forloop.first %}
               data-view-transition-type="product-image-transition"
@@ -521,10 +546,10 @@
             {%- endif -%}
             {% if block_settings.aspect_ratio != 'adapt' and block_settings.constrain_to_viewport %}
               <div class="product-media-constraint-wrapper">
-                {%- render 'product-media', media: media, sizes: media_sizes, is_main_product_media: forloop.first -%}
+                {%- render 'product-media', media: media, sizes: media_sizes, is_main_product_media: forloop.first, keep_png: media_is_png -%}
               </div>
             {% else %}
-              {%- render 'product-media', media: media, sizes: media_sizes, is_main_product_media: forloop.first -%}
+              {%- render 'product-media', media: media, sizes: media_sizes, is_main_product_media: forloop.first, keep_png: media_is_png -%}
             {% endif %}
           </li>
         {% endfor %}
@@ -602,9 +627,17 @@
             class="dialog-zoomed-gallery list-unstyled"
           >
             {%- for media in sorted_media -%}
+              {% liquid
+                assign zoom_filename = media.preview_image.src | default: media.src | split: '?' | first | downcase
+                assign zoom_extension = zoom_filename | split: '.' | last
+                assign zoom_is_png = false
+                if zoom_extension == 'png'
+                  assign zoom_is_png = true
+                endif
+              %}
               <li
                 id="product-{{ media.id}}-{{ forloop.index }}"
-                class="{{ product_media_container_class | remove: 'media-fit-cover' }} product-media-container--{{ media.media_type }}{% if media.media_type == 'image' %} product-media-container--zoomable{% endif %}"
+                class="{{ product_media_container_class | remove: 'media-fit-cover' }} product-media-container--{{ media.media_type }}{% if zoom_is_png %} product-media-container--png-candidate{% endif %}{% if media.media_type == 'image' %} product-media-container--zoomable{% endif %}"
                 style="{% if block_settings.aspect_ratio == 'adapt' %} --media-preview-ratio: {{ media.preview_image.aspect_ratio | default: 1.0 }};{% endif %}"
                 ref="media[]"
                 {% if media.media_type == 'image' %}
@@ -618,7 +651,8 @@
                       sizes: '100vw',
                       loading: 'lazy',
                       is_main_product_media: forloop.first,
-                      image_ref: 'image'
+                      image_ref: 'image',
+                      keep_png: zoom_is_png
                     -%}
                   </drag-zoom-wrapper>
                 {% else %}

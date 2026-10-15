@@ -1,5 +1,5 @@
 import { Component } from '@theme/component';
-import { onDocumentLoaded, changeMetaThemeColor, setHeaderMenuStyle } from '@theme/utilities';
+import { onDocumentLoaded, changeMetaThemeColor, setHeaderMenuStyle, calculateHeaderGroupHeight } from '@theme/utilities';
 import {
   getScrollTop,
   getScrollEventTarget,
@@ -238,10 +238,12 @@ class HeaderComponent extends Component {
       this.#scrollContainer.addEventListener('scroll', this.#handleWindowScroll);
     }
 
-    // Recreate IntersectionObserver with the new root
+    // Only scroll-up mode needs to observe the header leaving the viewport.
     this.#intersectionObserver?.disconnect();
     this.#intersectionObserver = null;
-    this.#observeStickyPosition(stickyMode === 'always');
+    if (stickyMode === 'scroll-up') this.#observeStickyPosition(false);
+    this.#lastScrollTop = getScrollTop();
+    this.#updateScrollState();
   };
 
   #handleWindowScroll = () => {
@@ -260,6 +262,13 @@ class HeaderComponent extends Component {
     const scrollTop = getScrollTop();
     const delta = scrollTop - this.#lastScrollTop;
 
+    if (stickyMode === 'always') {
+      // Use scroll distance, not the sticky element's own intersection: once
+      // pinned at 0px it remains fully visible and cannot signal sticky state.
+      const bannerHeight = this.parentElement?.querySelector('.product-delivery-banner')?.offsetHeight ?? 0;
+      this.#commitAttribute('stickyState', scrollTop > bannerHeight ? 'active' : 'inactive');
+    }
+
     // Ignore sub-threshold movements (rubber-band bounce, momentum settling, etc).
     // Without this, pausing scroll right at a state-change boundary can cause the
     // sign of `delta` to flip every animation frame from noise alone, making the
@@ -270,15 +279,10 @@ class HeaderComponent extends Component {
 
     this.#lastScrollTop = scrollTop;
 
-    const headerTop = this.getBoundingClientRect().top;
     const isScrollingUp = delta < 0;
 
-    // Hysteresis: once the header has left its natural top position, require it
-    // to scroll clearly back (>= 0) before being considered "at top" again, and
-    // vice versa. Without this dead zone, tiny real movements that straddle the
-    // exact 0px boundary (e.g. an unsteady hand paused mid-scroll) can toggle
-    // `isAtTop` back and forth just as readily as noise can.
-    const isAtTop = this.#isAtTop ? headerTop > -TOP_HYSTERESIS_PX : headerTop >= 0;
+    // Scroll position stays stable when the sticky header changes state.
+    const isAtTop = this.#isAtTop ? scrollTop < TOP_HYSTERESIS_PX : scrollTop <= 0;
     this.#isAtTop = isAtTop;
 
     if (this.#timeout) {
@@ -322,7 +326,9 @@ class HeaderComponent extends Component {
 
     const stickyMode = this.getAttribute('sticky');
     if (stickyMode) {
-      this.#observeStickyPosition(stickyMode === 'always');
+      if (stickyMode === 'scroll-up') this.#observeStickyPosition(false);
+      this.#lastScrollTop = getScrollTop();
+      this.#updateScrollState();
 
       if (stickyMode === 'scroll-up' || stickyMode === 'always') {
         this.#scrollContainer = getScrollEventTarget();
@@ -366,20 +372,11 @@ onDocumentLoaded(() => {
 
   // Update header group height on resize of any child
   if (headerGroup) {
-    const resizeObserver = new ResizeObserver((entries) => {
-      const headerGroupHeight = entries.reduce((totalHeight, entry) => {
-        if (
-          entry.target !== header ||
-          (header.hasAttribute('transparent') && header.parentElement?.nextElementSibling)
-        ) {
-          return totalHeight + (entry.borderBoxSize[0]?.blockSize ?? 0);
-        }
-        return totalHeight;
-      }, 0);
-      // The initial height is calculated using the .offsetHeight property, which returns an integer.
-      // We round to the nearest integer to avoid unnecessaary reflows.
-      const roundedHeaderGroupHeight = Math.round(headerGroupHeight);
-      document.body.style.setProperty('--header-group-height', `${roundedHeaderGroupHeight}px`);
+    const resizeObserver = new ResizeObserver(() => {
+      // ResizeObserver entries only contain changed elements, not the whole
+      // group. Recalculate the total so partial updates cannot shift the page.
+      const height = Math.round(calculateHeaderGroupHeight());
+      document.body.style.setProperty('--header-group-height', `${height}px`);
     });
 
     if (header instanceof HTMLElement) {

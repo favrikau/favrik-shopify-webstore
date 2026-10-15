@@ -11,6 +11,7 @@
   @param {number} slide_count - Number of slides for carousel layouts
   @param {string} content_type - Type of content: 'products' | 'collections' | 'articles'
   @param {string} [test_id] - Data test ID for the main resource list
+  @param {string} [carousel_attributes] - Attributes applied to the carousel slideshow component
 
   @example
   {% render 'resource-list',
@@ -50,7 +51,7 @@
 
   assign layout_type = settings.layout_type | default: 'grid'
   assign carousel_on_mobile = settings.carousel_on_mobile
-  if content_type == 'products'
+  if content_type == 'products' and layout_type != 'carousel'
     assign layout_type = 'grid'
     assign carousel_on_mobile = false
   endif
@@ -134,7 +135,8 @@
         slides: list_items_array,
         slide_count: slide_count,
         settings: settings,
-        slide_width_max: slide_width_max
+        slide_width_max: slide_width_max,
+        attributes: carousel_attributes
       %}
 
     {% when 'editorial' %}

@@ -872,11 +872,6 @@ export function calculateHeaderGroupHeight(
     totalHeight += element.offsetHeight;
   }
 
-  // If the header is transparent and has a sibling section, add the height of the header to the total height
-  if (header instanceof HTMLElement && header.hasAttribute('transparent') && header.parentElement?.nextElementSibling) {
-    return totalHeight + header.offsetHeight;
-  }
-
   return totalHeight;
 }
 

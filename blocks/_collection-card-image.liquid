@@ -15,6 +15,7 @@
 {% liquid
   assign randomize_collection_image = false
   assign hero_image = blank
+  assign hero_video_url = blank
   if template.name == 'index' and section.id contains 'collection_list_showcase'
     assign randomize_collection_image = true
 
@@ -22,11 +23,14 @@
       if hero_collection.handle == closest.collection.handle
         assign hero_metafield_key = 'hero_image_' | append: forloop.index
         assign hero_image = shop.metafields.custom[hero_metafield_key].value
+        if forloop.index == 2
+          assign hero_video_url = 'https://cdn.shopify.com/videos/c/o/v/9b52074b4ecc461f9ac445e1b9f7e389.mp4'
+        endif
         break
       endif
     endfor
 
-    if hero_image != blank
+    if hero_image != blank or hero_video_url != blank
       assign randomize_collection_image = false
     endif
   endif
@@ -35,6 +39,7 @@
 {% render 'resource-image',
   content_type: 'collections',
   image_source: hero_image,
+  video_url: hero_video_url,
   parent_block_id: parent_block_id,
   block_settings: block.settings,
   section_settings: section.settings,

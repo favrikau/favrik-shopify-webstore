@@ -5,7 +5,6 @@ import {
   clamp,
   mediaQueryLarge,
   prefersReducedMotion,
-  preventDefault,
   viewTransition,
   scheduler,
 } from '@theme/utilities';
@@ -149,8 +148,20 @@ export class Slideshow extends Component {
     if (this.#scroll) {
       const { scroller } = this.refs;
       scroller.removeEventListener('mousedown', this.#handleMouseDown);
+      scroller.removeEventListener('pointerdown', this.#handleTouchDrag);
+      scroller.removeEventListener('pointerdown', this.#onMobileCardStart);
+      scroller.removeEventListener('touchstart', this.#onMobileCardStart);
+      scroller.removeEventListener('scroll', this.#updateMobileCardProgress);
+      this.removeEventListener('click', this.#guardMobileCardSwipeClick, true);
+      this.#unbindMobileCardSwipe();
+      this.#cancelMobileCardAnim();
+      this.#clearMobileCardClickBlock();
+      this.#unlockPageScroll();
+      this.#mobileCardGesture = false;
       this.#scroll.destroy();
     }
+
+    mediaQueryLarge.removeEventListener('change', this.#syncMobileCardSwipe);
 
     const slideCount = this.slides?.length || 0;
     if (slideCount > 1) {
@@ -482,14 +493,14 @@ export class Slideshow extends Component {
 
   get previousIndex() {
     const { current, visibleSlides } = this;
-    const modifier = visibleSlides.length > 1 ? visibleSlides.length : 1;
+    const modifier = this.hasAttribute('data-fade-slides') ? 1 : visibleSlides.length > 1 ? visibleSlides.length : 1;
 
     return current - modifier;
   }
 
   get nextIndex() {
     const { current, visibleSlides } = this;
-    const modifier = visibleSlides.length > 1 ? visibleSlides.length : 1;
+    const modifier = this.hasAttribute('data-fade-slides') ? 1 : visibleSlides.length > 1 ? visibleSlides.length : 1;
 
     return current + modifier;
   }
@@ -504,6 +515,17 @@ export class Slideshow extends Component {
     const { current, slides } = this;
 
     return slides?.length ? current === slides.length - 1 : false;
+  }
+
+  /**
+   * Number of slides advanced by a mouse drag. Touch scrolling uses the same
+   * page boundaries through CSS scroll snap.
+   */
+  get pageSize() {
+    const attribute = mediaQueryLarge.matches ? 'data-page-size-desktop' : 'data-page-size-mobile';
+    const value = Number.parseInt(this.getAttribute(attribute) ?? '1', 10);
+
+    return Number.isFinite(value) ? Math.max(1, value) : 1;
   }
 
   /**
@@ -591,7 +613,20 @@ export class Slideshow extends Component {
       onScrollEnd: this.#onTransitionEnd,
     });
 
+    this.#syncMobileCardSwipe();
+    mediaQueryLarge.addEventListener('change', this.#syncMobileCardSwipe);
+
+    if (this.hasAttribute('data-mobile-card-swipe')) {
+      scroller.addEventListener('scroll', this.#updateMobileCardProgress, { passive: true });
+      scroller.addEventListener('pointerdown', this.#onMobileCardStart);
+      scroller.addEventListener('touchstart', this.#onMobileCardStart, { passive: true });
+      this.addEventListener('click', this.#guardMobileCardSwipeClick, true);
+    }
+
     scroller.addEventListener('mousedown', this.#handleMouseDown);
+    if (!this.hasAttribute('data-mobile-card-swipe')) {
+      scroller.addEventListener('pointerdown', this.#handleTouchDrag);
+    }
 
     this.addEventListener('mouseenter', this.suspend);
     this.addEventListener('mouseleave', this.resume);
@@ -600,7 +635,11 @@ export class Slideshow extends Component {
 
     this.#updateControlsVisibility();
 
-    this.disabled = this.isNested || this.disabled;
+    // Controls-only nested galleries keep their chevrons active while the parent
+    // carousel owns drag gestures. Mobile card galleries stay enabled so photos swipe.
+    const allowMobileCardSwipe = this.hasAttribute('data-mobile-card-swipe') && !mediaQueryLarge.matches;
+    const disableForNesting = this.isNested && !this.hasAttribute('data-controls-only') && !allowMobileCardSwipe;
+    this.disabled = disableForNesting || this.disabled;
 
     this.resume();
 
@@ -624,6 +663,8 @@ export class Slideshow extends Component {
             visibleSlidesAmount = 1;
           }
         }
+
+        this.#updateMobileCardProgress();
       });
 
       this.#resizeObserver = new ResizeObserver(async () => {
@@ -647,6 +688,10 @@ export class Slideshow extends Component {
    * and emit a slide change event if the index has changed.
    */
   #handleScroll = () => {
+    this.#updateMobileCardProgress();
+
+    if (this.#mobileCardGesture) return;
+
     const previousIndex = this.#current;
     const index = this.#sync();
 
@@ -672,7 +717,7 @@ export class Slideshow extends Component {
   };
 
   #onTransitionEnd = () => {
-    this.#updateVisibleSlides();
+    if (!this.#mobileCardGesture) this.#updateVisibleSlides();
     this.removeAttribute('transitioning');
   };
 
@@ -710,12 +755,387 @@ export class Slideshow extends Component {
    * Handles the 'mousedown' event to start dragging slides.
    * @param {MouseEvent} event - The mousedown event.
    */
+  #syncMobileCardSwipe = () => {
+    if (!this.hasAttribute('data-mobile-card-swipe')) return;
+
+    if (mediaQueryLarge.matches) {
+      if ((this.slides?.length || 0) > 1) this.setAttribute('data-fade-slides', '');
+      this.#clearMobileCardLayout();
+    } else {
+      this.removeAttribute('data-fade-slides');
+      this.setAttribute('in-viewport', '');
+      this.#applyMobileCardLayout();
+    }
+
+    const allowMobileCardSwipe = !mediaQueryLarge.matches;
+    if (this.isNested && !this.hasAttribute('data-controls-only')) {
+      this.disabled = !allowMobileCardSwipe;
+    }
+
+    this.#updateMobileCardProgress();
+  };
+
+  #applyMobileCardLayout = () => {
+    const { scroller } = this.refs;
+    if (!scroller) return;
+
+    scroller.style.setProperty('display', 'flex');
+    scroller.style.setProperty('overflow-x', 'hidden');
+    scroller.style.setProperty('overflow-y', 'hidden');
+    scroller.style.setProperty('scroll-snap-type', 'none');
+    scroller.style.setProperty('scroll-behavior', 'auto');
+    scroller.style.setProperty('touch-action', 'pan-y');
+
+    (this.refs.slides || []).forEach((slide) => {
+      if (slide.hasAttribute('hidden') && !slide.hasAttribute('reveal')) return;
+      slide.style.setProperty('flex', '0 0 100%');
+      slide.style.setProperty('width', '100%');
+      slide.style.setProperty('min-width', '100%');
+      slide.style.setProperty('opacity', '1');
+      slide.style.setProperty('pointer-events', 'auto');
+      slide.style.setProperty('content-visibility', 'visible');
+    });
+  };
+
+  #clearMobileCardLayout = () => {
+    const { scroller } = this.refs;
+    if (!scroller) return;
+
+    ['display', 'overflow-x', 'overflow-y', 'scroll-snap-type', 'scroll-behavior', 'touch-action'].forEach((property) =>
+      scroller.style.removeProperty(property)
+    );
+
+    (this.refs.slides || []).forEach((slide) => {
+      ['flex', 'width', 'min-width', 'opacity', 'pointer-events', 'content-visibility'].forEach((property) =>
+        slide.style.removeProperty(property)
+      );
+    });
+  };
+
+  #updateMobileCardProgress = () => {
+    if (!this.hasAttribute('data-mobile-card-swipe')) return;
+
+    const gallery = this.closest('.card-gallery');
+    const track = gallery?.querySelector(':scope > .card-gallery__progress');
+    const thumb = track?.querySelector('.card-gallery__progress-thumb');
+    if (!(track instanceof HTMLElement) || !(thumb instanceof HTMLElement)) return;
+
+    if (mediaQueryLarge.matches) {
+      track.hidden = true;
+      return;
+    }
+
+    const { scroller } = this.refs;
+    const slideCount = this.slides?.length || 0;
+    const maxScroll = scroller ? scroller.scrollWidth - scroller.clientWidth : 0;
+
+    if (slideCount <= 1 && maxScroll <= 1) {
+      track.hidden = true;
+      return;
+    }
+
+    track.hidden = false;
+    const trackWidth = track.clientWidth || 1;
+    let thumbWidth;
+    let progress = 0;
+
+    if (maxScroll > 1 && scroller) {
+      thumbWidth = Math.max((scroller.clientWidth / scroller.scrollWidth) * trackWidth, 12);
+      progress = scroller.scrollLeft / maxScroll;
+    } else {
+      thumbWidth = Math.max(trackWidth / Math.max(slideCount, 1), 12);
+      progress = slideCount > 1 ? this.current / (slideCount - 1) : 0;
+    }
+
+    thumb.style.width = `${thumbWidth}px`;
+    thumb.style.transform = `translate3d(${progress * (trackWidth - thumbWidth)}px, 0, 0)`;
+  };
+
+  #handleTouchDrag = (event) => {
+    if (event.pointerType === 'mouse') return;
+    if (this.hasAttribute('data-mobile-card-swipe')) return;
+    this.#handleMouseDown(event);
+  };
+
+  /** @type {{ active: boolean, pointerId?: number, startX: number, startY: number, startScroll: number, startIndex: number, axis: 'x' | 'y' | null, moved: boolean, inputType?: 'touch' | 'pointer' | null }} */
+  #mobileCardSwipe = {
+    active: false,
+    startX: 0,
+    startY: 0,
+    startScroll: 0,
+    startIndex: 0,
+    axis: null,
+    moved: false,
+  };
+
+  #mobileCardSwiped = false;
+  #mobileCardGesture = false;
+  #pageScrollLocked = false;
+  #pageScrollY = 0;
+
+  /** @type {number} */
+  #mobileCardAnimId = 0;
+
+  /** @type {ReturnType<typeof setTimeout> | undefined} */
+  #mobileCardClickTimer;
+
+  #cancelMobileCardAnim = () => {
+    if (this.#mobileCardAnimId) {
+      cancelAnimationFrame(this.#mobileCardAnimId);
+      this.#mobileCardAnimId = 0;
+    }
+  };
+
+  #preventPageScroll = (event) => {
+    event.preventDefault();
+    if (window.scrollY !== this.#pageScrollY) {
+      window.scrollTo(window.scrollX, this.#pageScrollY);
+    }
+  };
+
+  #lockPageScroll = () => {
+    if (this.#pageScrollLocked) return;
+    this.#pageScrollLocked = true;
+    this.#pageScrollY = window.scrollY;
+    document.documentElement.classList.add('card-swipe-lock');
+    document.body.classList.add('card-swipe-lock');
+    document.addEventListener('touchmove', this.#preventPageScroll, { passive: false, capture: true });
+    document.addEventListener('wheel', this.#preventPageScroll, { passive: false, capture: true });
+  };
+
+  #unlockPageScroll = () => {
+    if (!this.#pageScrollLocked) return;
+    this.#pageScrollLocked = false;
+    document.documentElement.classList.remove('card-swipe-lock');
+    document.body.classList.remove('card-swipe-lock');
+    document.removeEventListener('touchmove', this.#preventPageScroll, { capture: true });
+    document.removeEventListener('wheel', this.#preventPageScroll, { capture: true });
+    window.scrollTo(window.scrollX, this.#pageScrollY);
+  };
+
+  #setMobileCardOffset = (left) => {
+    const { scroller } = this.refs;
+    if (!scroller) return;
+    scroller.scrollLeft = left;
+    this.#updateMobileCardProgress();
+  };
+
+  #armMobileCardClickBlock = () => {
+    this.#mobileCardSwiped = true;
+    this.setAttribute('data-card-swiping', '');
+    this.closest('product-card')?.setAttribute('data-card-swiping', '');
+    clearTimeout(this.#mobileCardClickTimer);
+    this.#mobileCardClickTimer = setTimeout(() => this.#clearMobileCardClickBlock(), 500);
+  };
+
+  #clearMobileCardClickBlock = () => {
+    clearTimeout(this.#mobileCardClickTimer);
+    this.#mobileCardClickTimer = undefined;
+    this.#mobileCardSwiped = false;
+    this.removeAttribute('data-card-swiping');
+    this.closest('product-card')?.removeAttribute('data-card-swiping');
+  };
+
+  /**
+   * Eases the card gallery to a scroll position so the next image slides in.
+   * @param {number} targetLeft
+   * @param {number} [duration]
+   */
+  #animateMobileCardTo = (targetLeft, duration = 360) => {
+    const { scroller } = this.refs;
+    if (!scroller) return;
+
+    this.#cancelMobileCardAnim();
+    this.#mobileCardGesture = true;
+
+    const start = scroller.scrollLeft;
+    const delta = targetLeft - start;
+    if (Math.abs(delta) < 0.5) {
+      this.#setMobileCardOffset(targetLeft);
+      this.#mobileCardGesture = false;
+      this.#unlockPageScroll();
+      return;
+    }
+
+    const startTime = performance.now();
+    const easeOutCubic = (t) => 1 - (1 - t) ** 3;
+
+    const step = (now) => {
+      const t = Math.min((now - startTime) / duration, 1);
+      this.#setMobileCardOffset(start + delta * easeOutCubic(t));
+
+      if (t < 1) {
+        this.#mobileCardAnimId = requestAnimationFrame(step);
+        return;
+      }
+
+      this.#mobileCardAnimId = 0;
+      this.#setMobileCardOffset(targetLeft);
+      this.#mobileCardGesture = false;
+      this.#unlockPageScroll();
+    };
+
+    this.#mobileCardAnimId = requestAnimationFrame(step);
+  };
+
+  #unbindMobileCardSwipe = () => {
+    document.removeEventListener('pointermove', this.#onMobileCardMove);
+    document.removeEventListener('pointerup', this.#onMobileCardEnd);
+    document.removeEventListener('pointercancel', this.#onMobileCardEnd);
+    document.removeEventListener('touchmove', this.#onMobileCardMove);
+    document.removeEventListener('touchend', this.#onMobileCardEnd);
+    document.removeEventListener('touchcancel', this.#onMobileCardEnd);
+    this.#mobileCardSwipe.active = false;
+  };
+
+  #onMobileCardStart = (event) => {
+    if (!this.hasAttribute('data-mobile-card-swipe') || mediaQueryLarge.matches) return;
+    if (this.#mobileCardSwipe.active || this.#dragging) return;
+    if (event.target instanceof Element && event.target.closest('button, input, label, select, textarea, model-viewer')) {
+      return;
+    }
+
+    const point = event.touches?.[0] ?? event;
+    if (typeof point.clientX !== 'number') return;
+
+    const { scroller } = this.refs;
+    if (!scroller || (this.slides?.length || 0) <= 1) return;
+
+    this.#cancelMobileCardAnim();
+    this.#mobileCardGesture = true;
+    this.#applyMobileCardLayout();
+
+    this.#mobileCardSwipe = {
+      active: true,
+      pointerId: event.pointerId,
+      startX: point.clientX,
+      startY: point.clientY,
+      startScroll: scroller.scrollLeft,
+      startIndex: this.current,
+      axis: null,
+      moved: false,
+      inputType: event.touches ? 'touch' : null,
+    };
+
+    document.addEventListener('touchmove', this.#onMobileCardMove, { passive: false });
+    document.addEventListener('touchend', this.#onMobileCardEnd);
+    document.addEventListener('touchcancel', this.#onMobileCardEnd);
+    document.addEventListener('pointermove', this.#onMobileCardMove, { passive: false });
+    document.addEventListener('pointerup', this.#onMobileCardEnd);
+    document.addEventListener('pointercancel', this.#onMobileCardEnd);
+  };
+
+  #onMobileCardMove = (event) => {
+    const state = this.#mobileCardSwipe;
+    if (!state.active) return;
+    if (state.inputType === 'touch' && event.type.startsWith('pointer')) return;
+    if (event.type.startsWith('touch')) state.inputType = 'touch';
+    if (event.pointerId != null && state.pointerId != null && event.pointerId !== state.pointerId) return;
+
+    const point = event.touches?.[0] ?? event;
+    if (typeof point.clientX !== 'number') return;
+
+    const { scroller } = this.refs;
+    if (!scroller) return;
+
+    const dx = state.startX - point.clientX;
+    const dy = state.startY - point.clientY;
+
+    if (!state.axis) {
+      if (Math.abs(dx) < 6 && Math.abs(dy) < 6) return;
+      state.axis = Math.abs(dx) >= Math.abs(dy) ? 'x' : 'y';
+      if (state.axis === 'y') return;
+      state.moved = true;
+      this.#dragging = true;
+      this.#armMobileCardClickBlock();
+      this.setAttribute('dragging', '');
+      scroller.style.setProperty('touch-action', 'none');
+      this.#lockPageScroll();
+    }
+
+    if (state.axis !== 'x') return;
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    const maxScroll = Math.max(scroller.scrollWidth - scroller.clientWidth, 0);
+    this.#setMobileCardOffset(Math.min(Math.max(state.startScroll + dx, 0), maxScroll));
+  };
+
+  #onMobileCardEnd = (event) => {
+    const state = this.#mobileCardSwipe;
+    if (!state.active) return;
+    if (state.inputType === 'touch' && event.type.startsWith('pointer')) return;
+    if (event.type.startsWith('pointer') && state.pointerId != null && event.pointerId !== state.pointerId) return;
+
+    this.#unbindMobileCardSwipe();
+
+    const { scroller } = this.refs;
+    const slides = this.slides || [];
+    const wasHorizontal = state.axis === 'x' && state.moved;
+
+    this.#dragging = false;
+    this.removeAttribute('dragging');
+    scroller?.style.setProperty('touch-action', 'pan-y');
+
+    if (!wasHorizontal || !scroller || slides.length <= 1) {
+      this.#mobileCardGesture = false;
+      this.#unlockPageScroll();
+      return;
+    }
+
+    this.#armMobileCardClickBlock();
+
+    const width = scroller.clientWidth || 1;
+    const travelled = scroller.scrollLeft - state.startScroll;
+    const flick = Math.abs(travelled) >= Math.min(36, width * 0.1);
+    const direction = flick ? Math.sign(travelled) : 0;
+    const index = clamp(state.startIndex + direction, 0, slides.length - 1);
+    const targetLeft = slides[index]?.offsetLeft ?? index * width;
+
+    this.#animateMobileCardTo(targetLeft);
+
+    if (index !== this.current) {
+      const slide = slides[index];
+      const previousIndex = this.current;
+      this.current = index;
+      if (slide) {
+        this.dispatchEvent(
+          new SlideshowSelectEvent({
+            index,
+            previousIndex,
+            userInitiated: true,
+            trigger: 'drag',
+            slide,
+            id: slide.getAttribute('slide-id'),
+          })
+        );
+      }
+    }
+  };
+
+  #guardMobileCardSwipeClick = (event) => {
+    if (!this.#mobileCardSwiped || mediaQueryLarge.matches) return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    this.#clearMobileCardClickBlock();
+  };
+
   #handleMouseDown = (event) => {
     const { slides } = this;
 
     if (!slides || slides.length <= 1) return;
     if (!(event.target instanceof Element)) return;
     if (this.disabled || this.#dragging) return;
+    if (this.hasAttribute('data-mobile-card-swipe') && !mediaQueryLarge.matches) return;
+    if (
+      !this.hasAttribute('data-mobile-card-swipe') &&
+      event.target.closest('slideshow-component[data-mobile-card-swipe]')
+    ) {
+      return;
+    }
+    if (this.hasAttribute('data-controls-only') && mediaQueryLarge.matches) return;
+    if (event.target.closest('button, input, label, select, textarea')) return;
 
     // Check if the event target is within a 3D model interactive element
     // This prevents the slideshow from capturing drag events when interacting with 3D models
@@ -723,10 +1143,14 @@ export class Slideshow extends Component {
       return;
     }
 
-    event.preventDefault();
+    if (event.pointerType === 'mouse' || event.type === 'mousedown') {
+      event.preventDefault();
+    }
     // Store initial position but don't start handling yet
     const { axis } = this.#scroll;
     const startPosition = event[axis];
+    const startY = event.clientY;
+    const startIndex = this.current;
 
     const controller = new AbortController();
     const { signal } = controller;
@@ -735,6 +1159,12 @@ export class Slideshow extends Component {
     let velocity = 0;
     let moved = false;
     let distanceTravelled = 0;
+    let netDistance = 0;
+
+    const suppressClick = (event) => {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+    };
 
     this.#dragging = true;
 
@@ -745,15 +1175,23 @@ export class Slideshow extends Component {
     const onPointerMove = (event) => {
       const current = event[axis];
       const initialDelta = startPosition - current;
+      const verticalDelta = startY - event.clientY;
 
-      if (!initialDelta) return;
+      if (Math.abs(initialDelta) < 5 && Math.abs(verticalDelta) < 5) return;
 
       if (!moved) {
+        if (Math.abs(verticalDelta) > Math.abs(initialDelta)) {
+          controller.abort();
+          return;
+        }
+
         moved = true;
+        event.preventDefault();
         this.setPointerCapture(event.pointerId);
 
-        // Prevent clicks once the user starts dragging
-        document.addEventListener('click', preventDefault, { once: true, signal });
+        // Keep this listener alive through pointerup: browsers dispatch click
+        // after pointerup, when the drag's AbortSignal has already been cleared.
+        this.addEventListener('click', suppressClick, { once: true, capture: true });
 
         const movingRight = initialDelta < 0;
         const movingLeft = initialDelta > 0;
@@ -781,8 +1219,10 @@ export class Slideshow extends Component {
       velocity = Math.round((delta / timeDelta) * 1000);
       previous = current;
       distanceTravelled += Math.abs(delta);
+      netDistance = initialDelta;
 
       this.#scroll.by(delta, { instant: true });
+      this.#updateMobileCardProgress();
     };
 
     /**
@@ -796,13 +1236,36 @@ export class Slideshow extends Component {
 
       this.#dragging = false;
 
+      if (!moved) {
+        this.#scroll.snap = true;
+        return;
+      }
+
+      // Remove the fallback after the synthetic click following pointerup has
+      // had a chance to fire.
+      window.setTimeout(() => this.removeEventListener('click', suppressClick, { capture: true }), 0);
+
       if (!slides?.length || !scroller) return;
 
       const direction = Math.sign(velocity);
       const next = this.#sync();
 
-      const modifier = current !== next || Math.abs(velocity) < 10 || distanceTravelled < 10 ? 0 : direction;
-      const newIndex = clamp(next + modifier, 0, slides.length - 1);
+      let newIndex;
+      if (this.pageSize > 1) {
+        const maxPage = Math.floor((slides.length - 1) / this.pageSize);
+        const startPage = Math.floor(startIndex / this.pageSize);
+        const nearestPage = clamp(Math.round(next / this.pageSize), 0, maxPage);
+        const swipeDirection = Math.sign(netDistance);
+        const targetPage =
+          Math.abs(netDistance) >= 24 && swipeDirection !== 0
+            ? clamp(startPage + swipeDirection, 0, maxPage)
+            : nearestPage;
+
+        newIndex = Math.min(targetPage * this.pageSize, slides.length - 1);
+      } else {
+        const modifier = current !== next || Math.abs(velocity) < 10 || distanceTravelled < 10 ? 0 : direction;
+        newIndex = clamp(next + modifier, 0, slides.length - 1);
+      }
 
       const newSlide = slides[newIndex];
       const currentIndex = this.current;
@@ -812,7 +1275,7 @@ export class Slideshow extends Component {
       this.#scroll.to(newSlide);
 
       this.removeAttribute('dragging');
-      this.releasePointerCapture(event.pointerId);
+      if (this.hasPointerCapture(event.pointerId)) this.releasePointerCapture(event.pointerId);
 
       this.#centerSelectedThumbnail(newIndex);
 
@@ -960,6 +1423,8 @@ export class Slideshow extends Component {
   }
 
   #updateVisibleSlides() {
+    if (this.#mobileCardGesture) return this.slides?.length ? 1 : 0;
+
     const { slides } = this;
     if (!slides || !slides.length) return 0;
 

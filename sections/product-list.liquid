@@ -3,10 +3,32 @@
 {% liquid
   assign max_items = section.settings.max_products
   assign randomize_products = false
-  if request.page_type == 'index' and section.settings.heading_en == 'Signature Collection'
-    assign randomize_products = true
-    assign max_items = 50
+  assign homepage_product_carousel = false
+  assign homepage_section_key = blank
+
+  if request.page_type == 'index' and section.settings.layout_type == 'carousel'
+    if section.settings.heading_en == 'Signature Collection' or section.settings.heading_en == 'New Arrivals'
+      assign homepage_product_carousel = true
+      assign randomize_products = true
+      assign max_items = 50
+      assign homepage_section_key = 'signature'
+    elsif section.settings.collection != blank and section.settings.collection.handle == 'fw2026'
+      assign homepage_product_carousel = true
+      assign randomize_products = true
+      assign max_items = 50
+      assign homepage_section_key = 'fw2026'
+    endif
   endif
+
+  assign carousel_slide_count = max_items
+  if randomize_products and section.settings.layout_type == 'carousel'
+    assign carousel_slide_count = section.settings.max_products
+  endif
+  capture carousel_attributes
+    if homepage_product_carousel
+      echo 'data-page-size-desktop="' | append: section.settings.columns | append: '" data-page-size-mobile="1"'
+    endif
+  endcapture
   if section.settings.background_color != blank
     render 'contrast-override', background_color: section.settings.background_color, section_id: section.id
   endif
@@ -17,8 +39,8 @@
 ></div>
 <div
   data-testid="product-list"
-  {% if request.page_type == 'index' %}
-    data-homepage-section="signature"
+  {% if homepage_section_key != blank %}
+    data-homepage-section="{{ homepage_section_key }}"
   {% endif %}
   {% if randomize_products %}
     data-random-product-list
@@ -29,6 +51,7 @@
     section--{{ section.settings.section_width }}
     {% if section.settings.background_color != blank %}color-custom-{{ section.id }}{% endif %}
     section-resource-list
+    {% if homepage_product_carousel %}homepage-signature-product-carousel{% endif %}
     spacing-style
     gap-style
   "
@@ -100,9 +123,10 @@
     list_items: list_items,
     list_items_array: list_items_array,
     settings: section.settings,
-    slide_count: max_items,
+    slide_count: carousel_slide_count,
     content_type: 'products',
-    test_id: 'resource-list-grid'
+    test_id: 'resource-list-grid',
+    carousel_attributes: carousel_attributes
   %}
 
   <div
@@ -161,6 +185,120 @@
     .section-resource-list__header .favrik-bilingual-heading {
       font-size: 0.875rem;
       line-height: 1.25;
+    }
+  }
+
+  /* Homepage product carousels (Signature, FW2026): single-row swipe, page snap (no list-level arrows). */
+  .homepage-signature-product-carousel {
+    --peek-next-slide-size: 0px;
+    max-width: 100%;
+    overflow-x: clip;
+  }
+
+  .homepage-signature-product-carousel .resource-list,
+  .homepage-signature-product-carousel .resource-list__carousel,
+  .homepage-signature-product-carousel .resource-list__carousel slideshow-component,
+  .homepage-signature-product-carousel .resource-list__carousel slideshow-container {
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .homepage-signature-product-carousel
+    slideshow-component[data-page-size-desktop]
+    > slideshow-container
+    > slideshow-slides {
+    align-items: flex-start;
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-x: contain;
+    touch-action: pan-x pan-y;
+    scroll-snap-type: x mandatory;
+  }
+
+  .homepage-signature-product-carousel .card-gallery slideshow-arrows .slideshow-control:not(:disabled) {
+    opacity: 1;
+  }
+
+  .homepage-signature-product-carousel
+    .resource-list__carousel
+    > slideshow-container
+    > slideshow-slides
+    > .resource-list__slide,
+  .homepage-signature-product-carousel .resource-list__carousel .resource-list__slide > .resource-list__item,
+  .homepage-signature-product-carousel .resource-list__carousel .resource-list__slide > .resource-list__item > product-card,
+  .homepage-signature-product-carousel
+    .resource-list__carousel
+    .resource-list__slide
+    > .resource-list__item
+    > product-card
+    > .product-card__content {
+    height: auto;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .homepage-signature-product-carousel .resource-list__carousel .product-card__meta {
+    flex: 0 0 auto;
+  }
+
+  .homepage-signature-product-carousel .resource-list__carousel .card-gallery slideshow-slides {
+    margin-block: 0;
+    padding-block: 0;
+  }
+
+  .homepage-signature-product-carousel .resource-list__item:has(.product-card__content.border-style) {
+    margin-right: 0;
+    margin-bottom: 0;
+  }
+
+  [data-random-product-list] .resource-list__carousel slideshow-slide:has(> .resource-list__item[hidden]) {
+    display: none;
+  }
+
+  .homepage-signature-product-carousel
+    slideshow-component[data-page-size-desktop]
+    > slideshow-container
+    > slideshow-slides
+    > .resource-list__slide {
+    scroll-snap-align: none;
+  }
+
+  @media screen and (min-width: 750px) {
+    .homepage-signature-product-carousel
+      slideshow-component[data-page-size-desktop]
+      > slideshow-container
+      > slideshow-slides
+      > .resource-list__slide:nth-child(5n + 1) {
+      scroll-snap-align: start;
+      scroll-snap-stop: always;
+    }
+  }
+
+  @media screen and (max-width: 749px) {
+    .homepage-signature-product-carousel .resource-list__carousel {
+      --resource-list-column-gap: var(--page-margin);
+    }
+
+    .homepage-signature-product-carousel
+      slideshow-component[data-page-size-desktop]
+      > slideshow-container
+      > slideshow-slides[gutters] {
+      padding-inline-start: var(--page-margin);
+      padding-inline-end: 0;
+      scroll-padding-inline-start: var(--page-margin);
+    }
+
+    .homepage-signature-product-carousel
+      slideshow-component[data-page-size-desktop]
+      > slideshow-container
+      > slideshow-slides
+      > .resource-list__slide {
+      scroll-snap-align: start;
+      scroll-snap-stop: always;
+    }
+
+    .homepage-signature-product-carousel .resource-list__carousel .resource-list__slide {
+      --slide-width: calc((100% - var(--page-margin) - var(--resource-list-column-gap, 0px)) * 0.75);
     }
   }
 {% endstylesheet %}

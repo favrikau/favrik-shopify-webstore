@@ -11,15 +11,32 @@
   @param {string} [source_url] - Link to the original post
   @param {object[]} [products] - Products worn in the look
   @param {object} [product] - Single product worn in the look (used when products is blank)
+  @param {object} [preview_collection] - Collection for four-product carousel preview
   @param {boolean} [show_product_slots] - Render empty product slots when no products are attached
+  @param {boolean} [force_four_product_preview] - Always render four carousel slides on this look
 {%- enddoc -%}
 
 {% liquid
   assign source_label = source_label | default: 'Instagram'
   assign placeholder = placeholder | default: 'lifestyle-1'
   assign product_count = 0
-  if products != blank
+  assign product_display_limit = 4
+  assign use_four_product_preview = false
+
+  if force_four_product_preview and preview_collection != blank and preview_collection.products_count > 0
+    assign use_four_product_preview = true
+  endif
+
+  if use_four_product_preview
+    assign product_count = preview_collection.products_count
+    if product_count > product_display_limit
+      assign product_count = product_display_limit
+    endif
+  elsif products != blank
     assign product_count = products.size
+    if product_count > product_display_limit
+      assign product_count = product_display_limit
+    endif
   elsif product != blank
     assign product_count = 1
   endif
@@ -43,15 +60,50 @@
   </div>
 
   <div class="shop-social-look__content" data-look-content>
-    {% if product_count > 0 %}
-      <ul class="shop-social-look__products list-unstyled" data-count="{{ product_count }}">
-        {% if products != blank %}
-          {% for look_product in products limit: 4 %}
-            <li>{% render 'shop-social-look-product', product: look_product %}</li>
+    {% if product_count > 1 %}
+      {% capture product_slides %}
+        {% if use_four_product_preview %}
+          {% for slot in (1..product_count) %}
+            {% assign product_offset = slot | minus: 1 %}
+            {% for look_product in preview_collection.products limit: 1 offset: product_offset %}
+              {% capture slide_children %}
+                {% render 'shop-social-look-product', product: look_product, product_instance: slot %}
+              {% endcapture %}
+              {% assign slide_id = look_product.id | append: '-' | append: slot %}
+              {% render 'slideshow-slide',
+                index: product_offset,
+                children: slide_children,
+                class: 'shop-social-look__slide',
+                slide_id: slide_id
+              %}
+            {% endfor %}
           {% endfor %}
-        {% else %}
-          <li>{% render 'shop-social-look-product', product: product %}</li>
+        {% elsif products != blank %}
+          {% for look_product in products limit: product_display_limit %}
+            {% capture slide_children %}
+              {% render 'shop-social-look-product', product: look_product, product_instance: forloop.index %}
+            {% endcapture %}
+            {% render 'slideshow-slide',
+              index: forloop.index0,
+              children: slide_children,
+              class: 'shop-social-look__slide',
+              slide_id: look_product.id
+            %}
+          {% endfor %}
         {% endif %}
+      {% endcapture %}
+
+      {% render 'slideshow',
+        class: 'shop-social-look__carousel',
+        slides: product_slides,
+        slide_count: product_count,
+        infinite: false,
+        show_arrows: false,
+        attributes: 'data-shop-social-product-carousel data-page-size-desktop="2" data-page-size-mobile="2"'
+      %}
+    {% elsif product_count > 0 %}
+      <ul class="shop-social-look__products list-unstyled" data-count="1">
+        <li>{% render 'shop-social-look-product', product: product, product_instance: 1 %}</li>
       </ul>
     {% elsif show_product_slots %}
       <ul class="shop-social-look__products list-unstyled" data-count="2">

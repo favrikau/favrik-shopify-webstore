@@ -68,6 +68,21 @@ class ShopSocialModal extends HTMLElement {
   /** @param {KeyboardEvent} event */
   onKeydown = (event) => {
     if (event.target instanceof HTMLSelectElement) return;
+
+    const carousel = this.getProductCarousel();
+    if (carousel && typeof carousel.next === 'function' && typeof carousel.previous === 'function') {
+      if (event.key === 'ArrowLeft') {
+        event.preventDefault();
+        carousel.previous(event);
+        return;
+      }
+      if (event.key === 'ArrowRight') {
+        event.preventDefault();
+        carousel.next(event);
+        return;
+      }
+    }
+
     if (event.key === 'ArrowLeft') this.show(this.index - 1);
     if (event.key === 'ArrowRight') this.show(this.index + 1);
   };
@@ -94,6 +109,18 @@ class ShopSocialModal extends HTMLElement {
     this.mediaSlot.replaceChildren(...(media ? [media] : []));
     this.contentSlot.replaceChildren(...(content ? [content] : []));
     this.contentSlot.scrollTop = 0;
+    this.initProductCarousel();
+  }
+
+  /** @returns {HTMLElement | null} */
+  getProductCarousel() {
+    return this.contentSlot.querySelector('slideshow-component[data-shop-social-product-carousel]');
+  }
+
+  initProductCarousel() {
+    const carousel = this.getProductCarousel();
+    if (!(carousel instanceof HTMLElement)) return;
+    carousel.setAttribute('in-viewport', '');
   }
 
   /** @param {SubmitEvent} event */

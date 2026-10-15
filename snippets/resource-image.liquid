@@ -11,6 +11,7 @@
   @param {object} [section_settings] - Section settings for layout-aware sizing
   @param {string} [block_attributes] - Block shopify attributes for theme editor
   @param {boolean} [randomize_collection_image] - Use a rotating product image for collection cards
+  @param {string} [video_url] - Autoplaying muted looping video shown in place of the image (image becomes the poster)
 
   @example
   {% render 'resource-image',
@@ -153,7 +154,7 @@
   {% endif %}
 {% endstyle %}
 
-{% if image_resource != blank %}
+{% if image_resource != blank or video_url != blank %}
   <div
     class="
       resource-image
@@ -175,7 +176,21 @@
       {% render 'overlay', settings: block_settings %}
     {%- endif -%}
 
-    {% if randomize_collection_image and products_with_images.size > 1 %}
+    {% if video_url != blank %}
+      <video
+        class="resource-image__image resource-image__video"
+        src="{{ video_url }}"
+        {% if image_resource != blank %}
+          poster="{{ image_resource | image_url: width: 1920 }}"
+        {% endif %}
+        autoplay
+        muted
+        loop
+        playsinline
+        preload="auto"
+        aria-hidden="true"
+      ></video>
+    {% elsif randomize_collection_image and products_with_images.size > 1 %}
       <div
         class="resource-image__random-pool"
         data-random-collection-image
@@ -289,6 +304,11 @@
     aspect-ratio: var(--ratio);
     width: 100%;
     height: 100%;
+  }
+
+  .resource-image__video {
+    display: block;
+    object-position: center;
   }
 
   .resource-image__random-pool {

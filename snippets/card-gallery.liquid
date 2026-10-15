@@ -65,6 +65,7 @@
       assign media_fit = block_settings.constrain_to_viewport
     endif
   endif
+
 %}
 
 <div
@@ -76,10 +77,6 @@
     --gallery-aspect-ratio: {{ ratio }};
   "
   data-product-id="{{ product.id }}"
-  {% if settings.show_second_image_on_hover %}
-    on:pointerenter="/previewImage"
-    on:pointerleave="/resetImage"
-  {% endif %}
   {% if settings.transition_to_main_product %}
     data-view-transition-to-main-product
   {% endif %}
@@ -92,22 +89,17 @@
       assign variant_images = product.images | where: 'attached_to_variant?', true | map: 'src'
       assign generic_media_size = product.media.size | minus: variant_images.size
 
-      # Sort media so product.featured_media.preview_image comes first as that is the most relevant image to display
-      # product.featured_media updates based on search context and filters applied
+      # Keep Shopify media order so the card starts on the first image in the product array.
+      assign media_list_to_show = product.media
 
-      assign other_media = product.media | reject: 'src', product.featured_media
-      assign media_list_to_show = product.featured_media | concat: other_media
-
-      if product.media.size > 2 and generic_media_size > 0
+      if product.media.size > 1 and generic_media_size > 0
         assign show_arrows = true
       endif
 
-      # Don't overfetch media if we don't need to
+      # Keep extra images so mobile can swipe the card gallery.
       assign max_visible_slide_count = 1
-      if settings.product_card_carousel
+      if product.media.size > 1
         assign max_visible_slide_count = 5
-      elsif settings.show_second_image_on_hover
-        assign max_visible_slide_count = 2
       endif
 
       capture slides
@@ -144,12 +136,19 @@
           endif
 
           assign class = 'product-media-container media-fit product-media-container--[media_type]' | replace: '[media_type]', media.media_type
+          assign media_filename = media.preview_image.src | default: media.src | split: '?' | first | downcase
+          assign media_extension = media_filename | split: '.' | last
+          assign keep_png = false
+          if media_extension == 'png'
+            assign class = class | append: ' product-media-container--png-candidate'
+            assign keep_png = true
+          endif
           if constrain_to_viewport
             assign class = class | append: ' constrain-height'
           endif
 
           capture slideshow_children
-            render 'product-media', media: media, sizes: sizes, loading: loading, preview_image_only: true
+            render 'product-media', media: media, sizes: sizes, loading: loading, preview_image_only: true, keep_png: keep_png
           endcapture
 
           render 'slideshow-slide', slide_id: media.id, index: forloop.index0, hidden: hidden, class: class, attributes: attributes, children: slideshow_children, media_fit: media_fit
@@ -158,27 +157,33 @@
 
       assign slideshow_attributes = 'data-generic-media-size="[generic_media_size]"' | replace: '[generic_media_size]', generic_media_size
       if media_list_to_show.size > 1
-        assign slideshow_attributes = slideshow_attributes | append: ' data-fade-slides'
+        assign slideshow_attributes = slideshow_attributes | append: ' data-fade-slides data-mobile-card-swipe'
       endif
-      if settings.product_card_carousel == false
-        assign slideshow_attributes = slideshow_attributes | append: ' disabled="true"'
+      assign enable_product_card_slideshow = settings.product_card_carousel
+      if request.page_type == 'index' and section.settings.layout_type == 'carousel'
+        assign enable_product_card_slideshow = true
+        assign slideshow_attributes = slideshow_attributes | append: ' data-controls-only'
+      endif
+      if enable_product_card_slideshow == false
+        assign slideshow_attributes = slideshow_attributes | append: ' data-controls-only'
       endif
     %}
-    <a
-      class="contents"
-      ref="cardGalleryLink"
-      href="{{ product.selected_or_first_available_variant.url }}"
-      aria-label="{{- product_titlecase -}}"
-    >
+    <div class="card-gallery__viewport">
       {% render 'slideshow',
         ref: 'slideshow',
         initial_slide: 0,
         slides: slides,
         slide_count: media_list_to_show.size,
         show_arrows: show_arrows,
+        infinite: false,
         attributes: slideshow_attributes
       %}
-    </a>
+    </div>
+    {% if product.media.size > 1 %}
+      <div class="card-gallery__progress" aria-hidden="true">
+        <span class="card-gallery__progress-thumb"></span>
+      </div>
+    {% endif %}
   {% elsif product != blank and product.media.size == 0 %}
     <a
       class="product-card-gallery__coming-soon"
@@ -218,9 +223,35 @@
 
 {% stylesheet %}
   .card-gallery {
+    position: relative;
+    z-index: 1;
     overflow: hidden;
     container-type: inline-size; /* Make card-gallery a container */
     container-name: card-gallery-container; /* Optional: name the container */
+  }
+
+  .card-gallery__viewport {
+    display: contents;
+  }
+
+  .card-gallery__progress {
+    display: none;
+  }
+
+  .card-gallery .product-media-container--png,
+  .card-gallery .product-media-container--png .product-media {
+    background-color: #ebe6e0;
+  }
+
+  .card-gallery .product-media-container--png .product-media__image {
+    background-color: #ebe6e0;
+    transform: scale(0.8);
+    transform-origin: center center;
+  }
+
+  .card-gallery .product-media__image {
+    -webkit-user-drag: none;
+    user-select: none;
   }
 
   .card-gallery__placeholder svg {
@@ -462,6 +493,12 @@
     padding: 0;
   }
 
+  .card-gallery slideshow-arrows .slideshow-control:disabled {
+    display: none !important;
+    opacity: 0 !important;
+    pointer-events: none;
+  }
+
   /*
    * Card galleries preview the next or previous images on 'pointerenter', so we
    * try to kick load them beforehand (they are lazy loaded otherwise).
@@ -507,6 +544,67 @@
   @media (prefers-reduced-motion: reduce) {
     .card-gallery slideshow-component[data-fade-slides] slideshow-slide {
       transition: none;
+    }
+  }
+
+  @media screen and (max-width: 749px) {
+    .card-gallery slideshow-component[data-mobile-card-swipe] slideshow-slides,
+    .card-gallery slideshow-component[data-fade-slides][data-mobile-card-swipe] slideshow-slides,
+    .card-gallery slideshow-component[data-mobile-card-swipe]:not([in-viewport]) slideshow-slides,
+    .card-gallery slideshow-component[data-mobile-card-swipe][disabled='true'] slideshow-slides {
+      display: flex;
+      overflow-x: hidden;
+      overflow-y: hidden;
+      scroll-snap-type: none;
+      scroll-behavior: auto;
+      scroll-padding-inline: 0;
+      overscroll-behavior: contain;
+      touch-action: pan-y;
+      scrollbar-width: none;
+    }
+
+    .card-gallery slideshow-component[data-mobile-card-swipe] slideshow-slides::-webkit-scrollbar,
+    .card-gallery slideshow-component[data-fade-slides][data-mobile-card-swipe] slideshow-slides::-webkit-scrollbar {
+      display: none;
+    }
+
+    .card-gallery slideshow-component[data-mobile-card-swipe] slideshow-slide,
+    .card-gallery slideshow-component[data-fade-slides][data-mobile-card-swipe] slideshow-slide {
+      grid-area: auto;
+      flex: 0 0 100%;
+      width: 100%;
+      opacity: 1;
+      pointer-events: auto;
+      content-visibility: visible;
+    }
+
+    .card-gallery slideshow-arrows {
+      display: none !important;
+    }
+
+    .card-gallery__progress {
+      position: absolute;
+      inset-inline: 10px;
+      bottom: 8px;
+      z-index: 2;
+      display: block;
+      height: 1px;
+      overflow: hidden;
+      pointer-events: none;
+      background: rgb(255 255 255 / 0.55);
+    }
+
+    .card-gallery__progress[hidden] {
+      display: none;
+    }
+
+    .card-gallery__progress-thumb {
+      display: block;
+      height: 100%;
+      width: 20%;
+      background: rgb(30 19 12 / 0.8);
+      transform: translate3d(0, 0, 0);
+      will-change: transform, width;
     }
   }
 {% endstylesheet %}

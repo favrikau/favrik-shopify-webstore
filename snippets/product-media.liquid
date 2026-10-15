@@ -11,6 +11,7 @@
   @param {boolean} [first_3d_model] - Indicates if this is the first 3D model.
   @param {boolean} [is_main_product_media] - Indicates if this is the main product image.
   @param {string} [image_ref] - Optional ref attribute for the image element.
+  @param {boolean} [keep_png] - Serve the image as PNG to preserve transparency.
 
   @example
   {% render 'product-media', media: media, preview_image_only: false, loading: 'lazy' %}
@@ -37,21 +38,49 @@
     endif
     assign focal_point_style = '--focal-point: ' | append: media.presentation.focal_point | append: ';'
   %}
-  {{
-    media.preview_image
-    | image_url: width: 3840
-    | image_tag:
-      widths: widths,
-      alt: media.alt,
-      sizes: sizes,
-      loading: loading,
-      class: 'product-media__image',
-      ref: ref_image_to_transition,
-      data_max_resolution: high_res_url,
-      fetchpriority: fetch_priority,
-      style: focal_point_style,
-      ref: image_ref
-  }}
+  {%- if keep_png -%}
+    {% liquid
+      assign png_widths = widths | remove: ' ' | split: ','
+      assign png_src = media.preview_image | image_url: width: 832 | append: '&format=png'
+      assign high_res_url = high_res_url | append: '&format=png'
+    %}
+    <img
+      src="{{ png_src }}"
+      srcset="{% for png_width in png_widths %}{{ media.preview_image | image_url: width: png_width }}&format=png {{ png_width }}w{% unless forloop.last %}, {% endunless %}{% endfor %}"
+      alt="{{ media.alt | escape }}"
+      width="{{ media.preview_image.width }}"
+      height="{{ media.preview_image.height }}"
+      loading="{{ loading }}"
+      sizes="{{ sizes }}"
+      crossorigin="anonymous"
+      class="product-media__image"
+      {% if ref_image_to_transition != blank %}
+        ref="{{ ref_image_to_transition }}"
+      {% endif %}
+      {% if image_ref != blank %}
+        ref="{{ image_ref }}"
+      {% endif %}
+      data_max_resolution="{{ high_res_url }}"
+      fetchpriority="{{ fetch_priority }}"
+      style="{{ focal_point_style }}"
+    >
+  {%- else -%}
+    {{
+      media.preview_image
+      | image_url: width: 3840
+      | image_tag:
+        widths: widths,
+        alt: media.alt,
+        sizes: sizes,
+        loading: loading,
+        class: 'product-media__image',
+        ref: ref_image_to_transition,
+        data_max_resolution: high_res_url,
+        fetchpriority: fetch_priority,
+        style: focal_point_style,
+        ref: image_ref
+    }}
+  {%- endif -%}
 
   {% unless preview_image_only %}
     {%- case media.media_type -%}

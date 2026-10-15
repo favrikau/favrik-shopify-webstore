@@ -239,6 +239,15 @@
     flex: 0 0 auto;
   }
 
+  product-card .product-card__content.border-style > .card-gallery:has(.product-media-container--png[aria-hidden='false']) {
+    background-color: #ebe6e0;
+  }
+
+  product-card .card-gallery .product-media-container--png :is(.product-media__image, img):not(.product-card-gallery__coming-soon-logo) {
+    transform: scale(0.8);
+    transform-origin: center center;
+  }
+
   product-card .card-gallery.border-style {
     --border-width: 0px;
     --border-style: none;

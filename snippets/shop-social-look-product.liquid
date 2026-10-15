@@ -1,11 +1,13 @@
 {%- doc -%}
-  Product card inside the Shop Social modal: image, price, title and add to cart.
+  Product card inside the Shop Social modal: image, title, price and add to cart.
   Shows a size select when the product has more than one variant.
 
   @param {object} product - Product worn in the look
+  @param {number} [product_instance] - Unique index when the same product appears more than once in a look
 {%- enddoc -%}
 
 {% liquid
+  assign product_instance = product_instance | default: 1
   assign current_variant = product.selected_or_first_available_variant
   assign has_variants = false
   if product.has_only_default_variant == false
@@ -31,19 +33,26 @@
     {% endif %}
   </a>
 
+  <a
+    class="shop-social-look__product-title"
+    href="{{ product.url }}"
+    title="{{ product.title | escape }}"
+  >
+    {{- product.title | escape -}}
+  </a>
+
   <p class="shop-social-look__product-price">
     {% if product.compare_at_price > product.price %}
       <s class="shop-social-look__product-compare">{{ product.compare_at_price | money }}</s>
     {% endif %}
     {{ product.price | money }}
   </p>
-  <a class="shop-social-look__product-title" href="{{ product.url }}">{{ product.title | escape }}</a>
 
   <form class="shop-social-look__product-form" data-shop-social-add>
     {% if has_variants %}
-      <label class="visually-hidden" for="ShopSocialVariant-{{ product.id }}">Choose an option for {{ product.title | escape }}</label>
+      <label class="visually-hidden" for="ShopSocialVariant-{{ product.id }}-{{ product_instance }}">Choose an option for {{ product.title | escape }}</label>
       <select
-        id="ShopSocialVariant-{{ product.id }}"
+        id="ShopSocialVariant-{{ product.id }}-{{ product_instance }}"
         class="shop-social-look__variant"
         name="id"
       >
