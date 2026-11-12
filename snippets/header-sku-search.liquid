@@ -30,7 +30,17 @@
     hidden
     data-header-sku-search-panel
   >
-    <div class="facets__sku-search header-sku-search__form" data-collection-sku-search data-placeholder-logo="{{ 'favrik_logo.png' | asset_url }}">
+    <div
+      class="facets__sku-search header-sku-search__form"
+      data-collection-sku-search
+      data-sku-search-url="{{ routes.predictive_search_url | escape }}"
+      data-sku-search-page-url="{{ routes.search_url | escape }}"
+      data-sku-search-view-all="{{ 'content.sku_search_view_all' | t | escape }}"
+      data-sku-search-loading="{{ 'content.sku_search_loading' | t | escape }}"
+      data-sku-search-empty="{{ 'content.sku_search_empty' | t | escape }}"
+      data-sku-search-error="{{ 'content.sku_search_error' | t | escape }}"
+      data-placeholder-logo="{{ 'favrik_logo.png' | asset_url }}"
+    >
       <label class="visually-hidden" for="{{ header_search_id }}-input">
         {{ 'content.search_input_label' | t }}
       </label>
@@ -38,7 +48,7 @@
         id="{{ header_search_id }}-input"
         class="facets__sku-search-input header-sku-search__input"
         type="search"
-        placeholder="Search by name or SKU"
+        placeholder="{{ 'content.sku_search_placeholder' | t | escape }}"
         autocomplete="off"
         autocapitalize="off"
         spellcheck="false"
@@ -53,9 +63,6 @@
         hidden
         data-collection-sku-search-results
       ></div>
-      {% paginate collections.all.products by 250 %}
-        {% render 'sku-search-product-data', products: collections.all.products %}
-      {% endpaginate %}
     </div>
   </div>
 </div>

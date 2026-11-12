@@ -2,11 +2,10 @@
   const nav = document.querySelector('.homepage-section-nav');
   if (!nav) return;
 
-  const ticks = [...nav.querySelectorAll('[data-homepage-tick]')];
   const sectionFallback = {
     'shop-social': '[data-testid="shop-social"], .shop-social-section',
   };
-  const sections = ticks
+  const sections = [...nav.querySelectorAll('[data-homepage-tick]')]
     .map((tick) => {
       const key = tick.getAttribute('data-homepage-tick');
       const target =
@@ -14,7 +13,12 @@
         (sectionFallback[key] ? document.querySelector(sectionFallback[key]) : null);
       return { tick, key, target, box: target?.closest('.shopify-section') ?? target };
     })
-    .filter((item) => item.box);
+    .filter((item) => {
+      // Sections hidden in the theme editor aren't rendered; drop their ticks too.
+      if (!item.box) item.tick.remove();
+      return item.box;
+    });
+  const ticks = sections.map((item) => item.tick);
 
   if (sections.length === 0) {
     nav.remove();
@@ -88,7 +92,7 @@
     if (!match) return;
 
     const scroller = getScroller();
-    const titlePad = key === 'signature' || key === 'fw2026' || key === 'shop-social' ? 32 : 0;
+    const titlePad = key === 'signature' || key === 'best-sellers' || key === 'fw2026' || key === 'shop-social' ? 32 : 0;
     const offset = key === 'hero' ? 0 : headerOffset() + titlePad;
     const { scrollTop, viewport, scrollHeight } = scrollMetrics(scroller);
     const maxScroll = Math.max(0, scrollHeight - viewport);
@@ -117,9 +121,19 @@
     });
   });
 
+  // Measure at most once per frame; smooth scrolling emits a scroll event every frame.
+  let scrollFrame = 0;
+  const scheduleActiveUpdate = () => {
+    if (scrollFrame) return;
+    scrollFrame = requestAnimationFrame(() => {
+      scrollFrame = 0;
+      updateActiveFromScroll();
+    });
+  };
+
   const wrapper = document.querySelector('.page-wrapper');
-  window.addEventListener('scroll', updateActiveFromScroll, { passive: true });
-  wrapper?.addEventListener('scroll', updateActiveFromScroll, { passive: true });
-  window.addEventListener('resize', updateActiveFromScroll);
+  window.addEventListener('scroll', scheduleActiveUpdate, { passive: true });
+  wrapper?.addEventListener('scroll', scheduleActiveUpdate, { passive: true });
+  window.addEventListener('resize', scheduleActiveUpdate);
   updateActiveFromScroll();
 })();

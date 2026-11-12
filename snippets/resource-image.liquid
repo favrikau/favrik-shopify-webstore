@@ -11,7 +11,8 @@
   @param {object} [section_settings] - Section settings for layout-aware sizing
   @param {string} [block_attributes] - Block shopify attributes for theme editor
   @param {boolean} [randomize_collection_image] - Use a rotating product image for collection cards
-  @param {string} [video_url] - Autoplaying muted looping video shown in place of the image (image becomes the poster)
+  @param {string} [video_url] - Autoplaying muted looping video shown in place of the image
+  @param {string} [video_poster_variant] - Hero poster variant: homepage or about
 
   @example
   {% render 'resource-image',
@@ -177,19 +178,24 @@
     {%- endif -%}
 
     {% if video_url != blank %}
-      <video
-        class="resource-image__image resource-image__video"
-        src="{{ video_url }}"
-        {% if image_resource != blank %}
-          poster="{{ image_resource | image_url: width: 1920 }}"
-        {% endif %}
-        autoplay
-        muted
-        loop
-        playsinline
-        preload="auto"
-        aria-hidden="true"
-      ></video>
+      {% if video_poster_variant != blank %}
+        {% render 'hero-video',
+          video_url: video_url,
+          variant: video_poster_variant,
+          video_class: 'resource-image__image resource-image__video'
+        %}
+      {% else %}
+        <video
+          class="resource-image__image resource-image__video"
+          src="{{ video_url | escape }}"
+          autoplay
+          muted
+          loop
+          playsinline
+          preload="auto"
+          aria-hidden="true"
+        ></video>
+      {% endif %}
     {% elsif randomize_collection_image and products_with_images.size > 1 %}
       <div
         class="resource-image__random-pool"

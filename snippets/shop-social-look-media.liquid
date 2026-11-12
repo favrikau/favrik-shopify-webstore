@@ -1,0 +1,39 @@
+{%- doc -%}
+  One image or video inside a Shop Social look (modal media or gallery slide).
+
+  @param {object} media - Image, media image or video
+  @param {string} [title] - Look title, used as the accessible text
+  @param {boolean} [eager] - Load immediately (first item)
+{%- enddoc -%}
+
+{%- if media.media_type == 'video' -%}
+  {{
+    media
+    | video_tag:
+      image_size: '1600x',
+      autoplay: true,
+      loop: true,
+      muted: true,
+      playsinline: true,
+      controls: false,
+      class: 'shop-social-look__img shop-social-look__video',
+      aria-label: title
+  }}
+{%- else -%}
+  {%- assign media_image = media.preview_image | default: media -%}
+  {%- if eager -%}
+    {%- assign media_loading = 'eager' -%}
+  {%- else -%}
+    {%- assign media_loading = 'lazy' -%}
+  {%- endif -%}
+  {{
+    media_image
+    | image_url: width: 1600
+    | image_tag:
+      widths: '640, 900, 1200, 1600',
+      sizes: '(min-width: 750px) 50vw, 100vw',
+      class: 'shop-social-look__img',
+      loading: media_loading,
+      alt: media_image.alt | default: title
+  }}
+{%- endif -%}

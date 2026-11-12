@@ -1,16 +1,4 @@
 {% liquid
-  assign collection = section.settings.collection
-  if collection == blank
-    assign collection = collections['fw2026']
-  endif
-  if collection == blank
-    assign collection = collections['dw2026']
-  endif
-
-  assign image_limit = 24
-  assign images_rendered = 0
-  assign fallback_image = null
-
   if section.settings.background_color != blank
     render 'contrast-override', background_color: section.settings.background_color, section_id: section.id
   endif
@@ -24,7 +12,7 @@
   class="section section--{{ section.settings.section_width }} spacing-style contact-page{% if section.settings.background_color != blank %} color-custom-{{ section.id }}{% endif %}"
   style="{% render 'spacing-style', settings: section.settings %}"
 >
-    <div class="contact-page__layout force-full-width">
+  <div class="contact-page__layout force-full-width">
     <div class="contact-page__content">
       <header class="contact-page__header">
         <h1 class="contact-page__title">
@@ -40,63 +28,45 @@
       </div>
     </div>
 
-    <div class="contact-page__media" aria-hidden="true">
-      {% if collection != blank %}
-        <div
-          class="contact-page__image-pool"
-          data-random-collection-image
-        >
-          {% for product in collection.products %}
-            {% if product.featured_image == blank %}
-              {% continue %}
-            {% endif %}
-
-            {% if fallback_image == blank %}
-              {% assign fallback_image = product.featured_image %}
-            {% endif %}
-
-            {{
-              product.featured_image
-              | image_url: width: 2000
-              | image_tag:
-                widths: '600, 900, 1200, 1600, 2000',
-                sizes: '(min-width: 990px) 50vw, 100vw',
-                class: 'contact-page__image resource-image__random-image',
-                loading: 'lazy',
-                alt: '',
-                data-random-image: images_rendered,
-                data-image-aspect: product.featured_image.aspect_ratio
-            }}
-
-            {% assign images_rendered = images_rendered | plus: 1 %}
-            {% if images_rendered >= image_limit %}
-              {% break %}
-            {% endif %}
-          {% endfor %}
-        </div>
-
-        {% if images_rendered == 0 and fallback_image != blank %}
-          {{
-            fallback_image
-            | image_url: width: 2000
-            | image_tag:
-              widths: '600, 900, 1200, 1600, 2000',
-              sizes: '(min-width: 990px) 50vw, 100vw',
-              class: 'contact-page__image',
-              loading: 'lazy',
-              alt: ''
-          }}
-        {% endif %}
-      {% endif %}
-
-      {% if images_rendered == 0 %}
-        <div class="contact-page__placeholder">
-          {{ 'product-apparel-1' | placeholder_svg_tag: 'contact-page__placeholder-svg' }}
-        </div>
-      {% endif %}
-    </div>
+    {%- comment -%} Desktop only: the source is attached by the script below at ≥990px so phones never download it. {%- endcomment -%}
+    {% if section.settings.video_url != blank %}
+      <div class="contact-page__media">
+        <video
+          class="contact-page__video"
+          data-src="{{ section.settings.video_url | escape }}"
+          muted
+          loop
+          playsinline
+          preload="none"
+          aria-hidden="true"
+        ></video>
+      </div>
+    {% endif %}
   </div>
 </section>
+
+{% if section.settings.video_url != blank %}
+  <script>
+    (() => {
+      const video = document.currentScript.previousElementSibling?.querySelector('.contact-page__video');
+      if (!video) return;
+      const desktop = window.matchMedia('(min-width: 990px)');
+      const sync = () => {
+        if (desktop.matches) {
+          if (!video.getAttribute('src')) {
+            video.src = video.dataset.src;
+            video.preload = 'auto';
+          }
+          video.play().catch(() => {});
+        } else {
+          video.pause();
+        }
+      };
+      sync();
+      desktop.addEventListener('change', sync);
+    })();
+  </script>
+{% endif %}
 
 {% stylesheet %}
   .contact-page {
@@ -107,6 +77,7 @@
   .contact-page__layout {
     display: flex;
     flex-direction: column;
+    justify-content: center;
     width: 100%;
     max-width: 100%;
     min-height: calc(100dvh - var(--header-group-height, 0px));
@@ -119,7 +90,8 @@
     gap: 1.5rem;
     padding: 2rem var(--page-margin) 1.5rem;
     width: 100%;
-    max-width: 100%;
+    max-width: 36rem;
+    margin-inline: auto;
     min-width: 0;
   }
 
@@ -144,9 +116,14 @@
     font-weight: 300;
   }
 
+  /* Body copy: sentence casing, same size and colour as the product description. */
   .contact-page__subheading {
-    color: rgb(48 33 24 / 0.62);
+    color: #4a4a4a;
     max-width: 36rem;
+    font-size: 0.75rem;
+    line-height: 1.7;
+    letter-spacing: 0.02em;
+    text-transform: none;
   }
 
   .contact-page__form {
@@ -161,84 +138,51 @@
   }
 
   .contact-page__media {
-    position: relative;
-    display: block;
-    width: 100%;
-    max-width: 100%;
-    min-width: 0;
-    flex: 0 0 auto;
-    min-height: 18rem;
-    aspect-ratio: 3 / 4;
-    overflow: hidden;
-    background: rgb(48 33 24 / 0.06);
-  }
-
-  .contact-page__image-pool {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-  }
-
-  .contact-page__image,
-  .contact-page__placeholder-svg {
-    display: block;
-    width: 100%;
-    max-width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: center center;
-  }
-
-  .contact-page__image-pool .resource-image__random-image {
-    position: absolute;
-    inset: 0;
-    opacity: 0;
-    visibility: hidden;
-  }
-
-  .contact-page__image-pool .resource-image__random-image.is-active,
-  .contact-page__image-pool .resource-image__random-image:first-child {
-    opacity: 1;
-    visibility: visible;
-  }
-
-  .contact-page__image-pool:has(.resource-image__random-image.is-active)
-    .resource-image__random-image:first-child:not(.is-active) {
-    opacity: 0;
-    visibility: hidden;
-  }
-
-  .contact-page__placeholder {
-    width: 100%;
-    height: 100%;
-    min-height: 18rem;
+    display: none;
   }
 
   @media screen and (min-width: 990px) {
-    .contact-page__layout {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-      align-items: stretch;
-      gap: 0;
+    /* Desktop: taller than one screen so the page (and the video beside the form) runs longer.
+       svh never changes while scrolling, so the height can't jump mid-scroll. */
+    .contact-page,
+    .contact-page__layout,
+    .contact-page__media {
+      min-height: 120vh;
+      min-height: 120svh;
     }
 
     .contact-page__content {
-      grid-column: 1;
-      grid-row: 1;
+      margin-inline: 0;
       padding: clamp(2rem, 5vw, 4rem) clamp(1.25rem, 4vw, 3.5rem);
     }
 
-    .contact-page__media {
-      grid-column: 2;
-      grid-row: 1;
-      min-height: 22rem;
-      aspect-ratio: auto;
-      height: 100%;
+    /* Desktop: form on the left, video filling the right half. */
+    .contact-page__layout:has(.contact-page__media) {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      align-items: stretch;
     }
 
-    .contact-page__placeholder {
-      min-height: 22rem;
+    .contact-page__layout:has(.contact-page__media) .contact-page__content {
+      align-self: center;
+    }
+
+    .contact-page__media {
+      position: relative;
+      display: block;
+      overflow: hidden;
+      background: #ffffff;
+    }
+
+    .contact-page__video {
+      position: absolute;
+      inset: 0;
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      /* Anchored near the top: cropping trims mostly the bottom, a little off the top. */
+      object-position: center 20%;
     }
   }
 {% endstylesheet %}
@@ -265,10 +209,11 @@
       "default": "Have a question about an order, product, return, or store visit? Send us a message and we will get back to you as soon as possible."
     },
     {
-      "type": "collection",
-      "id": "collection",
-      "label": "Image collection",
-      "info": "A random product image from this collection is shown on the right."
+      "type": "text",
+      "id": "video_url",
+      "label": "Video URL",
+      "default": "https://cdn.shopify.com/videos/c/o/v/33b2207a552c4c76bf1de5fbd7e5b172.mov",
+      "info": "Direct video link. Desktop only: plays muted on a loop to the right of the form. Hidden when empty."
     },
     {
       "type": "select",

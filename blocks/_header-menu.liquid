@@ -147,8 +147,6 @@
   {% else %}
     {% liquid
       assign block_settings = block.settings
-      assign menu_content_type = block_settings.menu_style | default: 'text'
-      assign image_border_radius = block_settings.image_border_radius
 
       render 'contrast-override', background_color: block_settings.background_color, text_color: block_settings.text_color, section_id: block.id
 
@@ -165,157 +163,69 @@
       if parent_background_color.rgb == current_background_color.rgb
         assign background_color_classes = background_color_classes | append: ' background-matches-parent'
       endif
-
-      if block_settings.menu_style == 'featured_collections'
-        assign ratio = block_settings.featured_collections_aspect_ratio
-      elsif block_settings.menu_style == 'featured_products'
-        assign ratio = block_settings.featured_products_aspect_ratio
-      endif
     %}
 
     {% capture children %}
-      {% assign rendered_fw26_link = false %}
-      {% assign rendered_sale_link = false %}
-      {% for link in block_settings.menu.links %}
-        {% liquid
-          assign link_title_downcase = link.title | strip | downcase
-          assign is_home_link = false
-          assign is_fw26_link = false
-          assign is_sale_link = false
-          assign is_catalog_link = false
-          if link.handle == 'home' or link.url == routes.root_url or link.url == '/' or link_title_downcase == 'home'
-            assign is_home_link = true
+      {%- liquid
+        # Fixed desktop nav: SHOP opens the catalog drawer; the rest are plain links.
+        # Best Sellers points at the 'best-sellers' collection handle (create it in admin).
+        assign shop_insta_url = pages['shop-insta'].url | default: '/pages/shop-insta'
+        assign locations_url = pages['locations'].url | default: '/pages/locations'
+        assign header_nav_links = '/collections/best-sellers|BEST SELLERS,' | append: shop_insta_url | append: '|SHOP INSTA,' | append: locations_url | append: '|LOCATIONS'
+        assign header_nav_links = header_nav_links | split: ','
+      -%}
+      <li
+        role="presentation"
+        class="menu-list__list-item"
+        on:focus="/activate"
+        on:blur="/deactivate"
+        on:pointerenter="/activate"
+        on:pointerleave="/deactivate"
+      >
+        <a
+          href="#"
+          data-skip-node-update="true"
+          class="menu-list__link"
+          data-catalog-nav-trigger
+          aria-controls="catalog-nav-drawer"
+          aria-expanded="false"
+          role="button"
+          ref="menuitem"
+        >
+          <span class="menu-list__link-title" data-text="SHOP">SHOP</span>
+        </a>
+      </li>
+      {% for nav_link in header_nav_links %}
+        {%- liquid
+          assign nav_link_parts = nav_link | split: '|'
+          assign nav_link_url = nav_link_parts.first
+          assign nav_link_title = nav_link_parts.last
+          assign nav_link_prefix = nav_link_url | append: '/'
+          assign nav_link_current = false
+          if request.path == nav_link_url or request.path contains nav_link_prefix
+            assign nav_link_current = true
           endif
-          if link.url contains '/collections/fw2026' or link_title_downcase == 'fw26' or link_title_downcase == 'fw2026'
-            assign is_fw26_link = true
-          endif
-          if link.url contains '/collections/on-sale' or link_title_downcase == 'shop sale' or link_title_downcase == 'sale' or link_title_downcase == 'on sale'
-            assign is_sale_link = true
-          endif
-          if link.handle == 'catalog' or link.handle == 'shop' or link.url contains '/collections/all' or link_title_downcase == 'catalog' or link_title_downcase == 'shop'
-            assign is_catalog_link = true
-          endif
-        %}
-        {% unless is_home_link or is_fw26_link or is_sale_link %}
-          {% liquid
-            assign catalog_item_url = link.url
-            assign catalog_item_active = link.active
-            assign catalog_item_current = link.current
-            assign catalog_item_title = link.title
-            if is_catalog_link
-              assign catalog_item_url = '#'
-              assign catalog_item_active = false
-              assign catalog_item_current = false
-              assign catalog_item_title = 'SHOP'
-            endif
-          %}
-          <li
-            role="presentation"
-            class="menu-list__list-item"
-            on:focus="/activate"
-            on:blur="/deactivate"
-            on:pointerenter="/activate"
-            on:pointerleave="/deactivate"
+        -%}
+        <li
+          role="presentation"
+          class="menu-list__list-item"
+          on:focus="/activate"
+          on:blur="/deactivate"
+          on:pointerenter="/activate"
+          on:pointerleave="/deactivate"
+        >
+          <a
+            href="{{ nav_link_url }}"
+            data-skip-node-update="true"
+            class="menu-list__link{% if nav_link_current %} menu-list__link--active{% endif %}"
+            {% if nav_link_current %}
+              aria-current="page"
+            {% endif %}
+            ref="menuitem"
           >
-            <a
-              href="{{ catalog_item_url }}"
-              data-skip-node-update="true"
-              class="menu-list__link{% if catalog_item_active %} menu-list__link--active{% endif %}"
-              {%- if link.links != blank and is_catalog_link == false -%}
-                aria-controls="submenu-{{ forloop.index }}"
-                aria-haspopup="true"
-                aria-expanded="false"
-              {%- endif -%}
-              {% if is_catalog_link %}
-                data-catalog-nav-trigger
-                aria-controls="catalog-nav-drawer"
-                aria-expanded="false"
-                role="button"
-              {% endif %}
-              {% if catalog_item_current %}
-                aria-current="page"
-              {% endif %}
-              ref="menuitem"
-            >
-              <span class="menu-list__link-title" data-text="{{ catalog_item_title | escape }}">{{- catalog_item_title -}}</span>
-            </a>
-            {%- if link.links != blank and is_catalog_link == false -%}
-              <div class="menu-list__submenu{{ background_color_classes }}" ref="submenu[]">
-                <div
-                  id="submenu-{{ forloop.index }}"
-                  class="menu-list__submenu-inner"
-                  style="{% render 'submenu-font-styles', settings: block_settings %}"
-                >
-                  {% assign list_id = 'MegaMenuList-' | append: forloop.index %}
-                  <div class="mega-menu section section--full-width-margin section--{{ section.settings.section_width }}">
-                    <div
-                      class="mega-menu__grid"
-                      data-menu-grid-id="{{ list_id }}"
-                    >
-                      {% render 'mega-menu-list',
-                        parent_link: link,
-                        id: list_id,
-                        section: section,
-                        grid_columns_count: 6,
-                        grid_columns_count_tablet: 4,
-                        grid_columns_count_collection_images: 8,
-                        menu_content_type: menu_content_type,
-                        content_aspect_ratio: ratio,
-                        image_border_radius: image_border_radius
-                      %}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            {%- endif -%}
-          </li>
-          {% if is_catalog_link and rendered_fw26_link == false %}
-            <li
-              role="presentation"
-              class="menu-list__list-item header-menu__fw26-item"
-              on:focus="/activate"
-              on:blur="/deactivate"
-              on:pointerenter="/activate"
-              on:pointerleave="/deactivate"
-            >
-              <a
-                href="/collections/fw2026"
-                data-skip-node-update="true"
-                class="menu-list__link header-menu__fw26-link{% if request.path contains '/collections/fw2026' %} menu-list__link--active{% endif %}"
-                {% if request.path contains '/collections/fw2026' %}
-                  aria-current="page"
-                {% endif %}
-                ref="menuitem"
-              >
-                <span class="menu-list__link-title" data-text="FW2026">FW2026</span>
-              </a>
-            </li>
-            {% assign rendered_fw26_link = true %}
-          {% endif %}
-          {% if is_catalog_link and rendered_sale_link == false %}
-            <li
-              role="presentation"
-              class="menu-list__list-item header-menu__sale-item"
-              on:focus="/activate"
-              on:blur="/deactivate"
-              on:pointerenter="/activate"
-              on:pointerleave="/deactivate"
-            >
-              <a
-                href="/collections/on-sale"
-                data-skip-node-update="true"
-                class="menu-list__link header-menu__sale-link{% if request.path contains '/collections/on-sale' %} menu-list__link--active{% endif %}"
-                {% if request.path contains '/collections/on-sale' %}
-                  aria-current="page"
-                {% endif %}
-                ref="menuitem"
-              >
-                <span class="menu-list__link-title" data-text="Shop Sale">Shop Sale</span>
-              </a>
-            </li>
-            {% assign rendered_sale_link = true %}
-          {% endif %}
-        {% endunless %}
+            <span class="menu-list__link-title" data-text="{{ nav_link_title | escape }}">{{- nav_link_title -}}</span>
+          </a>
+        </li>
       {% endfor %}
       <li
         class="menu-list__list-item"
@@ -997,6 +907,10 @@
         {
           "value": "0.75rem",
           "label": "12px"
+        },
+        {
+          "value": "0.8125rem",
+          "label": "13px"
         },
         {
           "value": "0.875rem",

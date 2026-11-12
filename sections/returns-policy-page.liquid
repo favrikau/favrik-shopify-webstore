@@ -4,18 +4,6 @@
   assign muted_color = section.settings.muted_text_color | default: '#7e736a'
   assign border_color = section.settings.border_color | default: '#d8cec3'
 
-  assign collection = section.settings.collection
-  if collection == blank
-    assign collection = collections['fw2026']
-  endif
-  if collection == blank
-    assign collection = collections['dw2026']
-  endif
-
-  assign image_limit = 24
-  assign images_rendered = 0
-  assign fallback_image = null
-
   if background_color != blank
     render 'contrast-override', background_color: background_color, text_color: text_color, section_id: section.id
   endif
@@ -142,63 +130,6 @@
       </section>
     </div>
   </div>
-
-  <div class="returns-policy-page__media" aria-hidden="true">
-    {% if collection != blank %}
-      <div
-        class="returns-policy-page__image-pool"
-        data-random-collection-image
-        data-prefer-portrait="true"
-      >
-        {% for product in collection.products %}
-          {% if product.featured_image == blank %}
-            {% continue %}
-          {% endif %}
-
-          {% if fallback_image == blank %}
-            {% assign fallback_image = product.featured_image %}
-          {% endif %}
-
-          {{
-            product.featured_image
-            | image_url: width: 2400
-            | image_tag:
-              widths: '750, 1100, 1500, 2000, 2400',
-              sizes: '100vw',
-              class: 'returns-policy-page__image resource-image__random-image',
-              loading: 'lazy',
-              alt: '',
-              data-random-image: images_rendered,
-              data-image-aspect: product.featured_image.aspect_ratio
-          }}
-
-          {% assign images_rendered = images_rendered | plus: 1 %}
-          {% if images_rendered >= image_limit %}
-            {% break %}
-          {% endif %}
-        {% endfor %}
-      </div>
-
-      {% if images_rendered == 0 and fallback_image != blank %}
-        {{
-          fallback_image
-          | image_url: width: 2400
-          | image_tag:
-            widths: '750, 1100, 1500, 2000, 2400',
-            sizes: '100vw',
-            class: 'returns-policy-page__image',
-            loading: 'lazy',
-            alt: ''
-        }}
-      {% endif %}
-    {% endif %}
-
-    {% if images_rendered == 0 %}
-      <div class="returns-policy-page__placeholder">
-        {{ 'product-apparel-1' | placeholder_svg_tag: 'returns-policy-page__placeholder-svg' }}
-      </div>
-    {% endif %}
-  </div>
 </section>
 
 {% stylesheet %}
@@ -234,7 +165,7 @@
     text-transform: uppercase;
   }
 
-  .returns-policy-page__title,
+  /* Page title matches the other page titles (300); the Shipping / Returns group titles stay bold. */
   .returns-policy-page__section-title {
     font-weight: 600;
   }
@@ -258,16 +189,16 @@
     align-items: start;
   }
 
+  /* Body copy: sentence casing, same size and colour as other page body text. */
   .returns-policy-page__copy {
     display: grid;
     gap: 0.85rem;
-    color: var(--returns-policy-muted);
+    color: #4a4a4a;
     font-family: var(--font-body--family);
     font-size: 0.75rem;
     font-weight: 300;
-    line-height: 1.6;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
+    line-height: 1.7;
+    letter-spacing: 0.02em;
   }
 
   .returns-policy-page__copy p,
@@ -285,52 +216,6 @@
     color: var(--returns-policy-text);
   }
 
-  .returns-policy-page__media {
-    position: relative;
-    width: 100%;
-    aspect-ratio: 2 / 3;
-    overflow: hidden;
-    background: rgb(48 33 24 / 0.06);
-  }
-
-  .returns-policy-page__image-pool {
-    position: absolute;
-    inset: 0;
-  }
-
-  .returns-policy-page__image,
-  .returns-policy-page__placeholder-svg {
-    display: block;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: center center;
-  }
-
-  .returns-policy-page__image-pool .resource-image__random-image {
-    position: absolute;
-    inset: 0;
-    opacity: 0;
-    visibility: hidden;
-  }
-
-  .returns-policy-page__image-pool .resource-image__random-image.is-active,
-  .returns-policy-page__image-pool .resource-image__random-image:first-child {
-    opacity: 1;
-    visibility: visible;
-  }
-
-  .returns-policy-page__image-pool:has(.resource-image__random-image.is-active)
-    .resource-image__random-image:first-child:not(.is-active) {
-    opacity: 0;
-    visibility: hidden;
-  }
-
-  .returns-policy-page__placeholder {
-    width: 100%;
-    height: 100%;
-  }
-
   @media screen and (max-width: 749px) {
     .returns-policy-page__inner {
       width: 100%;
@@ -341,10 +226,6 @@
       grid-template-columns: 1fr;
       gap: 0.55rem;
     }
-
-    .returns-policy-page__media {
-      aspect-ratio: 3 / 4;
-    }
   }
 {% endstylesheet %}
 
@@ -354,12 +235,6 @@
   "tag": "section",
   "class": "returns-policy-page-section",
   "settings": [
-    {
-      "type": "collection",
-      "id": "collection",
-      "label": "Image collection",
-      "info": "A random vertical product image from this collection is shown full-width at the bottom."
-    },
     {
       "type": "color",
       "id": "background_color",

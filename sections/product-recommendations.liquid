@@ -37,9 +37,13 @@
 {% render 'variant-picker-styles' %}
 {% render 'product-badges-styles' %}
 {% render 'resource-list-styles' %}
+{%- if product_card_layout == 'carousel' -%}
+  {%- comment -%} Desktop pan carousel: 4.5 cards, drag + edge-hover panning, settles on cards. {%- endcomment -%}
+  <script src="{{ 'carousel-edge-pan.js' | asset_url }}" type="module"></script>
+{%- endif -%}
 <product-recommendations
   id="product-recommendations-{{ section.id }}"
-  class="product-recommendations product-page-typography"
+  class="product-recommendations product-page-typography{% if product_card_layout == 'carousel' %} favrik-pan-carousel{% endif %}"
   data-url="{{ routes.product_recommendations_url }}?limit={{ section.settings.max_products }}"
   data-section-id="{{ section.id }}"
   data-product-id="{{ section.settings.product.id | default: product.id }}"
@@ -153,7 +157,8 @@
               ref: 'resourceListCarousel',
               slides: slides,
               slide_count: slides.size,
-              settings: section.settings
+              settings: section.settings,
+              attributes: 'data-free-drag-desktop data-edge-pan'
             %}
         {% endcase %}
       </div>
@@ -286,22 +291,47 @@
     margin-bottom: 0;
   }
 
+  /* Desktop pan carousel (shared layout in base.css): first card in line with the heading's
+     page-width margin, last card ends on the same margin. Container units (the carousel is a
+     size container) keep the margin right wherever the variable is used. */
+  @media screen and (min-width: 750px) {
+    .product-recommendations.favrik-pan-carousel {
+      --pan-carousel-inset: max(
+        var(--page-margin),
+        calc((100cqw - min(var(--page-content-width), 100cqw - var(--page-margin) * 2)) / 2)
+      );
+    }
+
+    /* Same gap between cards as the homepage carousels (the theme's product-card grid gap). */
+    .product-recommendations.favrik-pan-carousel .resource-list__carousel {
+      --resource-list-column-gap: var(--product-card-grid-column-gap);
+    }
+  }
+
   @media screen and (max-width: 749px) {
     .product-recommendations .resource-list__carousel {
       --resource-list-column-gap: var(--page-margin);
     }
 
-    .product-recommendations .resource-list__carousel slideshow-slides[gutters] {
-      padding-inline: var(--page-margin);
+    /* Match the homepage carousels: one large card with the next peeking in,
+       flush to the right edge, snapping card by card. */
+    .product-recommendations .resource-list__carousel > slideshow-container > slideshow-slides[gutters] {
+      padding-inline-start: var(--page-margin);
+      padding-inline-end: 0;
       scroll-padding-inline-start: var(--page-margin);
     }
 
-    .product-recommendations .resource-list__carousel slideshow-arrows {
-      padding-inline: var(--page-margin);
+    .product-recommendations .resource-list__carousel > slideshow-container > slideshow-slides > .resource-list__slide {
+      scroll-snap-align: start;
+      scroll-snap-stop: always;
     }
 
     .product-recommendations .resource-list__carousel .resource-list__slide {
-      --slide-width: calc((100% - var(--resource-list-column-gap, 0px)) / 2);
+      --slide-width: calc((100% - var(--page-margin) - var(--resource-list-column-gap, 0px)) * 0.75);
+    }
+
+    .product-recommendations .resource-list__carousel > slideshow-container > slideshow-arrows {
+      display: none;
     }
 
     .product-recommendations .section-resource-list__content > .text-block {

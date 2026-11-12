@@ -23,6 +23,14 @@
 
   assign map_directions_url = 'https://www.google.com/maps/search/?api=1&query=' | append: map_query_encoded
 
+  # Second store (Melbourne Central)
+  assign store_2_address = section.settings.store_2_address
+  assign store_2_hours = section.settings.store_2_opening_hours
+  assign store_2_map_query = section.settings.store_2_map_query | default: store_2_address
+  assign store_2_map_query_encoded = store_2_map_query | url_encode
+  assign store_2_map_embed_url = 'https://www.google.com/maps?q=' | append: store_2_map_query_encoded | append: '&z=16&output=embed'
+  assign store_2_directions_url = 'https://www.google.com/maps/search/?api=1&query=' | append: store_2_map_query_encoded
+
   assign contact_url = section.settings.contact_url
   if contact_url == blank and pages['contact'] != blank
     assign contact_url = pages['contact'].url
@@ -55,25 +63,57 @@
       </header>
 
       <div class="locations-page__details">
-        <div class="locations-page__detail">
-          <p class="locations-page__detail-label">Store address</p>
-          <p class="locations-page__detail-text">{{ store_address | escape | replace: ', Melbourne VIC 3000', '<br>Melbourne VIC 3000' | newline_to_br }}</p>
-          <p class="locations-page__note">
-            <a
-              href="{{ map_directions_url }}"
-              class="locations-page__link"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Get directions
-            </a>
-          </p>
+        <div class="locations-page__store">
+          <h2 class="locations-page__store-name">{{ section.settings.store_name | default: 'Emporium Melbourne' | escape }}</h2>
+          <div class="locations-page__detail">
+            <p class="locations-page__detail-label">Store address</p>
+            <p class="locations-page__detail-text">{{ store_address | escape | replace: ', Melbourne VIC 3000', '<br>Melbourne VIC 3000' | newline_to_br }}</p>
+            <p class="locations-page__note">
+              <a
+                href="{{ map_directions_url }}"
+                class="locations-page__link"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Get directions
+              </a>
+            </p>
+          </div>
+
+          {% if opening_hours != blank %}
+            <div class="locations-page__detail">
+              <p class="locations-page__detail-label">Opening hours</p>
+              <p class="locations-page__detail-text">{{ opening_hours | escape | newline_to_br }}</p>
+            </div>
+          {% endif %}
         </div>
 
-        <div class="locations-page__detail">
-          <p class="locations-page__detail-label">Opening hours</p>
-          <p class="locations-page__detail-text">{{ opening_hours | escape | newline_to_br }}</p>
-        </div>
+        {% if store_2_address != blank %}
+          <div class="locations-page__store">
+            <h2 class="locations-page__store-name">{{ section.settings.store_2_name | default: 'Melbourne Central' | escape }}</h2>
+            <div class="locations-page__detail">
+              <p class="locations-page__detail-label">Store address</p>
+              <p class="locations-page__detail-text">{{ store_2_address | escape | newline_to_br }}</p>
+              <p class="locations-page__note">
+                <a
+                  href="{{ store_2_directions_url }}"
+                  class="locations-page__link"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Get directions
+                </a>
+              </p>
+            </div>
+
+            {% if store_2_hours != blank %}
+              <div class="locations-page__detail">
+                <p class="locations-page__detail-label">Opening hours</p>
+                <p class="locations-page__detail-text">{{ store_2_hours | escape | newline_to_br }}</p>
+              </div>
+            {% endif %}
+          </div>
+        {% endif %}
 
         {% if section.settings.note != blank %}
           <p class="locations-page__note">{{ section.settings.note | escape }}</p>
@@ -87,17 +127,33 @@
       </div>
     </div>
 
-    <div class="locations-page__media">
-      <iframe
-        class="locations-page__map"
-        title="Favrik store location on Google Maps"
-        loading="lazy"
-        allowfullscreen
-        width="100%"
-        height="100%"
-        referrerpolicy="no-referrer-when-downgrade"
-        src="{{ map_embed_url }}"
-      ></iframe>
+    <div class="locations-page__media{% if store_2_address != blank %} locations-page__media--two{% endif %}">
+      <div class="locations-page__map-frame">
+        <iframe
+          class="locations-page__map"
+          title="{{ section.settings.store_name | default: 'Emporium Melbourne' | escape }} on Google Maps"
+          loading="lazy"
+          allowfullscreen
+          width="100%"
+          height="100%"
+          referrerpolicy="no-referrer-when-downgrade"
+          src="{{ map_embed_url }}"
+        ></iframe>
+      </div>
+      {% if store_2_address != blank %}
+        <div class="locations-page__map-frame">
+          <iframe
+            class="locations-page__map"
+            title="{{ section.settings.store_2_name | default: 'Melbourne Central' | escape }} on Google Maps"
+            loading="lazy"
+            allowfullscreen
+            width="100%"
+            height="100%"
+            referrerpolicy="no-referrer-when-downgrade"
+            src="{{ store_2_map_embed_url }}"
+          ></iframe>
+        </div>
+      {% endif %}
     </div>
   </div>
 </section>
@@ -140,6 +196,46 @@
     background: rgb(48 33 24 / 0.06);
   }
 
+  /* One map per store, stacked when there are two. */
+  .locations-page__media--two {
+    display: grid;
+    grid-template-rows: 1fr 1fr;
+    gap: 1px;
+    aspect-ratio: 3 / 5;
+  }
+
+  .locations-page__map-frame {
+    position: absolute;
+    inset: 0;
+  }
+
+  .locations-page__media--two .locations-page__map-frame {
+    position: relative;
+    inset: auto;
+    min-height: 0;
+  }
+
+  .locations-page__store {
+    display: grid;
+    gap: 0.85rem;
+  }
+
+  .locations-page__store + .locations-page__store {
+    padding-block-start: 1.25rem;
+    border-block-start: 0.5px solid rgb(48 33 24 / 0.14);
+  }
+
+  .locations-page__store-name {
+    margin: 0;
+    font-family: var(--font-body--family);
+    font-size: 0.75rem;
+    font-weight: 400;
+    line-height: 1.4;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #302118;
+  }
+
   .locations-page__map {
     position: absolute;
     inset: 0;
@@ -156,10 +252,7 @@
   }
 
   .locations-page__title,
-  .locations-page__subheading,
-  .locations-page__detail-label,
-  .locations-page__detail-text,
-  .locations-page__note {
+  .locations-page__detail-label {
     margin: 0;
     font-family: var(--font-body--family);
     font-size: 0.75rem;
@@ -178,6 +271,14 @@
   .locations-page__subheading,
   .locations-page__detail-text,
   .locations-page__note {
+    margin: 0;
+    font-family: var(--font-paragraph--family);
+    font-style: var(--font-paragraph--style);
+    font-size: 0.75rem;
+    font-weight: var(--font-paragraph--weight);
+    line-height: var(--font-paragraph--line-height);
+    letter-spacing: var(--font-paragraph--letter-spacing);
+    text-transform: var(--font-paragraph--case);
     color: rgb(48 33 24 / 0.62);
     max-width: 36rem;
   }
@@ -247,7 +348,17 @@
       "type": "textarea",
       "id": "subheading",
       "label": "Subheading",
-      "default": "Visit Favrik at Emporium Melbourne."
+      "default": "Visit Favrik at Emporium Melbourne and Melbourne Central."
+    },
+    {
+      "type": "header",
+      "content": "Store 1"
+    },
+    {
+      "type": "text",
+      "id": "store_name",
+      "label": "Store name",
+      "default": "Emporium Melbourne"
     },
     {
       "type": "textarea",
@@ -259,7 +370,7 @@
       "type": "textarea",
       "id": "opening_hours",
       "label": "Opening hours",
-      "default": "Monday 11am–7pm\nTuesday 11am–7pm\nWednesday 11am–7pm\nThursday 11am–8pm\nFriday 11am–8pm\nSaturday 11am–7pm\nSunday 11am–7pm",
+      "default": "Monday 11am–7pm\nTuesday 11am–7pm\nWednesday 11am–7pm\nThursday 10am–8pm\nFriday 10am–8pm\nSaturday 10am–7pm\nSunday 10am–7pm",
       "info": "Use a new line for each day or time."
     },
     {
@@ -289,6 +400,37 @@
       "id": "map_embed_url",
       "label": "Custom map embed URL",
       "info": "Optional. Paste a Google Maps embed URL to override the automatic map."
+    },
+    {
+      "type": "header",
+      "content": "Store 2"
+    },
+    {
+      "type": "text",
+      "id": "store_2_name",
+      "label": "Store name",
+      "default": "Melbourne Central"
+    },
+    {
+      "type": "textarea",
+      "id": "store_2_address",
+      "label": "Store address",
+      "default": "Melbourne Central Shopping Centre, Shop 123/211 La Trobe St,\nMelbourne VIC 3000",
+      "info": "Leave blank to hide the second store."
+    },
+    {
+      "type": "textarea",
+      "id": "store_2_opening_hours",
+      "label": "Opening hours",
+      "default": "Monday 10am–7pm\nTuesday 10am–7pm\nWednesday 10am–7pm\nThursday 10am–9pm\nFriday 10am–9pm\nSaturday 10am–7pm\nSunday 10am–7pm",
+      "info": "Use a new line for each day or time. Hidden when empty."
+    },
+    {
+      "type": "text",
+      "id": "store_2_map_query",
+      "label": "Map search query",
+      "default": "Melbourne Central Shopping Centre, Shop 123, 211 La Trobe St, Melbourne VIC 3000",
+      "info": "Used to locate the store on Google Maps. Leave blank to use the store address."
     },
     {
       "type": "select",

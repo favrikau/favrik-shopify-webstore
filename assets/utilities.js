@@ -337,6 +337,9 @@ let scrollLockScrollElement = null;
 /** @type {number} */
 let scrollLockScrollTop = 0;
 
+let scrollLockTouchX = 0;
+let scrollLockTouchY = 0;
+
 function getScrollLockScrollElement() {
   if (window.matchMedia('(min-width: 990px)').matches) {
     return document.querySelector('.page-wrapper') ?? document.documentElement;
@@ -364,19 +367,62 @@ function isInsideScrollLockOwner(target) {
   return false;
 }
 
+function trackScrollLockTouch(event) {
+  const touch = event.touches[0];
+  if (!touch) return;
+  scrollLockTouchX = touch.clientX;
+  scrollLockTouchY = touch.clientY;
+}
+
+function canScrollInsideLockOwner(target, deltaX, deltaY) {
+  if (!(target instanceof Element) || !isInsideScrollLockOwner(target)) return false;
+
+  const horizontal = Math.abs(deltaX) > Math.abs(deltaY);
+  for (let element = target; element; element = element.parentElement) {
+    const style = getComputedStyle(element);
+    const overflow = horizontal ? style.overflowX : style.overflowY;
+    const position = horizontal ? element.scrollLeft : element.scrollTop;
+    const maximum = horizontal
+      ? element.scrollWidth - element.clientWidth
+      : element.scrollHeight - element.clientHeight;
+    const delta = horizontal ? deltaX : deltaY;
+
+    if (/(auto|scroll)/.test(overflow) && maximum > 1 &&
+        ((delta < 0 && position > 0) || (delta > 0 && position < maximum - 1))) {
+      return true;
+    }
+    if (scrollLockOwners.has(element)) break;
+  }
+  return false;
+}
+
 /**
  * The page scrollbar can stay visible while locked, so block page-scrolling input directly.
  * @param {Event} event
  */
 function blockLockedPageScroll(event) {
-  if (isInsideScrollLockOwner(event.target)) return;
-
   if (event instanceof KeyboardEvent) {
+    if (isInsideScrollLockOwner(event.target)) return;
     if (!SCROLL_KEYS.has(event.key)) return;
     const target = event.target;
     if (target instanceof HTMLElement && (target.isContentEditable || target.matches('input, textarea, select'))) {
       return;
     }
+  } else {
+    let deltaX = 0;
+    let deltaY = 0;
+    if (typeof TouchEvent !== 'undefined' && event instanceof TouchEvent) {
+      if (event.touches.length !== 1) return;
+      const touch = event.touches[0];
+      deltaX = scrollLockTouchX - touch.clientX;
+      deltaY = scrollLockTouchY - touch.clientY;
+      trackScrollLockTouch(event);
+    } else if (event instanceof WheelEvent) {
+      if (event.ctrlKey) return;
+      deltaX = event.deltaX;
+      deltaY = event.deltaY;
+    }
+    if (canScrollInsideLockOwner(event.target, deltaX, deltaY)) return;
   }
 
   if (event.cancelable) event.preventDefault();
@@ -384,9 +430,10 @@ function blockLockedPageScroll(event) {
 
 function setLockedPageScrollBlocking(enabled) {
   const method = enabled ? 'addEventListener' : 'removeEventListener';
-  window[method]('wheel', blockLockedPageScroll, { passive: false });
-  window[method]('touchmove', blockLockedPageScroll, { passive: false });
-  window[method]('keydown', blockLockedPageScroll);
+  window[method]('touchstart', trackScrollLockTouch, { passive: true, capture: true });
+  window[method]('wheel', blockLockedPageScroll, { passive: false, capture: true });
+  window[method]('touchmove', blockLockedPageScroll, { passive: false, capture: true });
+  window[method]('keydown', blockLockedPageScroll, true);
 }
 
 function pruneDisconnectedScrollLockOwners() {
@@ -401,14 +448,15 @@ function syncScrollLock() {
   pruneDisconnectedScrollLockOwners();
 
   if (scrollLockOwners.size > 0) {
-    document.documentElement.setAttribute('scroll-lock', '');
-
     if (!scrollLockScrollElement) {
       scrollLockScrollElement = getScrollLockScrollElement();
       scrollLockScrollTop = scrollLockScrollElement.scrollTop;
       scrollLockScrollElement.addEventListener('scroll', freezeScrollLockPosition);
       setLockedPageScrollBlocking(true);
     }
+
+    document.documentElement.setAttribute('scroll-lock', '');
+    freezeScrollLockPosition();
 
     if (!scrollLockObserver) {
       scrollLockObserver = new MutationObserver(syncScrollLock);
@@ -419,6 +467,7 @@ function syncScrollLock() {
   }
 
   document.documentElement.removeAttribute('scroll-lock');
+  freezeScrollLockPosition();
   if (scrollLockScrollElement) setLockedPageScrollBlocking(false);
   scrollLockScrollElement?.removeEventListener('scroll', freezeScrollLockPosition);
   scrollLockScrollElement = null;

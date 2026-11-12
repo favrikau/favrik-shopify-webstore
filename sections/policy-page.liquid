@@ -1,0 +1,203 @@
+{% liquid
+  # Which policy to show: set explicitly, or worked out from the page handle so the
+  # privacy and terms pages render correctly whichever page template they use.
+  assign policy = section.settings.policy | default: 'auto'
+  if policy == 'auto'
+    assign policy = blank
+    if page.handle contains 'privacy'
+      assign policy = 'privacy'
+    elsif page.handle contains 'terms'
+      assign policy = 'terms'
+    endif
+  endif
+
+  case policy
+    when 'privacy'
+      assign policy_title = page.title | default: 'Privacy Policy'
+    when 'terms'
+      assign policy_title = page.title | default: 'Terms of Use'
+  endcase
+
+  assign background_color = section.settings.background_color | default: settings.color_palette.background
+  assign text_color = section.settings.text_color | default: settings.color_palette.foreground
+  assign border_color = section.settings.border_color | default: '#d8cec3'
+
+  if policy != blank and background_color != blank
+    render 'contrast-override', background_color: background_color, text_color: text_color, section_id: section.id
+  endif
+%}
+
+{%- if policy != blank -%}
+  <div
+    class="section-background{% if background_color != blank %} color-custom-{{ section.id }}{% endif %}"
+  ></div>
+
+  <section
+    class="policy-page section section--full-width{% if background_color != blank %} color-custom-{{ section.id }}{% endif %}"
+    style="
+      --policy-page-text: {{ text_color }};
+      --policy-page-border: {{ border_color }};
+    "
+  >
+    <div class="policy-page__inner">
+      <header class="policy-page__header">
+        <h1 class="policy-page__title">{{ policy_title | escape }}</h1>
+      </header>
+
+      <div class="policy-page__content">
+        <div class="policy-page__group">
+          <div class="policy-page__copy">
+            {%- if policy == 'privacy' -%}
+              {%- render 'policy-privacy-content' -%}
+            {%- else -%}
+              {%- render 'policy-terms-content' -%}
+            {%- endif -%}
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+{%- endif -%}
+
+{% stylesheet %}
+  /* Shared layout for the privacy policy and terms of use pages; same type scale as the returns policy page. */
+  .policy-page {
+    color: var(--policy-page-text);
+    background: var(--color-background);
+    padding-block-start: clamp(2.5rem, 5vw, 4rem);
+    padding-block-end: 0;
+  }
+
+  .policy-page__inner {
+    width: min(100% - 2.5rem, 58rem);
+    margin-inline: auto;
+    margin-block-end: clamp(2.5rem, 5vw, 4rem);
+  }
+
+  .policy-page__header {
+    display: grid;
+    gap: 0.75rem;
+    margin-block-end: clamp(2rem, 4vw, 3rem);
+  }
+
+  .policy-page__title,
+  .policy-page__copy :is(h2, h3, h4, h5, h6) {
+    margin: 0;
+    color: var(--policy-page-text, #302118);
+    font-family: var(--font-body--family);
+    font-size: 0.75rem;
+    font-weight: 300;
+    line-height: 1.4;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .policy-page__copy :is(h2, h3, h4, h5, h6) {
+    font-weight: 300;
+    margin-block-start: 0.85rem;
+  }
+
+  /* Rich text settings can't hold headings, so a paragraph that is only bold text acts as a subheading. */
+  .policy-page__copy p:has(> strong:only-child) {
+    margin-block-start: 1.25rem;
+    color: var(--policy-page-text, #302118);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .policy-page__copy p > strong:only-child {
+    font-weight: 300;
+  }
+
+  .policy-page__group {
+    padding-block-start: clamp(1.25rem, 2.5vw, 1.75rem);
+    border-block-start: 0.5px solid var(--policy-page-border);
+  }
+
+  .policy-page__copy {
+    display: grid;
+    gap: 0.85rem;
+    max-width: 44rem;
+    color: #4a4a4a;
+    font-family: var(--font-body--family);
+    font-size: 0.75rem;
+    font-weight: 300;
+    line-height: 1.7;
+    letter-spacing: 0.02em;
+  }
+
+  .policy-page__copy :is(p, ul, ol) {
+    margin: 0;
+    font-size: inherit;
+    font-weight: inherit;
+    line-height: inherit;
+    color: inherit;
+  }
+
+  .policy-page__copy :is(ul, ol) {
+    display: grid;
+    gap: 0.45rem;
+    padding-inline-start: 1.1rem;
+  }
+
+  .policy-page__copy li::marker {
+    color: var(--policy-page-text);
+  }
+
+  .policy-page__copy a {
+    color: inherit;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  @media screen and (max-width: 749px) {
+    .policy-page__inner {
+      width: 100%;
+      padding-inline: var(--page-margin);
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Policy page",
+  "tag": "section",
+  "class": "policy-page-section",
+  "settings": [
+    {
+      "type": "select",
+      "id": "policy",
+      "label": "Policy",
+      "options": [
+        { "value": "auto", "label": "Match page handle" },
+        { "value": "privacy", "label": "Privacy policy" },
+        { "value": "terms", "label": "Terms of use" }
+      ],
+      "default": "auto"
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "t:settings.background_color",
+      "default": "#fff7ec"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "t:settings.text_color",
+      "default": "#302118"
+    },
+    {
+      "type": "color",
+      "id": "border_color",
+      "label": "Divider color",
+      "default": "#d8cec3"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Policy page"
+    }
+  ]
+}
+{% endschema %}

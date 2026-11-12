@@ -1,0 +1,15 @@
+{% if predictive_search.performed %}
+  {% render 'sku-search-product-data', products: predictive_search.resources.products %}
+{% elsif search.performed %}
+  {% paginate search.results by 8 %}
+    {% assign products = search.results | where: 'object_type', 'product' %}
+    {% render 'sku-search-product-data', products: products %}
+  {% endpaginate %}
+{% endif %}
+
+{% schema %}
+{
+  "name": "SKU search results",
+  "settings": []
+}
+{% endschema %}

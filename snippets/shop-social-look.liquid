@@ -3,12 +3,16 @@
   Shop Social modal on click. Kept data-source agnostic so a metaobject can feed it later.
 
   @param {object} [image] - Look image; renders a placeholder when blank
+  @param {object} [video] - Look video (media object); shown instead of the image in the modal
+  @param {object[]} [media_list] - Extra images/videos shown after the main media; 2+ items become a gallery
+  @param {string} [title] - Look title, used as the media's accessible text
   @param {string} [placeholder] - Placeholder SVG name
   @param {string} [caption] - Description of the look
   @param {string} [author] - Handle credited in the meta line, e.g. "@favrik"
   @param {string} [date] - Display date for the meta line
   @param {string} [source_label] - Platform name for the meta line, defaults to "Instagram"
   @param {string} [source_url] - Link to the original post
+  @param {string} [credit_url] - The post's own Instagram link; makes the video credit clickable
   @param {object[]} [products] - Products worn in the look
   @param {object} [product] - Single product worn in the look (used when products is blank)
   @param {object} [preview_collection] - Collection for four-product carousel preview
@@ -17,6 +21,12 @@
 {%- enddoc -%}
 
 {% liquid
+  # Handles always render with exactly one leading "@".
+  assign author = author | strip | remove_first: '@' | strip
+  if author != blank
+    assign author = author | prepend: '@'
+  endif
+
   assign source_label = source_label | default: 'Instagram'
   assign placeholder = placeholder | default: 'lifestyle-1'
   assign product_count = 0
@@ -40,20 +50,98 @@
   elsif product != blank
     assign product_count = 1
   endif
+
+  # A one-product list (e.g. a shop_insta entry) uses the single-product layout.
+  assign single_product = product
+  if products != blank
+    assign single_product = products.first
+  endif
 %}
 
 <template data-shop-social-look>
-  <div class="shop-social-look__media" data-look-media>
-    {% if image != blank %}
-      {{
-        image
-        | image_url: width: 1600
-        | image_tag:
-          widths: '640, 900, 1200, 1600',
-          sizes: '(min-width: 750px) 50vw, 100vw',
-          class: 'shop-social-look__img',
-          alt: image.alt
-      }}
+  {%- liquid
+    # Gallery order: the main media (video, else image) first, then each media_list file.
+    assign primary_media = video | default: image
+    assign gallery_count = 0
+    if primary_media != blank
+      assign gallery_count = 1
+    endif
+    for list_media in media_list
+      if list_media.id == primary_media.id
+        continue
+      endif
+      assign gallery_count = gallery_count | plus: 1
+    endfor
+  -%}
+
+  {%- capture media_credit -%}
+    {%- if author != blank -%}
+      {%- if credit_url != blank -%}
+        <a
+          class="shop-social-look__media-credit"
+          href="{{ credit_url }}"
+          target="_blank"
+          rel="noopener"
+        >
+          {{- author | escape -}}
+        </a>
+      {%- else -%}
+        <span class="shop-social-look__media-credit">{{ author | escape }}</span>
+      {%- endif -%}
+    {%- endif -%}
+  {%- endcapture -%}
+
+  <div class="shop-social-look__media{% if gallery_count > 1 %} shop-social-look__media--gallery{% endif %}" data-look-media>
+    {% if gallery_count > 1 %}
+      {%- comment -%}
+        Same slideshow setup as product card galleries: chevrons + fade on desktop, swipe + progress
+        bar on mobile. `card-gallery` is the hook slideshow.js uses to find the progress bar.
+      {%- endcomment -%}
+      {%- capture gallery_slides -%}
+        {%- assign slide_index = 0 -%}
+        {%- if primary_media != blank -%}
+          {%- capture slide_children -%}
+            {%- render 'shop-social-look-media', media: primary_media, title: title, eager: true -%}
+            {%- if primary_media.media_type == 'video' -%}{{ media_credit }}{%- endif -%}
+          {%- endcapture -%}
+          {%- render 'slideshow-slide', index: slide_index, slide_id: primary_media.id, class: 'shop-social-look__slide', children: slide_children -%}
+          {%- assign slide_index = slide_index | plus: 1 -%}
+        {%- endif -%}
+        {%- for list_media in media_list -%}
+          {%- if list_media.id == primary_media.id -%}
+            {%- continue -%}
+          {%- endif -%}
+          {%- capture slide_children -%}
+            {%- render 'shop-social-look-media', media: list_media, title: title -%}
+            {%- if list_media.media_type == 'video' -%}{{ media_credit }}{%- endif -%}
+          {%- endcapture -%}
+          {%- render 'slideshow-slide', index: slide_index, slide_id: list_media.id, class: 'shop-social-look__slide', children: slide_children -%}
+          {%- assign slide_index = slide_index | plus: 1 -%}
+        {%- endfor -%}
+      {%- endcapture -%}
+
+      <div class="card-gallery shop-social-look__gallery">
+        <div class="card-gallery__viewport">
+          {% render 'slideshow',
+            slides: gallery_slides,
+            slide_count: gallery_count,
+            show_arrows: true,
+            infinite: false,
+            initial_slide: 0,
+            attributes: 'data-fade-slides data-mobile-card-swipe data-controls-only'
+          %}
+        </div>
+        <div class="card-gallery__progress" aria-hidden="true">
+          <span class="card-gallery__progress-thumb"></span>
+        </div>
+      </div>
+    {% elsif video != blank %}
+      {%- render 'shop-social-look-media', media: video, title: title, eager: true -%}
+      {{ media_credit }}
+    {% elsif primary_media != blank or media_list.size > 0 %}
+      {%- assign only_media = primary_media | default: media_list.first -%}
+      {%- render 'shop-social-look-media', media: only_media, title: title, eager: true -%}
+      {%- if only_media.media_type == 'video' -%}{{ media_credit }}{%- endif -%}
     {% else %}
       {{ placeholder | placeholder_svg_tag: 'shop-social-look__img shop-social-look__img--placeholder' }}
     {% endif %}
@@ -103,7 +191,7 @@
       %}
     {% elsif product_count > 0 %}
       <ul class="shop-social-look__products list-unstyled" data-count="1">
-        <li>{% render 'shop-social-look-product', product: product, product_instance: 1 %}</li>
+        <li>{% render 'shop-social-look-product', product: single_product, product_instance: 1 %}</li>
       </ul>
     {% elsif show_product_slots %}
       <ul class="shop-social-look__products list-unstyled" data-count="2">

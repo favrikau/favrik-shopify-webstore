@@ -64,14 +64,6 @@
   {% endif %}
 ></script>
 
-<script
-  src="{{ 'gsap.min.js' | asset_url }}"
-  defer
-></script>
-<script
-  src="{{ 'gsap-smooth-scroll.js' | asset_url }}"
-  defer
-></script>
 {% if template.name == 'index' %}
   <script
     src="{{ 'random-collection-images.js' | asset_url }}"
@@ -159,11 +151,14 @@
   type="module"
   fetchpriority="low"
 ></script>
-<script
-  src="{{ 'quick-add.js' | asset_url }}"
-  type="module"
-  fetchpriority="low"
-></script>
+{%- comment -%} Quick Add is off in theme settings (no button renders), so only load it when enabled. {%- endcomment -%}
+{% if settings.quick_add or settings.mobile_quick_add %}
+  <script
+    src="{{ 'quick-add.js' | asset_url }}"
+    type="module"
+    fetchpriority="low"
+  ></script>
+{% endif %}
 {% if false %}
   <script
     src="{{ 'cart-discount.js' | asset_url }}"
@@ -187,6 +182,11 @@
   type="module"
   fetchpriority="low"
 ></script>
+<script>
+  // Lets card-gallery CSS hide PNG card images until png-card-background.js has
+  // decided their final look (prevents a full-size -> scaled "shrink" on load).
+  document.documentElement.classList.add('png-card-check');
+</script>
 <script
   src="{{ 'png-card-background.js' | asset_url }}"
   type="module"

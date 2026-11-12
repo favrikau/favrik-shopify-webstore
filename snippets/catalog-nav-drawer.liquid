@@ -4,11 +4,24 @@
 {% enddoc %}
 
 {% liquid
+  # "All products" opens the store's own All collection (sorted in admin); Shopify may have
+  # given it a suffixed handle. Falls back to the built-in all-products page.
+  assign all_collection = collections['all']
+  if all_collection == blank or all_collection.id == blank
+    assign all_collection = collections['all-1'] | default: collections['all-products']
+  endif
   assign all_url = routes.all_products_collection_url
+  assign all_handle = 'all'
+  if all_collection != blank and all_collection.id != blank
+    assign all_url = all_collection.url
+    assign all_handle = all_collection.handle
+  endif
   assign current_handle = collection.handle | default: ''
-  assign test_collection = collections['test-collection']
-  assign fw2026_collection = collections['fw2026']
+  assign new_arrivals_collection = collections['new-arrivals']
+  assign best_sellers_collection = collections['best-sellers']
   assign sale_collection = collections['on-sale']
+  assign coat_collection = collections['coat-collection']
+  assign shop_insta_url = pages['shop-insta'].url | default: '/pages/shop-insta'
   assign locations_url = pages['locations'].url | default: '/pages/locations'
   assign contact_url = pages['contact'].url | default: '/pages/contact'
 %}
@@ -28,111 +41,126 @@
   aria-hidden="true"
 >
   <nav class="catalog-nav-drawer__panel" aria-label="Shop">
+    {% liquid
+      # Map each store product type (some use bold Unicode letters) to its plain lowercase name,
+      # so the fixed category list below links to the real type.
+      assign type_lookup = ''
+      for product_type in shop.types
+        if product_type == blank
+          continue
+        endif
+        assign type_normalized = product_type | strip
+        assign type_normalized = type_normalized | replace: '𝗔', 'A' | replace: '𝗕', 'B' | replace: '𝗖', 'C' | replace: '𝗗', 'D' | replace: '𝗘', 'E' | replace: '𝗙', 'F' | replace: '𝗚', 'G' | replace: '𝗛', 'H' | replace: '𝗜', 'I' | replace: '𝗝', 'J' | replace: '𝗞', 'K' | replace: '𝗟', 'L' | replace: '𝗠', 'M' | replace: '𝗡', 'N' | replace: '𝗢', 'O' | replace: '𝗣', 'P' | replace: '𝗤', 'Q' | replace: '𝗥', 'R' | replace: '𝗦', 'S' | replace: '𝗧', 'T' | replace: '𝗨', 'U' | replace: '𝗩', 'V' | replace: '𝗪', 'W' | replace: '𝗫', 'X' | replace: '𝗬', 'Y' | replace: '𝗭', 'Z'
+        assign type_normalized = type_normalized | replace: '𝗮', 'A' | replace: '𝗯', 'B' | replace: '𝗰', 'C' | replace: '𝗱', 'D' | replace: '𝗲', 'E' | replace: '𝗳', 'F' | replace: '𝗴', 'G' | replace: '𝗵', 'H' | replace: '𝗶', 'I' | replace: '𝗷', 'J' | replace: '𝗸', 'K' | replace: '𝗹', 'L' | replace: '𝗺', 'M' | replace: '𝗻', 'N' | replace: '𝗼', 'O' | replace: '𝗽', 'P' | replace: '𝗾', 'Q' | replace: '𝗿', 'R' | replace: '𝘀', 'S' | replace: '𝘁', 'T' | replace: '𝘂', 'U' | replace: '𝘃', 'V' | replace: '𝘄', 'W' | replace: '𝘅', 'X' | replace: '𝘆', 'Y' | replace: '𝘇', 'Z'
+        assign type_key = type_normalized | downcase
+        assign type_lookup = type_lookup | append: '|||' | append: type_key | append: '::' | append: product_type
+      endfor
+      assign type_entries = type_lookup | split: '|||'
+      assign category_names = 'Outer,Top,Knit,Bottom,Dress,Set,Acc,Home' | split: ','
+    %}
     <ul class="catalog-nav-drawer__list list-unstyled">
       <li>
         <a
           href="{{ all_url }}"
-          class="catalog-nav-drawer__link{% if current_handle == 'all' %} catalog-nav-drawer__link--active{% endif %}"
-          {% if current_handle == 'all' %}aria-current="page"{% endif %}
+          class="catalog-nav-drawer__link{% if current_handle == all_handle %} catalog-nav-drawer__link--active{% endif %}"
+          {% if current_handle == all_handle %}aria-current="page"{% endif %}
         >
           ALL PRODUCTS
         </a>
       </li>
 
-      <li>
-        <a
-          href="{% if test_collection != blank %}{{ test_collection.url }}{% else %}/collections/test-collection{% endif %}"
-          class="catalog-nav-drawer__link catalog-nav-drawer__link--secondary{% if current_handle == 'test-collection' %} catalog-nav-drawer__link--active{% endif %}"
-          {% if current_handle == 'test-collection' %}aria-current="page"{% endif %}
-        >
-          TEST COLLECTION
-        </a>
-      </li>
+      <li class="catalog-nav-drawer__divider" aria-hidden="true"></li>
 
       <li>
         <a
-          href="{% if fw2026_collection != blank %}{{ fw2026_collection.url }}{% else %}/collections/fw2026{% endif %}"
-          class="catalog-nav-drawer__link catalog-nav-drawer__link--secondary{% if current_handle == 'fw2026' %} catalog-nav-drawer__link--active{% endif %}"
-          {% if current_handle == 'fw2026' %}aria-current="page"{% endif %}
+          href="{% if new_arrivals_collection != blank %}{{ new_arrivals_collection.url }}{% else %}{{ all_url }}?sort_by=created-descending{% endif %}"
+          class="catalog-nav-drawer__link{% if current_handle == 'new-arrivals' %} catalog-nav-drawer__link--active{% endif %}"
+          {% if current_handle == 'new-arrivals' %}aria-current="page"{% endif %}
         >
-          FW2026
+          NEW ARRIVALS
+        </a>
+      </li>
+      <li>
+        <a
+          href="{% if best_sellers_collection != blank %}{{ best_sellers_collection.url }}{% else %}/collections/best-sellers{% endif %}"
+          class="catalog-nav-drawer__link{% if current_handle == 'best-sellers' %} catalog-nav-drawer__link--active{% endif %}"
+          {% if current_handle == 'best-sellers' %}aria-current="page"{% endif %}
+        >
+          BEST SELLERS
         </a>
       </li>
 
-      <li>
-        <a
-          href="{% if sale_collection != blank %}{{ sale_collection.url }}{% else %}/collections/on-sale{% endif %}"
-          class="catalog-nav-drawer__link catalog-nav-drawer__link--secondary{% if current_handle == 'on-sale' %} catalog-nav-drawer__link--active{% endif %}"
-          {% if current_handle == 'on-sale' %}aria-current="page"{% endif %}
-        >
-          SHOP SALE
-        </a>
-      </li>
+      <li class="catalog-nav-drawer__divider" aria-hidden="true"></li>
+
+      {% for category_name in category_names %}
+        {% liquid
+          assign category_key = category_name | downcase
+          assign category_type = category_name
+          for entry in type_entries
+            assign entry_parts = entry | split: '::'
+            if entry_parts[0] == category_key
+              assign category_type = entry_parts[1]
+              break
+            endif
+          endfor
+        %}
+        <li>
+          <a href="{{ category_type | url_for_type }}" class="catalog-nav-drawer__link">
+            {{ category_name | upcase }}
+          </a>
+        </li>
+      {% endfor %}
 
       <li class="catalog-nav-drawer__divider" aria-hidden="true"></li>
 
       {% liquid
-        assign promo_types = ''
-        assign promo_separator = '|||'
+        assign coat_url = ''
+        if coat_collection != blank
+          assign coat_url = coat_collection.url
+        else
+          assign coat_type = 'Coat collection'
+          for entry in type_entries
+            assign entry_parts = entry | split: '::'
+            if entry_parts[0] == 'coat collection'
+              assign coat_type = entry_parts[1]
+              break
+            endif
+          endfor
+          assign coat_url = coat_type | url_for_type
+        endif
       %}
-
-      {% for product_type in shop.types %}
-        {% if product_type == blank %}
-          {% continue %}
-        {% endif %}
-
-        {% liquid
-          assign type_normalized = product_type | strip
-          assign type_normalized = type_normalized | replace: '𝗔', 'A' | replace: '𝗕', 'B' | replace: '𝗖', 'C' | replace: '𝗗', 'D' | replace: '𝗘', 'E' | replace: '𝗙', 'F' | replace: '𝗚', 'G' | replace: '𝗛', 'H' | replace: '𝗜', 'I' | replace: '𝗝', 'J' | replace: '𝗞', 'K' | replace: '𝗟', 'L' | replace: '𝗠', 'M' | replace: '𝗡', 'N' | replace: '𝗢', 'O' | replace: '𝗣', 'P' | replace: '𝗤', 'Q' | replace: '𝗥', 'R' | replace: '𝗦', 'S' | replace: '𝗧', 'T' | replace: '𝗨', 'U' | replace: '𝗩', 'V' | replace: '𝗪', 'W' | replace: '𝗫', 'X' | replace: '𝗬', 'Y' | replace: '𝗭', 'Z'
-          assign type_normalized = type_normalized | replace: '𝗮', 'A' | replace: '𝗯', 'B' | replace: '𝗰', 'C' | replace: '𝗱', 'D' | replace: '𝗲', 'E' | replace: '𝗳', 'F' | replace: '𝗴', 'G' | replace: '𝗵', 'H' | replace: '𝗶', 'I' | replace: '𝗷', 'J' | replace: '𝗸', 'K' | replace: '𝗹', 'L' | replace: '𝗺', 'M' | replace: '𝗻', 'N' | replace: '𝗼', 'O' | replace: '𝗽', 'P' | replace: '𝗾', 'Q' | replace: '𝗿', 'R' | replace: '𝘀', 'S' | replace: '𝘁', 'T' | replace: '𝘂', 'U' | replace: '𝘃', 'V' | replace: '𝘄', 'W' | replace: '𝘅', 'X' | replace: '𝘆', 'Y' | replace: '𝘇', 'Z'
-          assign type_label = type_normalized | upcase
-          assign type_key = type_label | downcase
-          assign is_promo_type = false
-          if type_key == 'coat collection' or type_key == 'eofy sale' or type_key == 'look five'
-            assign is_promo_type = true
-          endif
-        %}
-
-        {% if is_promo_type %}
-          {% assign promo_types = promo_types | append: promo_separator | append: product_type | append: '::' | append: type_label %}
-        {% else %}
-          <li>
-            <a
-              href="{{ product_type | url_for_type }}"
-              class="catalog-nav-drawer__link"
-            >
-              {{ type_label }}
-            </a>
-          </li>
-        {% endif %}
-      {% endfor %}
-
-      {% if promo_types != blank %}
-        <li class="catalog-nav-drawer__divider" aria-hidden="true"></li>
-
-        {% assign promo_entries = promo_types | split: promo_separator %}
-        {% for entry in promo_entries %}
-          {% if entry == blank %}
-            {% continue %}
-          {% endif %}
-          {% assign entry_parts = entry | split: '::' %}
-          {% assign promo_type_raw = entry_parts[0] %}
-          {% assign promo_type_label = entry_parts[1] %}
-          <li>
-            <a
-              href="{{ promo_type_raw | url_for_type }}"
-              class="catalog-nav-drawer__link"
-            >
-              {{ promo_type_label }}
-            </a>
-          </li>
-        {% endfor %}
-      {% endif %}
+      <li>
+        <a
+          href="{{ coat_url }}"
+          class="catalog-nav-drawer__link{% if current_handle == 'coat-collection' %} catalog-nav-drawer__link--active{% endif %}"
+          {% if current_handle == 'coat-collection' %}aria-current="page"{% endif %}
+        >
+          COAT COLLECTION
+        </a>
+      </li>
+      <li>
+        <a
+          href="{% if sale_collection != blank %}{{ sale_collection.url }}{% else %}/collections/on-sale{% endif %}"
+          class="catalog-nav-drawer__link{% if current_handle == 'on-sale' %} catalog-nav-drawer__link--active{% endif %}"
+          {% if current_handle == 'on-sale' %}aria-current="page"{% endif %}
+        >
+          SALE
+        </a>
+      </li>
 
       <li class="catalog-nav-drawer__divider" aria-hidden="true"></li>
 
       <li>
-        <a href="{{ locations_url }}" class="catalog-nav-drawer__link">STORE LOCATIONS</a>
+        <a
+          href="{{ shop_insta_url }}"
+          class="catalog-nav-drawer__link{% if page.handle == 'shop-insta' %} catalog-nav-drawer__link--active{% endif %}"
+          {% if page.handle == 'shop-insta' %}aria-current="page"{% endif %}
+        >
+          SHOP INSTA
+        </a>
+      </li>
+      <li>
+        <a href="{{ locations_url }}" class="catalog-nav-drawer__link">STORE LOCATION</a>
       </li>
       <li>
         <a href="{{ contact_url }}" class="catalog-nav-drawer__link">CONTACT US</a>
@@ -261,7 +289,8 @@
     padding: 0.45rem 0;
     color: #302118;
     font-family: var(--font-body--family);
-    font-size: 0.9375rem;
+    /* Matches the header menu link size (13px). */
+    font-size: 0.8125rem;
     font-weight: 300;
     letter-spacing: 0.1em;
     line-height: 1.3;
@@ -270,17 +299,8 @@
     transition: opacity 0.2s ease;
   }
 
-  .catalog-nav-drawer__link--secondary {
-    color: rgb(48 33 24 / 0.58);
-  }
-
   .catalog-nav-drawer__link:hover {
     opacity: 0.62;
-  }
-
-  .catalog-nav-drawer__link--secondary:hover {
-    opacity: 1;
-    color: rgb(48 33 24 / 0.82);
   }
 
   .catalog-nav-drawer__link--active {
@@ -297,14 +317,23 @@
       max-width: calc((100% - var(--page-scrollbar-width, 0px)) / 3);
     }
 
+    /* The panel spans the drawer's full height and carries the vertical padding
+       itself, so the list starts padded but scrolls right up to the header edge and
+       down to the viewport bottom instead of clipping at the padding line. */
     .catalog-nav-drawer {
       box-sizing: border-box;
+      padding-block: 0;
       padding-inline: var(--page-margin, 40px);
     }
 
     .catalog-nav-drawer__panel {
+      display: block;
+      box-sizing: border-box;
       width: 100%;
       max-width: none;
+      height: 100%;
+      max-height: none;
+      padding-block: clamp(1rem, 3vw, 2.25rem) clamp(1.5rem, 4vw, 3rem);
     }
 
     .catalog-nav-drawer__divider {
@@ -335,7 +364,6 @@
 
     .catalog-nav-drawer__link {
       padding-block: 0.3rem;
-      font-size: var(--font-size--xs, 0.8125rem);
     }
   }
 

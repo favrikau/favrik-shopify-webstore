@@ -1,0 +1,68 @@
+{%- doc -%}
+  Renders one `shop_insta` metaobject entry as a Shop Social tile + modal look.
+  Fields: title, media (image or video), media_list (extra images/videos), products,
+  description, instagram_url, cover_image, creator_handle.
+
+  The modal plays `media` first, then each `media_list` file in order; two or more items
+  become a swipeable (mobile) / chevron (desktop) gallery, the same as product cards.
+
+  @param {object} entry - A shop_insta metaobject
+  @param {string} [label] - Tile hover label
+  @param {string} [default_author] - Credit handle when creator_handle is blank
+  @param {string} [default_link] - Post link when instagram_url is blank
+  @param {string} [attributes] - Extra attributes for the tile element
+{%- enddoc -%}
+
+{%- liquid
+  assign media = entry.media.value
+  assign media_list = entry.media_list.value | compact
+  assign cover = entry.cover_image.value
+  assign video = blank
+  assign image = blank
+  assign look_image = blank
+
+  if media.media_type == 'video'
+    assign video = media
+  elsif media != blank
+    assign look_image = media.preview_image | default: media
+  endif
+
+  # Tile still: cover image first, then the media itself (or a video's poster frame),
+  # then the first media_list file.
+  if cover != blank
+    assign image = cover.preview_image | default: cover
+  elsif media != blank
+    assign image = media.preview_image | default: media
+  elsif media_list.size > 0
+    assign first_list_media = media_list.first
+    assign image = first_list_media.preview_image | default: first_list_media
+  endif
+
+  # Modal still when there's no media (and no media_list): fall back to the tile image.
+  if look_image == blank and video == blank and media_list.size == 0
+    assign look_image = image
+  endif
+
+  # Products that aren't active + published to the Online Store come back empty;
+  # drop them so the modal never shows a blank "sold out" card.
+  assign products = entry.products.value | compact
+
+  assign title = entry.title.value
+  assign author = entry.creator_handle.value | default: default_author
+  assign source_url = entry.instagram_url.value | default: default_link
+-%}
+
+{%- render 'shop-social-tile',
+  image: image,
+  look_image: look_image,
+  video: video,
+  media_list: media_list,
+  title: title,
+  label: label,
+  caption: entry.description.value,
+  author: author,
+  source_url: source_url,
+  credit_url: entry.instagram_url.value,
+  products: products,
+  attributes: attributes
+-%}

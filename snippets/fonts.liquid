@@ -11,6 +11,22 @@
 >
 {% # theme-check-enable RemoteAsset %}
 
+{% style %}
+  /*
+   * Metric-matched stand-in for Poppins while the web font downloads. Arial is scaled
+   * and spaced to occupy the same box as Poppins, so the font-display: swap changes
+   * glyph shapes only, not line lengths or heights (no layout shift).
+   */
+  @font-face {
+    font-family: 'Poppins Fallback';
+    src: local('Arial'), local('ArialMT');
+    size-adjust: 112.16%;
+    ascent-override: 93.62%;
+    descent-override: 31.21%;
+    line-gap-override: 8.92%;
+  }
+{% endstyle %}
+
 {%- unless settings.type_body_font.system? -%}
   {{ settings.type_body_font | font_url | preload_tag: as: 'font', type: 'font/woff2', fetchpriority: 'low' }}
 {%- endunless -%}

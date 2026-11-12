@@ -23,5 +23,3 @@ clearAffixedState();
 window.addEventListener('collection:facets-rendered', clearAffixedState);
 window.addEventListener('collection:header-expanded', clearAffixedState);
 document.addEventListener('shopify:section:load', clearAffixedState);
-window.addEventListener('resize', clearAffixedState, { passive: true });
-window.addEventListener('scroll', clearAffixedState, { passive: true });

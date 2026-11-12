@@ -1,0 +1,373 @@
+{%- comment -%}
+  Lives in the shared page template, so it renders only on the Shop Insta page
+  (handle 'shop-insta'); on other templates it renders wherever it's added.
+{%- endcomment -%}
+{%- if template.name != 'page' or page.handle == 'shop-insta' -%}
+{% liquid
+  assign collection = section.settings.collection
+  assign label = section.settings.overlay_label | default: 'SHOP THE LOOK'
+  assign default_link = section.settings.instagram_url | default: 'https://www.instagram.com/favrik_/'
+  assign product_limit = section.settings.max_looks
+
+  if section.settings.background_color != blank
+    render 'contrast-override', background_color: section.settings.background_color, section_id: section.id
+  endif
+%}
+
+{%- comment -%}
+  Source order: Shop Insta metaobject entries, then image blocks, then collection
+  products, then placeholders. Desktop grid placement comes from
+  snippets/shop-insta-grid-position.liquid.
+{%- endcomment -%}
+{%- liquid
+  assign insta_posts = shop.metaobjects.shop_insta.values
+  if shop.metaobjects.shop_insta.values_count > 0
+    assign source = 'metaobjects'
+    assign tile_count = shop.metaobjects.shop_insta.values_count
+    if tile_count > 50
+      assign tile_count = 50
+    endif
+  elsif section.blocks.size > 0
+    assign source = 'blocks'
+    assign tile_count = section.blocks.size
+  elsif collection != blank and collection.products_count > 0
+    assign source = 'collection'
+    assign tile_count = collection.products_count
+    if tile_count > product_limit
+      assign tile_count = product_limit
+    endif
+  else
+    assign source = 'placeholder'
+    assign tile_count = 14
+  endif
+
+  assign patterned_count = tile_count | divided_by: 7 | times: 7
+-%}
+
+{%- capture tiles -%}
+  {%- case source -%}
+    {%- when 'metaobjects' -%}
+      {%- for entry in insta_posts limit: tile_count -%}
+        {%- capture tile_style -%}{% render 'shop-insta-grid-position', index: forloop.index0, patterned_count: patterned_count %}{%- endcapture -%}
+        {%- render 'shop-insta-post',
+          entry: entry,
+          label: label,
+          default_author: section.settings.handle,
+          default_link: default_link,
+          attributes: tile_style
+        -%}
+      {%- endfor -%}
+
+    {%- when 'blocks' -%}
+      {%- for block in section.blocks -%}
+        {%- capture tile_style -%}{% render 'shop-insta-grid-position', index: forloop.index0, patterned_count: patterned_count %}{%- endcapture -%}
+        {%- assign tile_link = block.settings.link | default: default_link -%}
+        {%- assign tile_author = block.settings.author | default: section.settings.handle -%}
+        {%- capture tile_attributes -%}{{ tile_style }} {{ block.shopify_attributes }}{%- endcapture -%}
+        {%- render 'shop-social-tile',
+          image: block.settings.image,
+          label: label,
+          caption: block.settings.caption,
+          author: tile_author,
+          date: block.settings.date,
+          source_url: tile_link,
+          credit_url: block.settings.link,
+          products: block.settings.products,
+          show_product_slots: request.design_mode,
+          attributes: tile_attributes
+        -%}
+      {%- endfor -%}
+
+    {%- when 'collection' -%}
+      {%- for product in collection.products limit: tile_count -%}
+        {%- capture tile_style -%}{% render 'shop-insta-grid-position', index: forloop.index0, patterned_count: patterned_count %}{%- endcapture -%}
+        {%- render 'shop-social-tile',
+          image: product.featured_image,
+          label: label,
+          author: section.settings.handle,
+          source_url: default_link,
+          product: product,
+          attributes: tile_style
+        -%}
+      {%- endfor -%}
+
+    {%- else -%}
+      {%- for i in (1..tile_count) -%}
+        {%- capture tile_style -%}{% render 'shop-insta-grid-position', index: forloop.index0, patterned_count: patterned_count %}{%- endcapture -%}
+        {%- liquid
+          assign placeholder_index = forloop.index0 | modulo: 2 | plus: 1
+          assign placeholder_name = 'lifestyle-' | append: placeholder_index
+        -%}
+        {%- render 'shop-social-tile',
+          label: label,
+          placeholder: placeholder_name,
+          caption: 'Spotted styling our latest pieces. Shop the look in store and online.',
+          author: section.settings.handle,
+          source_url: default_link,
+          show_product_slots: true,
+          attributes: tile_style
+        -%}
+      {%- endfor -%}
+  {%- endcase -%}
+{%- endcapture -%}
+
+<div
+  class="section-background{% if section.settings.background_color != blank %} color-custom-{{ section.id }}{% endif %}"
+></div>
+
+<div
+  class="section section--page-width spacing-style shop-insta{% if section.settings.background_color != blank %} color-custom-{{ section.id }}{% endif %}"
+  style="{% render 'spacing-style', settings: section.settings %}"
+>
+  <div class="shop-insta__inner">
+    {% if section.settings.heading != blank or section.settings.handle != blank %}
+      <div class="shop-insta__header">
+        {% if section.settings.heading != blank %}
+          <h1 class="shop-insta__heading">{{ section.settings.heading | escape }}</h1>
+        {% endif %}
+        {% if section.settings.handle != blank %}
+          <a
+            class="shop-insta__handle"
+            href="{{ default_link }}"
+            target="_blank"
+            rel="noopener"
+          >
+            {{- section.settings.handle | escape -}}
+          </a>
+        {% endif %}
+      </div>
+    {% endif %}
+
+    <div
+      class="shop-insta__grid"
+      data-shop-insta-grid
+    >
+      {{ tiles }}
+    </div>
+
+    {% render 'shop-social-modal', label: label %}
+  </div>
+</div>
+
+<script>
+  // Tiles are role="button"; let Enter/Space open the look like a click.
+  document.currentScript.previousElementSibling
+    ?.querySelector('[data-shop-insta-grid]')
+    ?.addEventListener('keydown', (event) => {
+      const tile = event.target instanceof Element ? event.target.closest('[data-shop-social-tile]') : null;
+      if (!tile || (event.key !== 'Enter' && event.key !== ' ')) return;
+      event.preventDefault();
+      tile.click();
+    });
+</script>
+{%- endif -%}
+
+{% stylesheet %}
+  .shop-insta__inner {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  .shop-insta__header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .shop-insta__heading {
+    margin: 0;
+    font-family: var(--font-body--family);
+    font-size: clamp(0.75rem, 1.4vw, 0.875rem);
+    font-weight: 300;
+    line-height: 1.25;
+    letter-spacing: 0.08em;
+    text-align: left;
+    text-transform: uppercase;
+    color: #302118;
+  }
+
+  .shop-insta__handle {
+    flex-shrink: 0;
+    margin-inline-start: auto;
+    font-family: var(--font-body--family);
+    font-size: 0.8125rem;
+    letter-spacing: 0.06em;
+    color: rgb(48 33 24 / 0.72);
+    text-decoration: none;
+  }
+
+  .shop-insta__handle:is(:hover, :focus-visible) {
+    color: #302118;
+  }
+
+  .shop-insta__grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 2px;
+  }
+
+  /* Gallery tiles: portrait (3:4) cells suited to video posts, instead of the
+     homepage carousel's fixed width. */
+  .shop-insta__grid .shop-social__tile {
+    flex: none;
+    width: 100%;
+    height: 100%;
+    aspect-ratio: 3 / 4;
+    touch-action: auto;
+    scroll-snap-align: unset;
+  }
+
+  @media screen and (min-width: 750px) {
+    .shop-insta__inner {
+      gap: 2.5rem;
+    }
+
+    .shop-insta__grid {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      grid-auto-rows: auto;
+    }
+
+    /* Tiles without a computed position (leftovers) auto-place as small tiles. */
+    .shop-insta__grid .shop-social__tile {
+      grid-column: var(--insta-col, auto) / span var(--insta-span, 1);
+      grid-row: var(--insta-row, auto) / span var(--insta-span, 1);
+    }
+
+    /* Large tiles fill their 2x2 area; the small tiles' ratio sets the row height. */
+    .shop-insta__grid .shop-social__tile[style*='--insta-span: 2'] {
+      aspect-ratio: auto;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Shop Insta gallery",
+  "tag": "section",
+  "class": "shop-insta-section",
+  "disabled_on": {
+    "groups": ["header", "footer"]
+  },
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Shop Insta"
+    },
+    {
+      "type": "text",
+      "id": "handle",
+      "label": "Instagram handle",
+      "default": "@favrik_"
+    },
+    {
+      "type": "url",
+      "id": "instagram_url",
+      "label": "Instagram URL",
+      "info": "Used for looks without their own post link."
+    },
+    {
+      "type": "text",
+      "id": "overlay_label",
+      "label": "Hover label",
+      "default": "SHOP THE LOOK"
+    },
+    {
+      "type": "collection",
+      "id": "collection",
+      "label": "t:settings.collection",
+      "info": "Fallback images when there are no Shop Insta entries or image blocks."
+    },
+    {
+      "type": "range",
+      "id": "max_looks",
+      "label": "Looks from collection",
+      "min": 7,
+      "max": 49,
+      "step": 7,
+      "default": 28,
+      "info": "Multiples of 7 complete the gallery pattern."
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "t:settings.background_color",
+      "placeholder": "t:settings.default"
+    },
+    {
+      "type": "header",
+      "content": "t:content.padding"
+    },
+    {
+      "type": "range",
+      "id": "padding-block-start",
+      "label": "t:settings.top",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 40
+    },
+    {
+      "type": "range",
+      "id": "padding-block-end",
+      "label": "t:settings.bottom",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 60
+    }
+  ],
+  "blocks": [
+    {
+      "type": "image",
+      "name": "Image",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Image"
+        },
+        {
+          "type": "product_list",
+          "id": "products",
+          "label": "Products in this look",
+          "limit": 4
+        },
+        {
+          "type": "textarea",
+          "id": "caption",
+          "label": "Description"
+        },
+        {
+          "type": "text",
+          "id": "author",
+          "label": "Credit handle",
+          "info": "Defaults to the section Instagram handle."
+        },
+        {
+          "type": "text",
+          "id": "date",
+          "label": "Date",
+          "placeholder": "27 September 2026"
+        },
+        {
+          "type": "url",
+          "id": "link",
+          "label": "Original post link",
+          "info": "Links the platform name in the modal. Falls back to the section Instagram URL."
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Shop Insta gallery"
+    }
+  ]
+}
+{% endschema %}

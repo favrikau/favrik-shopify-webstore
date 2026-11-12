@@ -79,7 +79,8 @@
       type="module"
     ></script>
 
-    {% if section.settings.show_description and collection.description != blank and collection.handle != 'on-sale' %}
+    {%- comment -%} On Sale and Best Sellers keep their admin description for SEO only. {%- endcomment -%}
+    {% if section.settings.show_description and collection.description != blank and collection.handle != 'on-sale' and collection.handle != 'best-sellers' %}
       <div class="collection-page-header__description rte">
         {{ collection.description }}
       </div>

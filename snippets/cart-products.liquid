@@ -210,6 +210,31 @@
                         assign cart_item_is_sale = true
                       endif
 
+                      # Display prices: the line's real price after every Shopify discount that
+                      # applies to it, including its share of order-level discounts (e.g. the launch
+                      # 15% off), so the lines add up to the cart total.
+                      assign line_discount_total = 0
+                      for allocation in item.discount_allocations
+                        assign line_discount_total = line_discount_total | plus: allocation.amount
+                      endfor
+                      assign line_display_price = item.original_line_price | minus: line_discount_total
+                      assign unit_display_price = line_display_price | times: 1.0 | divided_by: item.quantity | round
+                      if line_discount_total > 0
+                        assign cart_item_is_sale = true
+                      endif
+                      assign unit_compare_price = item.original_price
+                      assign compare_line_price = item.original_line_price
+                      if item.variant.compare_at_price > item.original_price
+                        assign unit_compare_price = item.variant.compare_at_price
+                        assign compare_line_price = item.variant.compare_at_price | times: item.quantity
+                      endif
+                      if unit_compare_price <= unit_display_price
+                        assign unit_compare_price = 0
+                      endif
+                      if compare_line_price <= line_display_price
+                        assign compare_line_price = 0
+                      endif
+
                       assign cart_item_title = item.product.title
                     -%}
                     <div class="cart-items__title-row">
@@ -259,7 +284,19 @@
                             <div class="cart-items__variant">
                               <dt class="visually-hidden">{{ option.name }}:</dt>
                               <dd>
-                                {{- option.value -}}
+                                {%- liquid
+                                  # Colour names always start with a capital (display only).
+                                  assign cart_option_value = option.value
+                                  assign cart_option_name = option.name | downcase
+                                  if cart_option_value != blank
+                                    if cart_option_name contains 'color' or cart_option_name contains 'colour'
+                                      assign cart_option_first = cart_option_value | slice: 0 | upcase
+                                      assign cart_option_rest = cart_option_value | slice: 1, cart_option_value.size
+                                      assign cart_option_value = cart_option_first | append: cart_option_rest
+                                    endif
+                                  endif
+                                -%}
+                                {{- cart_option_value -}}
                                 {%- if forloop.last != true %},&nbsp;{% endif -%}
                               </dd>
                             </div>
@@ -307,7 +344,14 @@
                           role="list"
                         >
                           {%- for discount in item.line_level_discount_allocations -%}
-                            <li>{{ discount.discount_application.title | escape }}</li>
+                            {%- liquid
+                              assign line_discount_title = discount.discount_application.title
+                              assign line_discount_title_downcase = line_discount_title | downcase
+                              if line_discount_title_downcase contains 'launch'
+                                assign line_discount_title = 'Website Launch Sale'
+                              endif
+                            -%}
+                            <li>{{ line_discount_title | escape }}</li>
                           {%- endfor -%}
                         </ul>
                       {%- endif -%}
@@ -316,30 +360,14 @@
 
                   <div class="cart-items__unit-price-wrapper">
                     <div>
-                      {% if item.original_price != item.final_price %}
+                      {% if unit_compare_price > 0 %}
                         <span class="visually-hidden">{{ 'content.price_sale' | t }}</span>
-                        <span class="price-item--sale">{{ item.final_price | money }}</span>
+                        <span class="price-item--sale">{{ unit_display_price | money }}</span>
                         <span class="visually-hidden">{{ 'content.price_regular' | t }}</span>
-                        <s class="compare-at-price">
-                          {% if item.variant.compare_at_price > item.original_price %}
-                            {{ item.variant.compare_at_price | money }}
-                          {% else %}
-                            {{ item.original_price | money }}
-                          {% endif %}
-                        </s>
+                        <s class="compare-at-price">{{ unit_compare_price | money }}</s>
                       {% else %}
-                        {% if item.variant.compare_at_price > item.original_price %}
-                          <span class="visually-hidden">{{ 'content.price_sale' | t }}</span>
-                        {% else %}
-                          <span class="visually-hidden">{{ 'content.price' | t }}</span>
-                        {% endif %}
-
-                        <span{% if cart_item_is_sale %} class="price-item--sale"{% endif %}>{{ item.original_price | money }}</span>
-
-                        {% if item.variant.compare_at_price > item.original_price %}
-                          <span class="visually-hidden">{{ 'content.price_regular' | t }}</span>
-                          <s class="compare-at-price">{{ item.variant.compare_at_price | money }}</s>
-                        {% endif %}
+                        <span class="visually-hidden">{{ 'content.price' | t }}</span>
+                        <span{% if cart_item_is_sale %} class="price-item--sale"{% endif %}>{{ unit_display_price | money }}</span>
                       {% endif %}
                     </div>
                   </div>
@@ -372,7 +400,8 @@
 
                       {% render 'product-collection-label',
                         product: item.product,
-                        force_preorder: cart_item_is_preorder
+                        force_preorder: cart_item_is_preorder,
+                        show_pickup_only: true
                       %}
                     </div>
 
@@ -411,11 +440,12 @@
                   </div>
                 </td>
                 {%- liquid
+                  # compare_line_price / line_display_price are set with the item's other display prices above.
                   if settings.currency_code_enabled_cart_items
-                    assign price = item.final_line_price | money_with_currency
+                    assign price = line_display_price | money_with_currency
                     assign unit_price = item.unit_price | money_with_currency
                   else
-                    assign price = item.final_line_price | money
+                    assign price = line_display_price | money
                     assign unit_price = item.unit_price | money
                   endif
                 -%}
@@ -424,7 +454,20 @@
                   role="cell"
                   headers="productTotal"
                 >
+                  {%- if compare_line_price > 0 -%}
+                    <span class="visually-hidden">{{ 'content.price_sale' | t }}</span>
+                  {%- endif -%}
                   <text-component value="{{ price | strip_html }}">{{ price }}</text-component>
+                  {%- if compare_line_price > 0 -%}
+                    <span class="visually-hidden">{{ 'content.price_regular' | t }}</span>
+                    <s class="compare-at-price cart-items__compare-price">
+                      {%- if settings.currency_code_enabled_cart_items -%}
+                        {{- compare_line_price | money_with_currency -}}
+                      {%- else -%}
+                        {{- compare_line_price | money -}}
+                      {%- endif -%}
+                    </s>
+                  {%- endif -%}
                   {%- if item.unit_price_measurement -%}
                     <div class="cart-items__price-unit cart-secondary-typography">
                       {% render 'unit-price', price: unit_price, measurement: item.unit_price_measurement %}
@@ -691,7 +734,7 @@
   }
 
   .cart-items .price-item--sale {
-    color: #c91f4a;
+    color: #000;
   }
 
   .cart-items__variant dt,
@@ -770,6 +813,14 @@
 
   .cart-items__price * {
     white-space: nowrap;
+  }
+
+  /* Sale items: struck pre-sale total sits under the sale price. */
+  .cart-items__price .cart-items__compare-price {
+    display: block;
+    font-weight: inherit;
+    font-size: var(--font-size--xs);
+    padding-block-start: 0.125rem;
   }
 
   .cart-items__price-unit {

@@ -51,7 +51,7 @@
   {% render 'header-sku-search', section: section %}
 
   <a
-    href="https://www.instagram.com/favrik__/?hl=en"
+    href="https://www.instagram.com/favrik_/?hl=en"
     class="header-actions__action header-actions__instagram mobile:hidden"
     aria-label="Instagram"
     target="_blank"
@@ -204,6 +204,16 @@
 
   .account-button {
     background: transparent;
+  }
+
+  /* <shopify-account> loads asynchronously and then renders a 44px button, which
+     made the header grow 44px -> 60px after first paint. The hero is offset by the
+     header height measured at first paint, so it sat ~16px low until header.js
+     re-measured. Reserve the final height up front so the header never changes. */
+  @media screen and (min-width: 750px) {
+    .account-button {
+      min-height: 44px;
+    }
   }
 
   .account-button__icon,

@@ -1851,6 +1851,21 @@
         "id": "currency_code_enabled_cart_total",
         "label": "t:settings.cart_total",
         "default": true
+      },
+      {
+        "type": "header",
+        "content": "Launch discount (display only)"
+      },
+      {
+        "type": "range",
+        "id": "launch_discount_percent",
+        "label": "Discount shown on prices",
+        "min": 0,
+        "max": 50,
+        "step": 1,
+        "unit": "%",
+        "default": 0,
+        "info": "Hotfix: lowers prices on product cards, product pages, Shop Insta and search, with the original price struck through. Does NOT change what checkout charges. Set up a matching discount in Shopify Admin → Discounts. Set to 0 to turn off."
       }
     ]
   },

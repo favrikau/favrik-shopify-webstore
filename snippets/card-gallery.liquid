@@ -245,8 +245,20 @@
 
   .card-gallery .product-media-container--png .product-media__image {
     background-color: #ebe6e0;
-    transform: scale(0.8);
+    object-fit: contain !important;
+    object-position: center center;
+    transform: scale(0.92);
     transform-origin: center center;
+  }
+
+  /* PNG candidates stay invisible until png-card-background.js has classified them
+     (cutout -> grey + scaled, photo -> full-bleed), then fade in at their final size. */
+  .png-card-check .card-gallery .product-media-container--png-candidate .product-media__image {
+    transition: opacity 0.25s var(--ease-out-cubic, ease);
+  }
+
+  .png-card-check .card-gallery .product-media-container--png-candidate:not([data-png-ready]) .product-media__image {
+    opacity: 0;
   }
 
   .card-gallery .product-media__image {

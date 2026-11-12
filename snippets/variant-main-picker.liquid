@@ -23,16 +23,12 @@
   endif
   assign fieldset_index = 0
 
-  # Only render the picker when at least one option has multiple selectable values.
-  assign show_variant_picker = false
-  unless product_resource.has_only_default_variant
-    for product_option in product_resource.options_with_values
-      if product_option.values.size > 1
-        assign show_variant_picker = true
-        break
-      endif
-    endfor
-  endunless
+  # Render the picker for every product with real options, including options with a single value
+  # (e.g. one size), so shoppers always see what they are buying.
+  assign show_variant_picker = true
+  if product_resource.has_only_default_variant
+    assign show_variant_picker = false
+  endif
 %}
 
 {% if show_variant_picker %}
@@ -110,9 +106,7 @@
           endif
         -%}
 
-        {%- if product_option.values.size < 2 -%}
-          {%- comment -%}Single-value options (including color/size) do not need a picker.{%- endcomment -%}
-        {%- elsif variant_style == 'swatch' or block_settings.variant_style == 'buttons' -%}
+        {%- if variant_style == 'swatch' or block_settings.variant_style == 'buttons' -%}
           <fieldset
             class="variant-option variant-option--buttons{% if is_color_option %} variant-option--color{% endif %}{% if is_size_option %} variant-option--size{% endif %}{% if variant_style == 'swatch' %} variant-option--swatches{% else %} variant-option--{{ settings.variant_button_width }}{% endif %}"
             data-fieldset-index="{{ fieldset_index }}"
@@ -188,11 +182,20 @@
                       data-key="variant-option-pill"
                     ></span>
                   {% endif %}
+                  {%- liquid
+                    # Colour names always start with a capital (display only; the value itself is untouched).
+                    assign option_display_value = product_option_value.name
+                    if is_color_option and option_display_value != blank
+                      assign option_first_letter = option_display_value | slice: 0 | upcase
+                      assign option_rest = option_display_value | slice: 1, option_display_value.size
+                      assign option_display_value = option_first_letter | append: option_rest
+                    endif
+                  -%}
                   <span
                     class="variant-option__button-label__text"
                     data-key="variant-option-text"
                   >
-                    {{- product_option_value | escape -}}
+                    {{- option_display_value | escape -}}
                   </span>
                 {% endif %}
               </label>
@@ -251,10 +254,19 @@
                       selected="selected"
                     {% endif %}
                   >
+                    {%- liquid
+                      # Colour names always start with a capital (display only; the value itself is untouched).
+                      assign option_display_value = product_option_value.name
+                      if is_color_option and option_display_value != blank
+                        assign option_first_letter = option_display_value | slice: 0 | upcase
+                        assign option_rest = option_display_value | slice: 1, option_display_value.size
+                        assign option_display_value = option_first_letter | append: option_rest
+                      endif
+                    -%}
                     {% if product_option_value.available == false %}
-                      {{ product_option_value | escape }} - {{ 'content.unavailable' | t }}
+                      {{ option_display_value | escape }} - {{ 'content.unavailable' | t }}
                     {% else %}
-                      {{ product_option_value | escape }}
+                      {{ option_display_value | escape }}
                     {% endif %}
                   </option>
                 {%- endfor -%}

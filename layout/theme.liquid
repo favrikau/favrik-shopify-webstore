@@ -6,6 +6,21 @@
   lang="{{ request.locale.iso_code }}"
 >
   <head>
+    {% liquid
+      assign hero_video_page = false
+      if template.name == 'index'
+        assign hero_video_page = true
+      elsif template.name == 'page' and template.suffix == 'about'
+        assign hero_video_page = true
+      endif
+    %}
+    {% if hero_video_page %}
+      {% style %}
+        body:not(:has(hero-video)) {
+          background-color: #ffffff;
+        }
+      {% endstyle %}
+    {% endif %}
     {%- if settings.favicon != blank -%}
       <link
         rel="icon"

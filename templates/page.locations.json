@@ -6,19 +6,23 @@
  * or related systems. Please exercise caution as any changes
  * made to this file may be overwritten.
  * ------------------------------------------------------------
- */
-{
+ */{
   "sections": {
     "locations": {
       "type": "locations-page",
       "settings": {
         "heading": "Locations",
-        "subheading": "Visit Favrik at Emporium Melbourne.",
+        "subheading": "Visit Favrik at Emporium Melbourne and Melbourne Central.",
+        "store_name": "Emporium Melbourne",
         "address": "Emporium, Lower Ground, Shop 27a/287 Lonsdale St,\nMelbourne VIC 3000",
-        "opening_hours": "Monday 11am–7pm\nTuesday 11am–7pm\nWednesday 11am–7pm\nThursday 11am–8pm\nFriday 11am–8pm\nSaturday 11am–7pm\nSunday 11am–7pm",
+        "opening_hours": "Monday 11am–7pm\nTuesday 11am–7pm\nWednesday 11am–7pm\nThursday 10am–8pm\nFriday 10am–8pm\nSaturday 10am–7pm\nSunday 10am–7pm",
         "note": "For appointments or enquiries, please get in touch.",
         "contact_url": "",
         "map_query": "Emporium Melbourne, Shop 27a, 287 Lonsdale St, Melbourne VIC 3000",
+        "store_2_name": "Melbourne Central",
+        "store_2_address": "Melbourne Central Shopping Centre, Shop 123/211 La Trobe St,\nMelbourne VIC 3000",
+        "store_2_opening_hours": "Monday 10am–7pm\nTuesday 10am–7pm\nWednesday 10am–7pm\nThursday 10am–9pm\nFriday 10am–9pm\nSaturday 10am–7pm\nSunday 10am–7pm",
+        "store_2_map_query": "Melbourne Central Shopping Centre, Shop 123, 211 La Trobe St, Melbourne VIC 3000",
         "section_width": "full-width",
         "background_color": "{{ settings.color_palette.background }}",
         "padding-block-start": 0,

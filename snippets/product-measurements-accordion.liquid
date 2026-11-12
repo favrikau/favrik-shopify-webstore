@@ -1,0 +1,497 @@
+{%- doc -%}
+  Product measurements accordion, built from custom.measurements (ordered list of `measurement`
+  metaobjects) with custom.measurement_heading as its title. Renders nothing when no entry has
+  usable data.
+
+  Entries are grouped by `section` in first-appearance order. In each group, entries with a size
+  become one table (a column per size, in list order); entries without a size each get a
+  Measurement / Value list. `entry_name` is staff-only and never output.
+
+  @param {object} product - The product to render measurements for
+  @param {string} accordion_style - Inline style shared with the other product accordions
+{%- enddoc -%}
+
+{%- liquid
+  assign measurement_entries = product.metafields.custom.measurements.value
+
+  assign measurement_heading = product.metafields.custom.measurement_heading.value | strip
+  if measurement_heading == blank
+    assign measurement_heading = 'Size guide'
+  endif
+
+  # Field keys, display labels and (optional) alternate key spellings, all in display order.
+  # Headwear fields come last; `_center` spellings are accepted as alternates of `_centre`.
+  assign measure_keys = 'length,shoulder,sleeve,shoulder_to_sleeve,bust,waist,hip,thigh,armhole,height,width,depth,diameter,strap_length,extension_chain_length,capacity,weight,head_circumference,front_panel_centre,front_panel_side,back_panel_centre,back_panel_side,brim_length,adjustable_strap_length' | split: ','
+  assign measure_labels = 'Length,Shoulder,Sleeve,Shoulder to sleeve,Bust,Waist,Hip,Thigh,Armhole,Height,Width,Depth,Diameter,Strap length,Extension chain length,Capacity,Weight,Head circumference,Front panel (centre),Front panel (side),Back panel (centre),Back panel (side),Brim length,Adjustable strap length' | split: ','
+  assign measure_alt_keys = '-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,front_panel_center,-,back_panel_center,-,-,-' | split: ','
+
+  # One flag per entry (same order as the list): 1 = has a size, a measurement, notes or other measurements.
+  assign usable_flags = ''
+  assign usable_count = 0
+  for entry in measurement_entries
+    assign entry_usable = false
+    assign entry_size = entry.size.value | strip
+    assign entry_notes = entry.notes.value | strip
+    assign entry_other = entry.other_measurements.value | strip
+    if entry_size != blank or entry_notes != blank or entry_other != blank
+      assign entry_usable = true
+    else
+      for key in measure_keys
+        assign measure_value = entry[key].value | strip
+        if measure_value == blank
+          assign alt_key = measure_alt_keys[forloop.index0]
+          assign measure_value = entry[alt_key].value | strip
+        endif
+        if measure_value != blank
+          assign entry_usable = true
+          break
+        endif
+      endfor
+    endif
+
+    if entry_usable
+      assign usable_flags = usable_flags | append: '1,'
+      assign usable_count = usable_count | plus: 1
+    else
+      assign usable_flags = usable_flags | append: '0,'
+    endif
+  endfor
+  assign usable_flags = usable_flags | split: ','
+-%}
+
+{%- if usable_count > 0 -%}
+  {%- capture measurements_accordion -%}
+    <details class="details product-measurements" data-testid="accordion-details">
+      <summary class="details__header product-section-heading">
+        {{ measurement_heading | escape }}
+        <span class="svg-wrapper icon-caret icon-animated">
+          {{- 'icon-caret.svg' | inline_asset_content -}}
+        </span>
+        <span class="svg-wrapper icon-plus">
+          {{- 'icon-plus.svg' | inline_asset_content -}}
+        </span>
+      </summary>
+
+      <div class="details-content product-shipping-returns__content product-measurements__content">
+        {%- for entry in measurement_entries -%}
+          {%- liquid
+            assign group_index = forloop.index0
+            if usable_flags[group_index] != '1'
+              continue
+            endif
+            assign group_section = entry.section.value | strip
+
+            # Only render a group at the first usable entry with this section.
+            assign is_group_start = true
+            for prior_entry in measurement_entries
+              if forloop.index0 >= group_index
+                break
+              endif
+              if usable_flags[forloop.index0] == '1'
+                assign prior_section = prior_entry.section.value | strip
+                if prior_section == group_section
+                  assign is_group_start = false
+                  break
+                endif
+              endif
+            endfor
+            if is_group_start == false
+              continue
+            endif
+
+            assign sized_count = 0
+            assign unsized_count = 0
+            for group_entry in measurement_entries
+              if usable_flags[forloop.index0] != '1'
+                continue
+              endif
+              assign group_entry_section = group_entry.section.value | strip
+              if group_entry_section != group_section
+                continue
+              endif
+              assign group_entry_size = group_entry.size.value | strip
+              if group_entry_size != blank
+                assign sized_count = sized_count | plus: 1
+              else
+                assign unsized_count = unsized_count | plus: 1
+              endif
+            endfor
+          -%}
+
+          <div class="product-measurements__group">
+            {%- if group_section != blank -%}
+              <h4 class="product-shipping-returns__subheading product-measurements__section">
+                {{- group_section | escape -}}
+              </h4>
+            {%- endif -%}
+
+            {%- if sized_count > 0 -%}
+              {%- comment -%} Sized entries: one table, a column per size in list order. {%- endcomment -%}
+              {%- capture measurement_rows -%}
+                {%- for key in measure_keys -%}
+                  {%- liquid
+                    assign key_index = forloop.index0
+                    assign alt_key = measure_alt_keys[key_index]
+                    assign measure_label = measure_labels[key_index]
+                    assign row_has_value = false
+                    for group_entry in measurement_entries
+                      if usable_flags[forloop.index0] != '1'
+                        continue
+                      endif
+                      assign group_entry_section = group_entry.section.value | strip
+                      assign group_entry_size = group_entry.size.value | strip
+                      if group_entry_section != group_section or group_entry_size == blank
+                        continue
+                      endif
+                      assign measure_value = group_entry[key].value | strip
+                      if measure_value == blank
+                        assign measure_value = group_entry[alt_key].value | strip
+                      endif
+                      if measure_value != blank
+                        assign row_has_value = true
+                        break
+                      endif
+                    endfor
+                  -%}
+                  {%- if row_has_value -%}
+                    <tr>
+                      <th scope="row">{{ measure_label }}</th>
+                      {%- for group_entry in measurement_entries -%}
+                        {%- liquid
+                          if usable_flags[forloop.index0] != '1'
+                            continue
+                          endif
+                          assign group_entry_section = group_entry.section.value | strip
+                          assign group_entry_size = group_entry.size.value | strip
+                          if group_entry_section != group_section or group_entry_size == blank
+                            continue
+                          endif
+                          assign measure_value = group_entry[key].value | strip
+                          if measure_value == blank
+                            assign measure_value = group_entry[alt_key].value | strip
+                          endif
+                        -%}
+                        <td>
+                          {%- if measure_value != blank -%}
+                            {{- measure_value | escape -}}
+                          {%- else -%}
+                            <span aria-label="Not available">&mdash;</span>
+                          {%- endif -%}
+                        </td>
+                      {%- endfor -%}
+                    </tr>
+                  {%- endif -%}
+                {%- endfor -%}
+              {%- endcapture -%}
+
+              <div class="product-measurements__table-wrapper">
+                <table class="product-measurements__table">
+                  {%- if measurement_rows != blank -%}
+                    <thead>
+                      <tr>
+                        <th scope="col">Measurement</th>
+                        {%- for group_entry in measurement_entries -%}
+                          {%- liquid
+                            if usable_flags[forloop.index0] != '1'
+                              continue
+                            endif
+                            assign group_entry_section = group_entry.section.value | strip
+                            assign group_entry_size = group_entry.size.value | strip
+                            if group_entry_section != group_section or group_entry_size == blank
+                              continue
+                            endif
+                          -%}
+                          <th scope="col">{{ group_entry_size | escape }}</th>
+                        {%- endfor -%}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {{- measurement_rows -}}
+                    </tbody>
+                  {%- else -%}
+                    {%- comment -%} Sizes with no measurements (e.g. footwear): still list the sizes. {%- endcomment -%}
+                    <tbody>
+                      <tr>
+                        <th scope="row">Size</th>
+                        {%- for group_entry in measurement_entries -%}
+                          {%- liquid
+                            if usable_flags[forloop.index0] != '1'
+                              continue
+                            endif
+                            assign group_entry_section = group_entry.section.value | strip
+                            assign group_entry_size = group_entry.size.value | strip
+                            if group_entry_section != group_section or group_entry_size == blank
+                              continue
+                            endif
+                          -%}
+                          <td>{{ group_entry_size | escape }}</td>
+                        {%- endfor -%}
+                      </tr>
+                    </tbody>
+                  {%- endif -%}
+                </table>
+              </div>
+
+              {%- comment -%} Additional measurements stay attached to their size. {%- endcomment -%}
+              {%- for group_entry in measurement_entries -%}
+                {%- liquid
+                  if usable_flags[forloop.index0] != '1'
+                    continue
+                  endif
+                  assign group_entry_section = group_entry.section.value | strip
+                  assign group_entry_size = group_entry.size.value | strip
+                  if group_entry_section != group_section or group_entry_size == blank
+                    continue
+                  endif
+                  assign group_entry_other = group_entry.other_measurements.value | strip
+                -%}
+                {%- if group_entry_other != blank -%}
+                  <p class="product-measurements__other">
+                    <span class="product-measurements__other-label">{{ group_entry_size | escape }}</span>
+                    {{ group_entry_other | escape | newline_to_br }}
+                  </p>
+                {%- endif -%}
+              {%- endfor -%}
+            {%- endif -%}
+
+            {%- if unsized_count > 0 -%}
+              {%- comment -%}
+                Unsized entries: each gets its own Measurement / Value list, kept separate from any size table.
+              {%- endcomment -%}
+              {%- for group_entry in measurement_entries -%}
+                {%- liquid
+                  if usable_flags[forloop.index0] != '1'
+                    continue
+                  endif
+                  assign group_entry_section = group_entry.section.value | strip
+                  assign group_entry_size = group_entry.size.value | strip
+                  if group_entry_section != group_section or group_entry_size != blank
+                    continue
+                  endif
+                  assign group_entry_other = group_entry.other_measurements.value | strip
+                -%}
+                {%- capture unsized_rows -%}
+                  {%- for key in measure_keys -%}
+                    {%- liquid
+                      assign measure_value = group_entry[key].value | strip
+                      if measure_value == blank
+                        assign alt_key = measure_alt_keys[forloop.index0]
+                        assign measure_value = group_entry[alt_key].value | strip
+                      endif
+                    -%}
+                    {%- if measure_value != blank -%}
+                      <div class="product-measurements__row">
+                        <dt>{{ measure_labels[forloop.index0] }}</dt>
+                        <dd>{{ measure_value | escape }}</dd>
+                      </div>
+                    {%- endif -%}
+                  {%- endfor -%}
+                {%- endcapture -%}
+
+                {%- if unsized_rows != blank or group_entry_other != blank -%}
+                  <div class="product-measurements__single">
+                    {%- if unsized_rows != blank -%}
+                      <dl class="product-measurements__list">
+                        <div class="product-measurements__row product-measurements__list-head">
+                          <dt>Measurement</dt>
+                          <dd></dd>
+                        </div>
+                        {{- unsized_rows -}}
+                      </dl>
+                    {%- endif -%}
+                    {%- if group_entry_other != blank -%}
+                      <p class="product-measurements__other">{{ group_entry_other | escape | newline_to_br }}</p>
+                    {%- endif -%}
+                  </div>
+                {%- endif -%}
+              {%- endfor -%}
+            {%- endif -%}
+
+            {%- comment -%}
+              Notes beneath the group, deduplicated. A note shared by only some sizes is labelled with those sizes.
+            {%- endcomment -%}
+            {%- capture group_notes -%}
+              {%- for group_entry in measurement_entries -%}
+                {%- liquid
+                  assign note_index = forloop.index0
+                  if usable_flags[note_index] != '1'
+                    continue
+                  endif
+                  assign group_entry_section = group_entry.section.value | strip
+                  if group_entry_section != group_section
+                    continue
+                  endif
+                  assign group_note = group_entry.notes.value | strip
+                  if group_note == blank
+                    continue
+                  endif
+
+                  assign note_seen = false
+                  assign note_sizes = ''
+                  assign note_size_count = 0
+                  for other_entry in measurement_entries
+                    if usable_flags[forloop.index0] != '1'
+                      continue
+                    endif
+                    assign other_section = other_entry.section.value | strip
+                    assign other_note = other_entry.notes.value | strip
+                    if other_section != group_section or other_note != group_note
+                      continue
+                    endif
+                    if forloop.index0 < note_index
+                      assign note_seen = true
+                      break
+                    endif
+                    assign other_size = other_entry.size.value | strip
+                    if other_size != blank
+                      if note_size_count > 0
+                        assign note_sizes = note_sizes | append: ', '
+                      endif
+                      assign note_sizes = note_sizes | append: other_size
+                      assign note_size_count = note_size_count | plus: 1
+                    endif
+                  endfor
+                  if note_seen
+                    continue
+                  endif
+                -%}
+                <p class="product-measurements__note">
+                  {%- if note_size_count > 0 and note_size_count < sized_count -%}
+                    <span class="product-measurements__note-size">{{ note_sizes | escape }}</span>
+                  {%- endif -%}
+                  {{ group_note | escape | newline_to_br }}
+                </p>
+              {%- endfor -%}
+            {%- endcapture -%}
+
+            {%- if group_notes != blank -%}
+              <div class="product-measurements__notes">{{ group_notes }}</div>
+            {%- endif -%}
+          </div>
+        {%- endfor -%}
+      </div>
+    </details>
+  {%- endcapture -%}
+
+  <div
+    class="product-details-accordion product-shipping-returns accordion accordion--plus"
+    style="{{ accordion_style }}"
+  >
+    {% render 'accordion-custom-component', children: measurements_accordion %}
+  </div>
+{%- endif -%}
+
+{% stylesheet %}
+  .product-measurements__group + .product-measurements__group {
+    margin-block-start: var(--padding-xl);
+  }
+
+  .product-measurements__group > :first-child,
+  .product-measurements__section:first-child {
+    margin-block-start: 0;
+  }
+
+  .product-measurements__table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .product-measurements__table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: inherit;
+    line-height: 1.4;
+  }
+
+  .product-measurements__table :is(th, td) {
+    padding-block: 0.55rem;
+    padding-inline: 0 1rem;
+    border-block-end: 0.5px solid rgb(48 33 24 / 0.14);
+    text-align: left;
+    vertical-align: baseline;
+    white-space: nowrap;
+  }
+
+  .product-measurements__table :is(th, td):last-child {
+    padding-inline-end: 0;
+  }
+
+  .product-measurements__table tbody tr:last-child :is(th, td) {
+    border-block-end: none;
+  }
+
+  .product-measurements__table th {
+    font-weight: 400;
+    color: #2e2e2e;
+  }
+
+  .product-measurements__table td {
+    font-weight: 200;
+    color: #4a4a4a;
+  }
+
+  .product-measurements__single + .product-measurements__single,
+  .product-measurements__table-wrapper + .product-measurements__other,
+  .product-measurements__table-wrapper ~ .product-measurements__single {
+    margin-block-start: var(--padding-lg);
+  }
+
+  .product-measurements__list {
+    display: grid;
+    gap: 0;
+    margin: 0;
+  }
+
+  .product-measurements__row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 1rem;
+    align-items: baseline;
+    padding-block: 0.55rem;
+    border-block-end: 0.5px solid rgb(48 33 24 / 0.14);
+  }
+
+  .product-measurements__row:first-child {
+    padding-block-start: 0;
+  }
+
+  .product-measurements__row:last-child {
+    border-block-end: none;
+    padding-block-end: 0;
+  }
+
+  .product-measurements__row :is(dt, dd) {
+    margin: 0;
+  }
+
+  .product-measurements__row dt {
+    font-weight: 400;
+    color: #2e2e2e;
+  }
+
+  .product-measurements__row dd {
+    text-align: end;
+    font-weight: 200;
+    color: #4a4a4a;
+  }
+
+  .product-measurements__list-head :is(dt, dd) {
+    font-weight: 400;
+    color: #2e2e2e;
+  }
+
+  .product-measurements__other,
+  .product-measurements__note {
+    margin: var(--padding-sm) 0 0;
+  }
+
+  .product-measurements__notes {
+    margin-block-start: var(--padding-md);
+  }
+
+  :is(.product-measurements__other-label, .product-measurements__note-size) {
+    display: block;
+    font-weight: 400;
+    color: #2e2e2e;
+  }
+{% endstylesheet %}

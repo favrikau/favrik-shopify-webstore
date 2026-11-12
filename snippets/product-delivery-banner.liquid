@@ -1,5 +1,6 @@
 {% doc %}
-  Static delivery promo banner at the top of every page.
+  Promo banner at the top of every page: alternates between the free-delivery
+  and launch-discount messages (CSS crossfade, no JS).
   Visible only while the page is scrolled to the top; not dismissable.
 {% enddoc %}
 
@@ -32,17 +33,78 @@
     white-space: nowrap;
   }
 
+  /* Both messages share one grid cell, so the banner keeps the width/height of
+     the longer one and they crossfade in place. */
+  .product-delivery-banner__messages {
+    display: grid;
+    place-items: center;
+  }
+
+  .product-delivery-banner__messages > .product-delivery-banner__message {
+    grid-area: 1 / 1;
+    animation: product-delivery-banner-swap 10s ease-in-out infinite;
+  }
+
+  .product-delivery-banner__messages > .product-delivery-banner__message + .product-delivery-banner__message {
+    opacity: 0;
+    animation-delay: -5s;
+  }
+
+  @keyframes product-delivery-banner-swap {
+    0%, 45% { opacity: 1; }
+    50%, 95% { opacity: 0; }
+    100% { opacity: 1; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .product-delivery-banner__messages > .product-delivery-banner__message {
+      animation-timing-function: steps(1, end);
+    }
+  }
+
   .header-section:has(> .product-delivery-banner) {
     --product-delivery-banner-height: 1.875rem;
+  }
+
+  /* Narrower screens: tighter tracking so the long launch message fits. */
+  @media screen and (max-width: 1099px) {
+    .product-delivery-banner__message {
+      letter-spacing: 0.16em;
+    }
+  }
+
+  /* Phones: the launch message wraps onto two balanced lines, so the banner is taller.
+     The header reads this same variable to tuck the banner away on scroll. */
+  @media screen and (max-width: 749px) {
+    .header-section:has(> .product-delivery-banner) {
+      --product-delivery-banner-height: 2.5rem;
+    }
+
+    .product-delivery-banner {
+      padding-block: 0.25rem;
+    }
+
+    .product-delivery-banner__message {
+      font-size: 0.625rem;
+      letter-spacing: 0.12em;
+      line-height: 1.35;
+      white-space: normal;
+      text-wrap: balance;
+    }
   }
 </style>
 
 <div
   class="product-delivery-banner"
   id="product-delivery-banner"
-  aria-label="Free delivery promotion"
+  aria-label="Store promotions"
 >
-  <span class="product-delivery-banner__message">
-    Free delivery on orders over $150
-  </span>
+  <div class="product-delivery-banner__messages">
+    <span class="product-delivery-banner__message">
+      Free delivery on orders over $180
+    </span>
+    <span class="product-delivery-banner__message">
+      Website launch sale • Happy shopping 15% off sitewide • One week only
+    </span>
+  </div>
 </div>

@@ -141,7 +141,7 @@
     --product-card-columns-mobile: 2;
     --product-card-inline-padding: 10px;
     --product-card-grid-column-gap: var(--product-card-inline-padding);
-    --product-card-grid-row-gap: 28px;
+    --product-card-grid-row-gap: 48px;
     --product-card-grid-gap: var(--product-card-grid-row-gap) var(--product-card-grid-column-gap);
     --product-card-frame-border-width: 0px;
     --product-card-meta-padding-top: var(--product-card-inline-padding);
@@ -154,8 +154,9 @@
     --product-card-text-line-height: 1.35;
 
     @media screen and (max-width: 749px) {
+      --product-card-media-ratio: 3 / 5;
       --product-card-inline-padding: 8px;
-      --product-card-grid-row-gap: 28px;
+      --product-card-grid-row-gap: 40px;
       --product-card-title-font-size: 0.6875rem;
       --product-card-meta-font-size: 0.6875rem;
       --product-card-price-font-size: 0.625rem;
@@ -188,7 +189,7 @@
 
     /* Font families */
     --font-numeric--family: 'Inter';
-    --font-body--family: 'Poppins', {{ settings.type_body_font.fallback_families }};
+    --font-body--family: 'Poppins', 'Poppins Fallback', {{ settings.type_body_font.fallback_families }};
     --font-body--style: normal;
     --font-body--weight: 400;
     --font-korean--family: 'Nanum Gothic', sans-serif;
@@ -377,6 +378,12 @@
         echo '--font-[preset_name]--line-height: var(--line-height--[preset_line_height]);' | replace: '[preset_name]', preset_name | replace: '[preset_line_height]', settings[preset_line_height]
       endfor
     %}
+
+    /* Favrik body text: the one size for body copy across the site (11px). */
+    --favrik-body-size: 0.6875rem;
+
+    /* Pickup-only (product tag "No Shipping"): amber, so it never reads as the red sale colour. */
+    --pickup-only-color: #b45309;
 
     /* Hardcoded font sizes */
     --font-size--3xs: 0.625rem;

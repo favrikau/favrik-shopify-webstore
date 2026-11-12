@@ -23,7 +23,16 @@
       -%}
       {
         "title": {{ display_title | json }},
-        "price": {{ product.price | money_without_currency | prepend: 'AUD ' | json }},
+        {%- liquid
+          # Hotfix: display-only launch discount (Theme settings → Prices).
+          assign search_price = product.price
+          assign launch_discount = settings.launch_discount_percent | default: 0
+          if launch_discount > 0
+            assign launch_factor = 100 | minus: launch_discount | divided_by: 100.0
+            assign search_price = product.price | times: launch_factor | round
+          endif
+        -%}
+        "price": {{ search_price | money_without_currency | prepend: 'AUD ' | json }},
         "image": {% if product_image_url != blank %}{{ product_image_url | json }}{% else %}null{% endif %},
         "url": {{ product.url | json }},
         "terms": [

@@ -26,12 +26,7 @@
 {%- endif -%}
 {%- liquid
   assign selected_product = closest.product
-  assign selected_variant_media = selected_product.selected_or_first_available_variant.featured_media
   assign first_3d_model = selected_product.media | where: 'media_type', 'model' | first
-
-  if block_settings.hide_variants
-    assign variant_images = selected_product.images | where: 'attached_to_variant?', true | map: 'src'
-  endif
 
   if block_settings.slideshow_controls_style == 'thumbnails'
     assign controls_on_media = false
@@ -101,23 +96,9 @@
     endif
   endif
 
-  assign sorted_media = '' | split: ','
-  if selected_variant_media
-    assign sorted_media = sorted_media | concat: selected_product.media | where: 'id', selected_variant_media.id
-
-    for media in selected_product.media
-      if block_settings.hide_variants and variant_images contains media.src and sorted_media.size > 0
-        continue
-      endif
-
-      if media.id != selected_variant_media.id
-        assign found_media = selected_product.media | where: 'id', media.id
-        assign sorted_media = sorted_media | concat: found_media
-      endif
-    endfor
-  else
-    assign sorted_media = selected_product.media
-  endif
+  # The gallery no longer follows the selected colour: it always shows every product image in
+  # the admin order (no jumping to / hiding variant images), so changing colour never touches it.
+  assign sorted_media = selected_product.media
   assign has_image_drop = sorted_media | has: 'media_type', 'image'
 
   # Determine if we're in single column mode (carousel or grid with one column)
@@ -157,7 +138,10 @@
     assign product_media_container_class = product_media_container_class | append: ' media-fit-' | append: block_settings.media_fit
   endif
 
-  assign max_tall_media_ratio = 0.8
+  # 'adapt' galleries: every frame takes the shape of the tallest image, so all images
+  # show at full height (the tallest uncropped; wider ones crop their sides via cover).
+  # Frames are never taller than 1:2, as a guard against an unusually skinny upload.
+  assign min_gallery_ratio = 0.5
 
   if block_settings.aspect_ratio == 'adapt'
     assign lowest_aspect_ratio = 50
@@ -165,17 +149,16 @@
 
     for media in sorted_media
       assign media_natural_ratio = media.preview_image.aspect_ratio | default: 1.0
-      assign media_display_ratio = media_natural_ratio
 
-      if media_natural_ratio < max_tall_media_ratio
-        assign media_display_ratio = max_tall_media_ratio
-      endif
-
-      if media_display_ratio < lowest_aspect_ratio
-        assign lowest_aspect_ratio = media_display_ratio
+      if media_natural_ratio < lowest_aspect_ratio
+        assign lowest_aspect_ratio = media_natural_ratio
         assign lowest_aspect_ratio_index = forloop.index0
       endif
     endfor
+
+    if lowest_aspect_ratio < min_gallery_ratio
+      assign lowest_aspect_ratio = min_gallery_ratio
+    endif
   endif
 -%}
 {%- if has_image_drop -%}
@@ -195,7 +178,9 @@
   }
 
   .product-media-container--png .product-media__image {
-    transform: scale(0.8);
+    object-fit: contain !important;
+    object-position: center center;
+    transform: scale(0.92);
     transform-origin: center center;
   }
 
@@ -396,8 +381,8 @@
             assign media_is_png = true
           endif
 
-          if block_settings.aspect_ratio == 'adapt' and media_natural_ratio < max_tall_media_ratio
-            assign media_display_ratio = max_tall_media_ratio
+          if block_settings.aspect_ratio == 'adapt'
+            assign media_display_ratio = lowest_aspect_ratio
             assign slide_media_fit_class = 'media-fit-cover'
           endif
 
@@ -511,8 +496,8 @@
               assign media_is_png = true
             endif
 
-            if block_settings.aspect_ratio == 'adapt' and media_natural_ratio < max_tall_media_ratio
-              assign media_display_ratio = max_tall_media_ratio
+            if block_settings.aspect_ratio == 'adapt'
+              assign media_display_ratio = lowest_aspect_ratio
               assign slide_media_fit_class = 'media-fit-cover'
             endif
 
@@ -770,7 +755,7 @@
 
     img {
       height: 100%;
-      object-fit: cover;
+      object-fit: contain;
       border-radius: var(--media-radius);
       aspect-ratio: var(--aspect-ratio);
     }

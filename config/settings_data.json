@@ -9,6 +9,7 @@
  */
 {
   "current": {
+    "launch_discount_percent": 15,
     "logo_height": 28,
     "logo_height_mobile": 22,
     "page_background_color": "{{ settings.color_palette.background }}",

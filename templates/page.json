@@ -52,9 +52,34 @@
         "padding-block-start": 40,
         "padding-block-end": 80
       }
+    },
+    "shop_insta": {
+      "type": "shop-insta-gallery",
+      "settings": {
+        "heading": "Shop Insta",
+        "handle": "@favrik_",
+        "instagram_url": "https://www.instagram.com/favrik_/",
+        "overlay_label": "SHOP THE LOOK",
+        "collection": "fw2026",
+        "max_looks": 28,
+        "background_color": "{{ settings.color_palette.background }}",
+        "padding-block-start": 40,
+        "padding-block-end": 60
+      }
+    },
+    "policy": {
+      "type": "policy-page",
+      "settings": {
+        "policy": "auto",
+        "background_color": "{{ settings.color_palette.background }}",
+        "text_color": "#302118",
+        "border_color": "#d8cec3"
+      }
     }
   },
   "order": [
-    "main"
+    "main",
+    "policy",
+    "shop_insta"
   ]
 }

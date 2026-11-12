@@ -260,23 +260,25 @@
 
               {% if block_settings.filter_style == 'horizontal' %}
                 {% if page_type == 'collection' %}
-                  {% liquid
-                    assign collection_search_title = collection.title | default: results.title | default: 'collection'
-                    assign collection_search_placeholder = 'Search ' | append: collection_search_title | append: ' collection'
-                  %}
                   <div
                     class="facets__sku-search"
                     data-collection-sku-search
+                    data-sku-search-url="{{ routes.predictive_search_url | escape }}"
+                    data-sku-search-page-url="{{ routes.search_url | escape }}"
+                    data-sku-search-view-all="{{ 'content.sku_search_view_all' | t | escape }}"
+                    data-sku-search-loading="{{ 'content.sku_search_loading' | t | escape }}"
+                    data-sku-search-empty="{{ 'content.sku_search_empty' | t | escape }}"
+                    data-sku-search-error="{{ 'content.sku_search_error' | t | escape }}"
                     data-placeholder-logo="{{ 'favrik_logo.png' | asset_url }}"
                   >
                     <label class="visually-hidden" for="CollectionSkuSearch-{{ section.id }}">
-                      {{ collection_search_placeholder }}
+                      {{ 'content.sku_search_placeholder' | t }}
                     </label>
                     <input
                       id="CollectionSkuSearch-{{ section.id }}"
                       class="facets__sku-search-input"
                       type="search"
-                      placeholder="{{ collection_search_placeholder | escape }}"
+                      placeholder="{{ 'content.sku_search_placeholder' | t | escape }}"
                       autocomplete="off"
                       autocapitalize="off"
                       spellcheck="false"
@@ -291,7 +293,6 @@
                       hidden
                       data-collection-sku-search-results
                     ></div>
-                    {% render 'sku-search-product-data', products: results.products %}
                   </div>
                 {% endif %}
 

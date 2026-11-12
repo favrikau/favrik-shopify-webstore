@@ -18,7 +18,13 @@
     render 'slideshow-styles'
   endif
 
-  if section.settings.enable_transparent_header_home and template.name == 'index'
+  # The About page opens on a full-screen video, so it gets the homepage's transparent header.
+  assign header_overlays_hero = false
+  if template.name == 'index' or template.name == 'page' and template.suffix == 'about'
+    assign header_overlays_hero = true
+  endif
+
+  if section.settings.enable_transparent_header_home and header_overlays_hero
     assign transparent = 'always'
     assign transparent_text_color_setting = section.settings.text_color_transparent_home
   elsif section.settings.enable_transparent_header_product and template.name == 'product'
@@ -345,6 +351,9 @@
   class="{{ class }}"
   data-theme-color="rgb({{ section.settings.background_color_top.rgb | default: settings.page_background_color.rgb }})"
   data-template="{{ template.name }}"
+  {% if header_overlays_hero %}
+    data-header-overlays-hero
+  {% endif %}
   data-bubble-style="{{ section.settings.bubble_style }}"
   data-menu-style="menu"
   {% if transparent %}
@@ -497,6 +506,36 @@
     </div>
   {% endif %}
 </header-component>
+
+{%- if template.name == 'index' -%}
+  <script>
+    // Homepage intro: number each header item by how far it sits from the logo,
+    // per side, so the CSS fade ripples outwards. Runs once, before first paint.
+    (() => {
+      const header = document.getElementById('header-component');
+      const logo = header?.querySelector('.header-logo');
+      if (!header || !logo) return;
+
+      const logoRect = logo.getBoundingClientRect();
+      const center = logoRect.left + logoRect.width / 2;
+      const sides = { left: [], right: [] };
+
+      header.querySelectorAll('.header__drawer, .header-menu .menu-list__list-item, .header-sku-search, header-actions .header-actions__action:not(.header-actions__search-toggle)').forEach((item) => {
+        if (item === logo) return;
+        const rect = item.getBoundingClientRect();
+        if (!rect.width) return;
+        const middle = rect.left + rect.width / 2;
+        sides[middle < center ? 'left' : 'right'].push({ item, distance: Math.abs(middle - center) });
+      });
+
+      for (const side of Object.values(sides)) {
+        side
+          .sort((a, b) => a.distance - b.distance)
+          .forEach(({ item }, index) => item.style.setProperty('--header-intro-step', String(index + 1)));
+      }
+    })();
+  </script>
+{%- endif -%}
 
 <script
   src="{{ 'header.js' | asset_url }}"
@@ -657,22 +696,45 @@
     --header-logo-filter: none;
   }
 
-  @media screen and (max-width: 749px) {
-    .header:has([data-catalog-nav-trigger][aria-expanded='true']) {
-      --header-surface-opacity: 1;
-      --header-foreground: #302118;
-      --header-foreground-rgb: 48 33 24;
-      --header-button-text: #f3eee7;
-      --header-logo-filter: none;
-    }
+  /* Hold the hover state while the SHOP overlay is open, so it doesn't drop
+     back to transparent when the pointer moves from the header onto the drawer. */
+  .header:has([data-catalog-nav-trigger][aria-expanded='true']) {
+    --header-surface-opacity: 1;
+    --header-foreground: #302118;
+    --header-foreground-rgb: 48 33 24;
+    --header-button-text: #f3eee7;
+    --header-logo-filter: none;
   }
 
   /* Keep non-homepage text and icons black in every header state. */
-  #header-component:not([data-template='index']) {
+  #header-component:not([data-template='index']):not([data-header-overlays-hero]) {
     --header-foreground: #000000;
     --header-foreground-rgb: 0 0 0;
     --header-button-text: #f3eee7;
     --header-logo-filter: brightness(0);
+  }
+
+  /* Homepage intro: logo first, then items ripple outwards (step set inline by the
+     script after </header-component>). `backwards` fill only holds opacity 0 during the
+     delay, so nothing lingers afterwards to create stacking contexts for submenus. */
+  @keyframes header-intro-fade {
+    from {
+      opacity: 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    #header-component[data-template='index']
+      :is(
+        .header-logo,
+        .header__drawer,
+        .header-menu .menu-list__list-item,
+        .header-sku-search,
+        header-actions .header-actions__action:not(.header-actions__search-toggle)
+      ) {
+      animation: header-intro-fade 520ms cubic-bezier(0.33, 1, 0.68, 1) backwards;
+      animation-delay: calc(var(--header-intro-step, 0) * 90ms);
+    }
   }
 
   .header-section,

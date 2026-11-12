@@ -181,23 +181,26 @@
     object-position: center center;
   }
 
-  [id*='collection_list_showcase'] .resource-list__item:nth-child(2) .collection-card__image :is(.resource-image__image, .resource-image__random-image),
-  .collection-list-showcase .resource-list__item:nth-child(2) .collection-card__image :is(.resource-image__image, .resource-image__random-image) {
-    object-position: center top;
-  }
-
-  .collection-list-showcase .resource-list__item:nth-child(2) .collection-card__image .overlay {
+  /* Video hero: lighter overlay and a soft caption gradient, whichever slot it is in. */
+  .collection-list-showcase .resource-list__item:has(.resource-image__video) .collection-card__image .overlay {
     opacity: 0.5;
   }
 
-  .collection-list-showcase .resource-list__item:nth-child(2) .collection-hero-button__caption {
+  .collection-list-showcase .resource-list__item:has(.resource-image__video) .collection-hero-button__caption {
     background: linear-gradient(to top, rgb(48 33 24 / 0.28) 0%, rgb(48 33 24 / 0) 100%);
   }
 
   /* Homepage hero: full-screen portrait panels — side-by-side on desktop, stacked on mobile */
   [id*='collection_list_showcase'],
   .collection-list-showcase {
-    --hero-showcase-panel-height: 100svh;
+    --hero-showcase-panel-height: 110svh;
+  }
+
+  @media screen and (max-width: 749px) {
+    [id*='collection_list_showcase'],
+    .collection-list-showcase {
+      --hero-showcase-panel-height: 95svh;
+    }
   }
 
   [id*='collection_list_showcase'] .resource-list--grid,
@@ -208,6 +211,7 @@
   [id*='collection_list_showcase'] .resource-list__item,
   .collection-list-showcase .resource-list__item {
     width: 100%;
+    height: var(--hero-showcase-panel-height);
     min-height: var(--hero-showcase-panel-height);
   }
 
@@ -218,7 +222,7 @@
     width: 100%;
     aspect-ratio: unset !important;
     min-height: var(--hero-showcase-panel-height);
-    height: 100%;
+    height: var(--hero-showcase-panel-height);
   }
 
   [id*='collection_list_showcase'] .resource-list__item .collection-card .resource-image,
@@ -227,7 +231,7 @@
   .collection-list-showcase .resource-list__item .collection-card .collection-card__image {
     aspect-ratio: unset !important;
     width: 100%;
-    height: 100%;
+    height: var(--hero-showcase-panel-height);
     min-height: var(--hero-showcase-panel-height);
     max-height: none;
   }
@@ -236,7 +240,7 @@
   .collection-list-showcase .resource-list__item .collection-card .resource-image__image {
     aspect-ratio: unset !important;
     height: 100%;
-    min-height: inherit;
+    min-height: 0;
   }
 
   [id*='collection_list_showcase'] .resource-list__item .collection-card__inner,
@@ -271,6 +275,40 @@
     [id*='collection_list_showcase'] .resource-list__item,
     .collection-list-showcase .resource-list__item {
       height: var(--hero-showcase-panel-height);
+    }
+
+    [id*='collection_list_showcase'] .resource-list__item:first-child,
+    .collection-list-showcase .resource-list__item:first-child {
+      --hero-showcase-panel-height: 100svh;
+    }
+
+    @supports (height: round(down, 100svh, 1px)) {
+      [id*='collection_list_showcase'],
+      .collection-list-showcase {
+        --hero-showcase-panel-height: round(down, 95svh, 1px);
+      }
+
+      [id*='collection_list_showcase'] .resource-list__item:first-child,
+      .collection-list-showcase .resource-list__item:first-child {
+        --hero-showcase-panel-height: round(down, 100svh, 1px);
+      }
+    }
+
+    [id*='collection_list_showcase'] .resource-list__item + .resource-list__item,
+    .collection-list-showcase .resource-list__item + .resource-list__item {
+      position: relative;
+      z-index: 1;
+      margin-block-start: -1px;
+    }
+
+    /* Keep the first homepage hero image static while scrolling on mobile. */
+    [id*='collection_list_showcase'] .resource-list__item:first-child :is(.collection-card, .collection-card__image, .resource-image__image),
+    .collection-list-showcase .resource-list__item:first-child :is(.collection-card, .collection-card__image, .resource-image__image) {
+      animation: none !important;
+      transform: none !important;
+      scale: none !important;
+      transition: none !important;
+      will-change: auto;
     }
   }
 

@@ -1,0 +1,43 @@
+{%- doc -%}
+  Outputs the style attribute that places one Shop Insta gallery tile on the
+  desktop 5-column grid. Tiles come in groups of 7 that alternate:
+    even groups: large 2x2 tile left, six small tiles right (3 columns x 2 rows)
+    odd groups:  six small tiles left, large 2x2 tile right
+  Tiles beyond the last complete group output nothing and auto-place as small
+  squares. Mobile CSS ignores the variables.
+
+  @param {number} index - Zero-based tile index
+  @param {number} patterned_count - Number of tiles in complete groups of 7
+{%- enddoc -%}
+
+{%- liquid
+  if index >= patterned_count
+    break
+  endif
+
+  assign group = index | divided_by: 7
+  assign position = index | modulo: 7
+  assign base_row = group | times: 2 | plus: 1
+  assign big_on_left = group | modulo: 2
+  assign span = 1
+
+  if big_on_left == 0
+    if position == 0
+      assign col = 1
+      assign row = base_row
+      assign span = 2
+    else
+      assign k = position | minus: 1
+      assign col = k | modulo: 3 | plus: 3
+      assign row = k | divided_by: 3 | plus: base_row
+    endif
+  elsif position == 6
+    assign col = 4
+    assign row = base_row
+    assign span = 2
+  else
+    assign col = position | modulo: 3 | plus: 1
+    assign row = position | divided_by: 3 | plus: base_row
+  endif
+-%}
+style="--insta-col: {{ col }}; --insta-row: {{ row }}; --insta-span: {{ span }};"

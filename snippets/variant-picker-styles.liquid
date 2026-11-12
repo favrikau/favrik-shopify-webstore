@@ -224,6 +224,14 @@
     font-weight: 200;
   }
 
+  /* Colour and size options share the site body size on every screen. */
+  .product-details .variant-option__button-label--color,
+  .product-details .variant-option__button-label--size {
+    font-size: var(--favrik-body-size, 0.6875rem);
+    /* Keep the buttons' previous height now the text is smaller (base height is 3.25em). */
+    min-height: 2.875rem;
+  }
+
   .product-details .variant-option__button-label--color .variant-option__button-label__text {
     text-align: center;
   }
@@ -304,7 +312,6 @@
     }
 
     .product-details .variant-option__button-label--color {
-      font-size: 0.6875rem;
       line-height: 1.15;
       white-space: normal;
     }

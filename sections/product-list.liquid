@@ -8,16 +8,30 @@
 
   if request.page_type == 'index' and section.settings.layout_type == 'carousel'
     if section.settings.heading_en == 'Signature Collection' or section.settings.heading_en == 'New Arrivals'
+      # Random 8 (the section's product count) from a pool of 16 — enough variety per visit
+      # without rendering dozens of hidden cards.
       assign homepage_product_carousel = true
       assign randomize_products = true
-      assign max_items = 50
+      assign max_items = 16
       assign homepage_section_key = 'signature'
+    elsif section.settings.heading_en == 'Best Sellers'
+      # Up to 16, in the collection's own order (set the Best Sellers collection to sort by
+      # "Best selling" in Shopify admin) — no shuffling, so the ranking is kept.
+      assign homepage_product_carousel = true
+      assign randomize_products = false
+      assign max_items = 16
+      assign homepage_section_key = 'best-sellers'
     elsif section.settings.collection != blank and section.settings.collection.handle == 'fw2026'
       assign homepage_product_carousel = true
       assign randomize_products = true
       assign max_items = 50
       assign homepage_section_key = 'fw2026'
     endif
+  endif
+
+  assign is_pan_carousel = false
+  if homepage_section_key == 'signature' or homepage_section_key == 'best-sellers'
+    assign is_pan_carousel = true
   endif
 
   assign carousel_slide_count = max_items
@@ -27,6 +41,10 @@
   capture carousel_attributes
     if homepage_product_carousel
       echo 'data-page-size-desktop="' | append: section.settings.columns | append: '" data-page-size-mobile="1"'
+    endif
+    # Signature + Best Sellers (desktop): 4.5 cards, free 1:1 drag + edge-hover panning.
+    if is_pan_carousel
+      echo ' data-free-drag-desktop data-edge-pan'
     endif
   endcapture
   if section.settings.background_color != blank
@@ -52,6 +70,7 @@
     {% if section.settings.background_color != blank %}color-custom-{{ section.id }}{% endif %}
     section-resource-list
     {% if homepage_product_carousel %}homepage-signature-product-carousel{% endif %}
+    {% if is_pan_carousel %}favrik-pan-carousel{% endif %}
     spacing-style
     gap-style
   "
@@ -73,6 +92,19 @@
     {% else %}
       {%- content_for 'block', type: '_product-list-content', id: 'static-header' -%}
     {% endif %}
+
+    {%- if section.settings.show_shop_button and section.settings.shop_button_label != blank -%}
+      {%- assign shop_button_link = section.settings.shop_button_link
+        | default: section.settings.collection.url
+        | default: routes.all_products_collection_url
+      -%}
+      <a
+        class="section-shop-link product-list__shop-link"
+        href="{{ shop_button_link }}"
+      >
+        {{- section.settings.shop_button_label | escape -}}
+      </a>
+    {%- endif -%}
   </div>
 
   {% capture list_items %}
@@ -135,9 +167,68 @@
   >
     {%- content_for 'blocks' -%}
   </div>
+
 </div>
 
+{%- if randomize_products -%}
+  <script>
+    // Pick the random cards before first paint so the row height never changes
+    // after load. random-collection-images.js skips lists marked initialized.
+    (() => {
+      const list = document.currentScript?.previousElementSibling;
+      if (!(list instanceof HTMLElement) || !list.hasAttribute('data-random-product-list')) return;
+
+      const cards = [...list.querySelectorAll('[data-random-product-card]')];
+      const limit = Math.max(1, Number.parseInt(list.dataset.randomProductLimit ?? '8', 10) || 8);
+
+      for (let i = cards.length - 1; i > 0; i -= 1) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [cards[i], cards[j]] = [cards[j], cards[i]];
+      }
+
+      cards.forEach((card, index) => {
+        const hidden = index >= limit;
+        card.toggleAttribute('hidden', hidden);
+        card.closest('slideshow-slide')?.toggleAttribute('hidden', hidden);
+      });
+
+      list.dataset.randomProductsInitialized = 'true';
+    })();
+  </script>
+{%- endif -%}
+
+{%- comment -%} After the random-list script, which reads its previous sibling. {%- endcomment -%}
+{%- if is_pan_carousel -%}
+  <script src="{{ 'carousel-edge-pan.js' | asset_url }}" type="module"></script>
+{%- endif -%}
+
 {% stylesheet %}
+  /* "Shop now" under the section title, styled like the hero CTA. The heading's
+     bottom spacing moves below the link so the gap to the products is unchanged. */
+  .section-resource-list__header:has(.product-list__shop-link) .favrik-bilingual-heading,
+  .content-for-layout[data-template='index']
+    [data-testid='product-list']
+    .section-resource-list__header:has(.product-list__shop-link)
+    .favrik-bilingual-heading {
+    padding-block-end: 0;
+  }
+
+  .product-list__shop-link {
+    margin-block: 0.35rem 24px;
+  }
+
+  @media screen and (max-width: 749px) {
+    .section-resource-list__header:has(.product-list__shop-link) {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .product-list__shop-link {
+      margin-block-end: var(--homepage-mobile-heading-gap, 1rem);
+    }
+  }
+
   .section-resource-list__header .favrik-bilingual-heading {
     display: flex;
     flex-direction: row;
@@ -271,6 +362,21 @@
       > .resource-list__slide:nth-child(5n + 1) {
       scroll-snap-align: start;
       scroll-snap-stop: always;
+    }
+  }
+
+  /* Homepage pan carousels (Signature, Best Sellers) on desktop. The shared 4.5-card / drag /
+     edge-pan layout is in base.css (.favrik-pan-carousel); here the homepage drops its section
+     side padding so the row can reach the window edge, and only the heading keeps the margin. */
+  @media screen and (min-width: 750px) {
+    .content-for-layout[data-template='index'] [data-testid='product-list'].favrik-pan-carousel {
+      --pan-carousel-inset: var(--page-margin);
+      padding-inline: 0;
+    }
+
+    .favrik-pan-carousel .section-resource-list__header {
+      padding-inline: var(--page-margin);
+      box-sizing: border-box;
     }
   }
 
@@ -570,6 +676,30 @@
       "label": "Heading color",
       "default": "#302118",
       "visible_if": "{{ section.settings.show_bilingual_heading }}"
+    },
+    {
+      "type": "header",
+      "content": "Shop button"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_shop_button",
+      "label": "Show button below products",
+      "default": false
+    },
+    {
+      "type": "text",
+      "id": "shop_button_label",
+      "label": "Label",
+      "default": "Shop now",
+      "visible_if": "{{ section.settings.show_shop_button }}"
+    },
+    {
+      "type": "url",
+      "id": "shop_button_link",
+      "label": "Link",
+      "info": "Defaults to the section's collection.",
+      "visible_if": "{{ section.settings.show_shop_button }}"
     },
     {
       "type": "header",

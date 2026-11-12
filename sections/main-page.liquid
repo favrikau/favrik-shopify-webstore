@@ -1,5 +1,16 @@
 
 
+{%- comment -%}
+  The Shop Insta page shows the shop-insta-gallery section instead, and the privacy / terms pages
+  show the policy-page section.
+{%- endcomment -%}
+{%- liquid
+  assign skip_main_page = false
+  if page.handle == 'shop-insta' or page.handle contains 'privacy' or page.handle contains 'terms'
+    assign skip_main_page = true
+  endif
+-%}
+{%- unless skip_main_page -%}
 {% liquid
   if section.settings.background_color != blank
     render 'contrast-override', background_color: section.settings.background_color, section_id: section.id
@@ -26,6 +37,7 @@
     {% content_for 'blocks' %}
   </div>
 </div>
+{%- endunless -%}
 
 {% schema %}
 {

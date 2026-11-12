@@ -3,6 +3,7 @@ AGENTS.md
 README.md
 CODEX_CONTEXT.md
 SITEMAP.md
+ARCHITECTURE_AND_CLEANUP.md
 *.md
 .git
 .cursor

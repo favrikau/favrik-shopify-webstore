@@ -1,6 +1,5 @@
 import { Component } from '@theme/component';
 import { ThemeEvents, ZoomMediaSelectedEvent } from '@theme/events';
-import { StandardEvents, ProductSelectEvent } from '@shopify/events';
 
 /**
  * A custom element that renders a media gallery.
@@ -17,9 +16,6 @@ export class MediaGallery extends Component {
     super.connectedCallback();
 
     const { signal } = this.#controller;
-    const target = this.closest('.shopify-section, dialog');
-
-    target?.addEventListener(StandardEvents.productSelect, this.#handleProductSelect, { signal });
     this.refs.zoomDialogComponent?.addEventListener(ThemeEvents.zoomMediaSelected, this.#handleZoomMediaSelected, {
       signal,
     });
@@ -32,29 +28,6 @@ export class MediaGallery extends Component {
 
     this.#controller.abort();
   }
-
-  /**
-   * Handles a product select event by replacing the current media gallery with a new one.
-   *
-   * @param {ProductSelectEvent} event - The product select event.
-   */
-  #handleProductSelect = (event) => {
-    if (!(event.target instanceof Element) || event.target.closest('product-card')) return;
-
-    event.promise
-      .then(({ detail }) => {
-        if (!detail?.html) return;
-
-        const { html } = detail;
-        const newMediaGallery = html.querySelector('media-gallery');
-        if (!newMediaGallery) return;
-
-        this.replaceWith(newMediaGallery);
-      })
-      .catch((error) => {
-        if (error?.name !== 'AbortError') console.warn('[media-gallery] Event promise rejected:', error);
-      });
-  };
 
   /**
    * Handles the 'zoom-media:selected' event.

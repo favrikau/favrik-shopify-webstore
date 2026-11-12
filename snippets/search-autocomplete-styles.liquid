@@ -3,6 +3,21 @@
 {% enddoc %}
 
 {% stylesheet %}
+  .facets__sku-search-view-all {
+    display: block;
+    padding: 0.85rem;
+    color: #302118;
+    font-family: var(--font-body--family);
+    font-size: 0.75rem;
+    text-align: center;
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+
+  .facets__sku-search-view-all:is(:hover, :focus-visible, .is-active) {
+    background: rgb(48 33 24 / 0.05);
+  }
+
   /* Collection page SKU/name autocomplete */
   .facets__sku-search-results {
     background-color: var(--color-background);
@@ -85,6 +100,21 @@
     height: 100%;
     object-fit: cover;
     display: block;
+  }
+
+  .facets__sku-search .facets__sku-search-option-image.product-media-container--png {
+    background: #ebe6e0;
+  }
+
+  .facets__sku-search .facets__sku-search-option-image.product-media-container--png .product-media__image {
+    object-fit: contain;
+    object-position: center;
+    transform: scale(0.92);
+    transform-origin: center;
+  }
+
+  .png-card-check .facets__sku-search .product-media-container--png-candidate:not([data-png-ready]) .product-media__image {
+    opacity: 0;
   }
 
   .facets__sku-search-option-image--placeholder {

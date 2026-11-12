@@ -13,7 +13,7 @@
     if button_en == blank
       case closest.collection.handle
         when 'fw2026'
-          assign button_en = 'Explore Collection'
+          assign button_en = 'New Arrivals'
         when 'on-sale'
           assign button_en = 'Shop Sale'
         else
@@ -23,10 +23,21 @@
 
     assign button_title = button_en | strip | upcase
     assign button_title = button_title | escape
+
+    # "New Arrivals" goes to the New Arrivals collection, whichever collection the card shows.
+    assign button_url = closest.collection.url
+    if button_title == 'NEW ARRIVALS'
+      assign new_arrivals_collection = collections['new-arrivals']
+      if new_arrivals_collection != blank and new_arrivals_collection.id != blank
+        assign button_url = new_arrivals_collection.url
+      else
+        assign button_url = '/collections/new-arrivals'
+      endif
+    endif
   %}
 
   <a
-    href="{{ closest.collection.url }}"
+    href="{{ button_url }}"
     class="collection-hero-button text-block text-block--{{ block.id }}"
     aria-label="{{ button_title }} — Shop now"
     style="
@@ -67,7 +78,8 @@
     align-items: center;
     gap: 0.35rem;
     margin: 0;
-    padding: 2.5rem var(--page-margin) calc(var(--page-margin) + 2.25rem);
+    /* Hero panels are 110svh tall; the extra 12svh keeps the text above the fold. */
+    padding: 2.5rem var(--page-margin) calc(var(--page-margin) + 2.25rem + 12svh);
     text-align: center;
     background: linear-gradient(to top, rgb(48 33 24 / 0.52) 0%, rgb(48 33 24 / 0) 100%);
     box-sizing: border-box;
@@ -116,6 +128,7 @@
 
   @media screen and (max-width: 749px) {
     .collection-hero-button__caption {
+      /* Mobile panels are 95svh, so no fold compensation is needed. */
       padding-block: 2rem calc(var(--page-margin) + 5.5rem);
     }
 

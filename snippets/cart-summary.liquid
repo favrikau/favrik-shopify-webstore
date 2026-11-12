@@ -7,34 +7,97 @@
 
 {% render 'text-component-shimmer-styles' %}
 
+{%- liquid
+  # Pickup-only items (product tag "No Shipping", any case) can't ship with other items.
+  # A cart of only pickup-only items checks out normally; a mixed cart must be split.
+  assign pickup_only_keys = ''
+  assign cart_has_shippable_item = false
+  for item in cart.items
+    assign item_is_pickup_only = false
+    for product_tag in item.product.tags
+      assign product_tag_normalized = product_tag | downcase | strip
+      if product_tag_normalized == 'no shipping'
+        assign item_is_pickup_only = true
+        break
+      endif
+    endfor
+    if item_is_pickup_only
+      assign pickup_only_keys = pickup_only_keys | append: item.key | append: ','
+    else
+      assign cart_has_shippable_item = true
+    endif
+  endfor
+  assign cart_needs_split = false
+  if pickup_only_keys != blank and cart_has_shippable_item
+    assign cart_needs_split = true
+  endif
+-%}
+
+{%- liquid
+  # Savings breakdown built from the same numbers the cart lines show, so it reads top to bottom:
+  # original price (compare-at where set) − sale − each discount = subtotal.
+  assign summary_original_total = 0
+  assign summary_sale_saving = 0
+  for item in cart.items
+    assign summary_line_original = item.original_line_price
+    if item.variant.compare_at_price > item.original_price
+      assign summary_line_original = item.variant.compare_at_price | times: item.quantity
+      assign summary_sale_saving = summary_sale_saving | plus: summary_line_original | minus: item.original_line_price
+    endif
+    assign summary_original_total = summary_original_total | plus: summary_line_original
+  endfor
+  assign summary_total_saving = summary_original_total | minus: cart.total_price
+-%}
+
 <div class="cart-totals">
   {% # We need to keep this node in place to allow morphing to work properly # %}
   <div class="cart-totals__original-container cart-primary-typography">
-    {%- if cart.cart_level_discount_applications.size > 0 -%}
+    {%- if summary_total_saving > 0 -%}
       <span class="cart-totals__item cart-totals__original">
-        <span class="cart-totals__original-label">{{ 'content.cart_subtotal' | t }}</span>
-        <span
-          class="cart-totals__original-value cart-secondary-typography"
+        <span class="cart-totals__original-label">Original price</span>
+        <s
+          class="cart-totals__original-value cart-totals__original-value--struck cart-secondary-typography"
           data-testid="cart-subtotal-value"
         >
-          {{- cart.items_subtotal_price | money -}}
-        </span>
+          {{- summary_original_total | money -}}
+        </s>
       </span>
       <ul
         class="cart-discounts"
         role="list"
         aria-label="{{ 'content.discounts' | t }}"
       >
-        {%- for discount in cart.cart_level_discount_applications -%}
+        {%- if summary_sale_saving > 0 -%}
           <li class="cart-discounts__item">
             <span class="cart-discounts__label">
               {{- 'icon-discount.svg' | inline_asset_content -}}
-              {{ discount.title | escape }}
+              Sale
             </span>
             <span class="cart-discounts__value cart-secondary-typography"
-              >-{{ discount.total_allocated_amount | money -}}
+              >-{{ summary_sale_saving | money -}}
             </span>
           </li>
+        {%- endif -%}
+        {%- for discount in cart.discount_applications -%}
+          {%- if discount.total_allocated_amount > 0 -%}
+            <li class="cart-discounts__item">
+              <span class="cart-discounts__label">
+                {{- 'icon-discount.svg' | inline_asset_content -}}
+                {%- liquid
+                  # The launch discount always reads "Website Launch Sale", whatever it's named in admin.
+                  assign discount_display_title = discount.title
+                  assign discount_title_downcase = discount.title | downcase
+                  if discount_title_downcase contains 'launch'
+                    assign discount_display_title = 'Website Launch Sale'
+                  endif
+                -%}
+                {{ discount_display_title | escape }}
+              </span>
+              <span class="cart-discounts__value cart-secondary-typography"
+                >-{{ discount.total_allocated_amount | money -}}
+              </span>
+            </li>
+          {%- endif -%}
         {%- endfor -%}
       </ul>
     {%- endif -%}
@@ -222,12 +285,14 @@
       assign total_price = cart.total_price | money
     endif
 
-    assign free_shipping_threshold_cents = 15000
+    # Free shipping counts the real amount to pay (cart.total_price is after every discount,
+    # including order-level ones like the launch 15%), not the pre-discount items subtotal.
+    assign free_shipping_threshold_cents = 18000
     assign free_shipping_unlocked = false
-    if cart.items_subtotal_price >= free_shipping_threshold_cents
+    if cart.total_price >= free_shipping_threshold_cents
       assign free_shipping_unlocked = true
     else
-      assign free_shipping_remaining_cents = free_shipping_threshold_cents | minus: cart.items_subtotal_price
+      assign free_shipping_remaining_cents = free_shipping_threshold_cents | minus: cart.total_price
       assign free_shipping_remaining = free_shipping_remaining_cents | money
     endif
 
@@ -304,13 +369,30 @@
 </div>
 
 <div class="cart__ctas">
+  {%- if cart_needs_split -%}
+    <div class="cart__pickup-notice" id="cart-pickup-notice" role="status">
+      <p class="cart__pickup-notice-text">Order pickup-only items separately</p>
+      <button
+        type="button"
+        class="cart__pickup-notice-remove"
+        data-pickup-only-keys="{{ pickup_only_keys | escape }}"
+        aria-label="Remove pickup-only items from cart"
+        on:click="cart-items-component/removePickupOnlyItems"
+      >
+        Remove them
+      </button>
+    </div>
+  {%- endif -%}
   <button
     type="submit"
     id="checkout"
     class="cart__checkout-button button"
     name="checkout"
-    {% if cart == empty %}
+    {% if cart == empty or cart_needs_split %}
       disabled
+    {% endif %}
+    {% if cart_needs_split %}
+      aria-describedby="cart-pickup-notice"
     {% endif %}
     form="cart-form"
   >
@@ -319,7 +401,8 @@
     </span>
   </button>
 
-  {% if additional_checkout_buttons and settings.show_accelerated_checkout_buttons %}
+  {%- comment -%} Express checkout (Shop Pay, Apple Pay…) would bypass the split rule, so it's hidden for mixed carts. {%- endcomment -%}
+  {% if additional_checkout_buttons and settings.show_accelerated_checkout_buttons and cart_needs_split == false %}
     <div
       class="
         additional-checkout-buttons
@@ -332,6 +415,56 @@
 </div>
 
 {% stylesheet %}
+  /* Mixed cart (pickup-only + shipped): one compact bar, text left, action right.
+     Amber = pickup-only everywhere (this bar + the PICKUP ONLY tag); red stays for sale. */
+  .cart__pickup-notice {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0.375rem 0.375rem 0.375rem 0.625rem;
+    border: 0.5px solid var(--pickup-only-color);
+    background: rgb(180 83 9 / 0.07);
+    font-family: var(--font-body--family);
+    font-size: var(--favrik-body-size, 0.6875rem);
+    font-weight: 400;
+    line-height: 1.3;
+    color: var(--pickup-only-color);
+  }
+
+  .cart__pickup-notice-text {
+    min-width: 0;
+    margin: 0;
+  }
+
+  .cart__pickup-notice-remove {
+    flex: 0 0 auto;
+    margin: 0;
+    padding: 0.3rem 0.55rem;
+    border: 0;
+    border-radius: 0;
+    background: var(--pickup-only-color);
+    font: inherit;
+    color: #ffffff;
+    white-space: nowrap;
+    cursor: pointer;
+  }
+
+  .cart__pickup-notice-remove:hover {
+    background: #92400e;
+  }
+
+  .cart__pickup-notice-remove:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+
+  .cart__checkout-button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
   .cart-actions {
     display: flex;
     flex-direction: column;
@@ -444,6 +577,23 @@
 
   .cart-totals__original-value {
     font-weight: 500;
+  }
+
+  /* Pre-sale total: grey and struck through so it never reads as the amount to pay. */
+  .cart-totals__original-value--struck {
+    color: rgb(var(--color-foreground-rgb) / var(--opacity-subdued-text));
+    text-decoration-line: line-through;
+    text-decoration-thickness: 1px;
+  }
+
+  .cart-totals__original-container {
+    row-gap: var(--gap-2xs);
+  }
+
+  .cart-discounts {
+    display: flex;
+    flex-direction: column;
+    row-gap: var(--gap-2xs);
   }
 
   .cart-totals__total-value {

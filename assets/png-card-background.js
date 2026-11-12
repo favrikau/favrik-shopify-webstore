@@ -76,6 +76,14 @@ function pngContainer(image) {
 }
 
 /**
+ * Reveals the image (CSS hides PNG candidates until this is set).
+ * @param {Element | null} container
+ */
+function markReady(container) {
+  container?.setAttribute('data-png-ready', '');
+}
+
+/**
  * Grey + scale is only for real cutout PNGs (transparent, or a white
  * studio field we can knock out). Opaque photos saved as .png stay full-bleed.
  * @param {HTMLImageElement} image
@@ -101,6 +109,7 @@ async function applyPngCardBackground(image) {
     const context = canvas.getContext('2d', { willReadFrequently: true });
     if (!context) {
       container?.classList.remove('product-media-container--png');
+      markReady(container);
       return;
     }
 
@@ -111,24 +120,35 @@ async function applyPngCardBackground(image) {
 
     if (!alreadyCutout && !hasMeaningfulTransparency(imageData)) {
       container?.classList.remove('product-media-container--png');
+      markReady(container);
       return;
     }
 
     container?.classList.add('product-media-container--png');
 
-    if (!knockedOut) return;
+    if (!knockedOut) {
+      markReady(container);
+      return;
+    }
 
     context.putImageData(imageData, 0, 0);
 
     const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
-    if (!blob) return;
+    if (!blob) {
+      markReady(container);
+      return;
+    }
 
+    // Reveal only once the knocked-out version has replaced the original.
+    image.addEventListener('load', () => markReady(container), { once: true });
+    image.addEventListener('error', () => markReady(container), { once: true });
     image.srcset = '';
     image.sizes = '';
     image.src = URL.createObjectURL(blob);
   } catch {
     image.dataset.pngBgProcessed = 'false';
     container?.classList.remove('product-media-container--png');
+    markReady(container);
   }
 }
 

@@ -1128,7 +1128,11 @@ export class Slideshow extends Component {
     if (!(event.target instanceof Element)) return;
     if (this.disabled || this.#dragging) return;
     if (this.hasAttribute('data-mobile-card-swipe') && !mediaQueryLarge.matches) return;
+    // Free-drag carousels (desktop) own every drag, even one starting on a card's photo gallery
+    // (those galleries are controls-only on desktop, so nothing else would handle it).
+    const freeDragDesktop = this.hasAttribute('data-free-drag-desktop') && mediaQueryLarge.matches;
     if (
+      !freeDragDesktop &&
       !this.hasAttribute('data-mobile-card-swipe') &&
       event.target.closest('slideshow-component[data-mobile-card-swipe]')
     ) {
@@ -1246,6 +1250,16 @@ export class Slideshow extends Component {
       window.setTimeout(() => this.removeEventListener('click', suppressClick, { capture: true }), 0);
 
       if (!slides?.length || !scroller) return;
+
+      // Free-drag carousels (desktop): the row stays exactly where it was released — no
+      // momentum, no snapping to a page or slide — so panning tracks the cursor precisely.
+      if (this.hasAttribute('data-free-drag-desktop') && mediaQueryLarge.matches) {
+        this.current = this.#sync();
+        this.removeAttribute('dragging');
+        if (this.hasPointerCapture(event.pointerId)) this.releasePointerCapture(event.pointerId);
+        this.resume();
+        return;
+      }
 
       const direction = Math.sign(velocity);
       const next = this.#sync();

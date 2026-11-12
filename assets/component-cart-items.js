@@ -302,6 +302,96 @@ export class CartItemsComponent extends createViewEventElement(Component) {
   }
 
   /**
+   * Removes every pickup-only line (products tagged "No Shipping") in one request, so a cart that
+   * mixes pickup-only and shipped items can check out. Line keys come from the button's
+   * `data-pickup-only-keys`, rendered by cart-summary.
+   */
+  removePickupOnlyItems() {
+    const button = this.querySelector('[data-pickup-only-keys]');
+    const keys = (button?.getAttribute('data-pickup-only-keys') ?? '').split(',').filter(Boolean);
+    if (keys.length === 0) return;
+    if (button instanceof HTMLButtonElement) button.disabled = true;
+
+    this.#disableCartItems();
+
+    const sectionsToUpdate = new Set([this.sectionId]);
+    document.querySelectorAll('cart-items-component').forEach((item) => {
+      if (item instanceof HTMLElement && item.dataset.sectionId) {
+        sectionsToUpdate.add(item.dataset.sectionId);
+      }
+    });
+
+    /** @type {Record<string, number>} */
+    const updates = {};
+    for (const key of keys) updates[key] = 0;
+
+    const body = JSON.stringify({
+      updates,
+      sections: Array.from(sectionsToUpdate).join(','),
+      sections_url: window.location.pathname,
+    });
+
+    this.refs.cartTotal?.shimmer();
+
+    const deferredUpdatePromise = CartLinesUpdateEvent.createPromise();
+    this.dispatchEvent(
+      new CartLinesUpdateEvent({
+        action: 'remove',
+        context: 'cart',
+        lines: keys.map((id) => ({ id, quantity: 0 })),
+        promise: deferredUpdatePromise.promise,
+      })
+    );
+
+    fetch(`${Theme.routes.cart_update_url}`, fetchConfig('json', { body }))
+      .then((response) => response.json())
+      .then((parsedResponse) => {
+        resetShimmer(this);
+
+        if (parsedResponse.errors || !parsedResponse.sections) {
+          throw new Error(parsedResponse.errors || 'Failed to remove pickup-only items');
+        }
+
+        const sectionHtml = parsedResponse.sections[this.sectionId];
+        const newSectionHTML = new DOMParser().parseFromString(sectionHtml, 'text/html');
+        const newCartHiddenItemCount = newSectionHTML.querySelector('[ref="cartItemCount"]')?.textContent;
+        const newCartItemCount = newCartHiddenItemCount ? parseInt(newCartHiddenItemCount, 10) : 0;
+
+        this.#updateQuantitySelectors(parsedResponse);
+
+        deferredUpdatePromise.resolve({
+          cart: CartLinesUpdateEvent.createCartFromAjaxResponse(parsedResponse),
+          detail: {
+            sections: parsedResponse.sections,
+            items: parsedResponse.items,
+            itemCount: newCartItemCount,
+            source: 'cart-items-component',
+            didError: false,
+          },
+        });
+
+        morphSection(this.sectionId, sectionHtml, { mode: this.isDrawer ? 'hydration' : 'full' });
+        this.#updateCartQuantitySelectorButtonStates();
+      })
+      .catch((error) => {
+        console.error(error);
+        resetShimmer(this);
+        deferredUpdatePromise.reject(error);
+        if (button instanceof HTMLButtonElement) button.disabled = false;
+
+        this.dispatchEvent(
+          new CartErrorEvent({
+            error: error?.message || 'Failed to update cart',
+            code: 'SERVICE_UNAVAILABLE',
+          })
+        );
+      })
+      .finally(() => {
+        this.#enableCartItems();
+      });
+  }
+
+  /**
    * Handles the cart error.
    * @param {number} line - The line.
    * @param {Object} parsedResponseText - The parsed response text.

@@ -4,13 +4,21 @@
   @param {product} product - Product whose collection should be displayed.
   @param {string} [output] - `labels` (default) or `heading`
   @param {boolean} [force_preorder] - Show the PREORDER tag even if the product metafield is unset.
+  @param {boolean} [show_pickup_only] - Show a PICKUP ONLY tag for products tagged "No Shipping". Passed by the cart only.
+  @param {boolean} [include_launch_sale] - Also show the SALE tag while the sitewide launch discount
+    (Theme settings → Prices) is on. Passed by the product page price only.
 {%- enddoc -%}
 
 {%- liquid
   assign output_mode = output | default: 'labels'
   assign product_collection = collection
 
-  if product_collection.handle == 'all' or product_collection.handle == 'frontpage'
+  # "All products" style collections (any handle) and the homepage collection are never shown.
+  assign skip_titles = 'all products,all' | split: ','
+  assign current_collection_title = product_collection.title | downcase | strip
+  if product_collection.handle == 'all' or product_collection.handle == 'all-products' or product_collection.handle == 'frontpage'
+    assign product_collection = blank
+  elsif skip_titles contains current_collection_title
     assign product_collection = blank
   endif
 
@@ -33,10 +41,15 @@
 
   if product_collection == blank
     for associated_collection in product.collections
-      unless associated_collection.handle == 'all' or associated_collection.handle == 'frontpage'
-        assign product_collection = associated_collection
-        break
-      endunless
+      assign associated_title = associated_collection.title | downcase | strip
+      if associated_collection.handle == 'all' or associated_collection.handle == 'all-products' or associated_collection.handle == 'frontpage'
+        continue
+      endif
+      if skip_titles contains associated_title
+        continue
+      endif
+      assign product_collection = associated_collection
+      break
     endfor
   endif
 
@@ -52,13 +65,30 @@
   if product.available and product.compare_at_price > product.price
     assign is_on_sale = true
   endif
+  assign is_pickup_only = false
+  if show_pickup_only
+    for product_tag in product.tags
+      assign product_tag_normalized = product_tag | downcase | strip
+      if product_tag_normalized == 'no shipping'
+        assign is_pickup_only = true
+        break
+      endif
+    endfor
+  endif
+
+  # Sitewide launch sale: the product page shows the SALE tag on every available product.
+  assign label_launch_discount = settings.launch_discount_percent | default: 0
+  if include_launch_sale and label_launch_discount > 0 and product.available
+    assign is_on_sale = true
+  endif
 
   assign is_made_by_favrik = product.metafields.custom.made_by_favrik.value
   assign is_preorder = product.metafields['custom']['preorder'].value
   if force_preorder
     assign is_preorder = true
   endif
-  assign sale_badge_color = shop.metafields['custom']['sale_badge_color'].value
+  # Metafield colour as before; red if the metafield is empty so the outline tag is never invisible.
+  assign sale_badge_color = shop.metafields['custom']['sale_badge_color'].value | default: '#c8102e'
   assign favrik_made_badge_color = shop.metafields['custom']['favrik_made_badge_color'].value
   assign preorder_badge_color = shop.metafields['custom']['preorder_badge_color'].value
 -%}
@@ -72,14 +102,22 @@
       {{- product_collection.title | escape -}}
     </a>
   {%- endif -%}
-{%- elsif is_on_sale or is_made_by_favrik or is_preorder -%}
+{%- elsif is_on_sale or is_made_by_favrik or is_preorder or is_pickup_only -%}
   <div class="product-price__labels">
+    {%- if is_pickup_only -%}
+      <span
+        class="product-price__tag"
+        style="--product-price-tag-color: var(--pickup-only-color, #b45309);"
+      >
+        PICKUP ONLY
+      </span>
+    {%- endif -%}
     {%- if is_on_sale -%}
       <span
         class="product-price__tag"
         style="--product-price-tag-color: {{ sale_badge_color }};"
       >
-        SALE
+        {%- if label_launch_discount > 0 -%}WEBSITE LAUNCH SALE{%- else -%}SALE{%- endif -%}
       </span>
     {%- endif -%}
     {%- if is_made_by_favrik -%}

@@ -1,0 +1,170 @@
+{% doc %}
+  Displays a hero preview until video playback has rendered a frame.
+
+  @param {string} video_url - Hero video URL
+  @param {string} variant - Poster variant: homepage or about
+  @param {string} [video_class] - Additional video classes
+
+  @example
+  {% render 'hero-video', video_url: section.settings.video_url, variant: 'about' %}
+{% enddoc %}
+
+{% liquid
+  case variant
+    when 'about'
+      assign poster_asset = 'about-hero-poster.jpg'
+      assign poster_width = 1440
+      assign poster_height = 810
+      assign reveal_after = 1
+    else
+      assign poster_asset = 'homepage-hero-poster.jpg'
+      assign poster_width = 810
+      assign poster_height = 1440
+      assign reveal_after = 0
+  endcase
+  assign poster_url = poster_asset | asset_url
+%}
+
+{{ poster_url | preload_tag: as: 'image' }}
+<hero-video data-reveal-after="{{ reveal_after }}">
+  <img
+    class="hero-video__poster"
+    src="{{ poster_url }}"
+    width="{{ poster_width }}"
+    height="{{ poster_height }}"
+    alt=""
+    loading="eager"
+    fetchpriority="high"
+    decoding="sync"
+    aria-hidden="true"
+  >
+  <video
+    class="hero-video__video {{ video_class }}"
+    src="{{ video_url | escape }}"
+    poster="{{ poster_url }}"
+    autoplay
+    muted
+    loop
+    playsinline
+    preload="auto"
+    aria-hidden="true"
+  ></video>
+</hero-video>
+
+{% stylesheet %}
+  hero-video {
+    position: relative;
+    display: block;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    isolation: isolate;
+    background: #ffffff;
+  }
+
+  hero-video > .hero-video__poster,
+  hero-video > .hero-video__video {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+  }
+
+  hero-video > .hero-video__poster {
+    z-index: 0;
+  }
+
+  hero-video > .hero-video__poster[hidden] {
+    display: none;
+  }
+
+  hero-video > .hero-video__video {
+    z-index: 1;
+    opacity: 0;
+  }
+
+  hero-video[data-video-ready] > .hero-video__video {
+    opacity: 1;
+  }
+{% endstylesheet %}
+
+{% javascript %}
+  class HeroVideo extends HTMLElement {
+    connectedCallback() {
+      this.video = this.querySelector('video');
+      if (!this.video || this.controller) return;
+
+      this.controller = new AbortController();
+      this.revealAfter = Number(this.dataset.revealAfter) || 0;
+      const options = { signal: this.controller.signal };
+      const poster = this.querySelector('.hero-video__poster');
+      if (poster) {
+        poster.addEventListener('error', () => { poster.hidden = true; }, options);
+        poster.addEventListener('load', () => { poster.hidden = false; }, options);
+        poster.hidden = poster.complete && poster.naturalWidth === 0;
+      }
+      const waitForFrame = () => this.waitForFrame();
+      const reset = () => {
+        this.removeAttribute('data-video-ready');
+        this.cancelFrame();
+      };
+
+      for (const event of ['playing', 'loadeddata', 'timeupdate', 'seeked']) {
+        this.video.addEventListener(event, waitForFrame, options);
+      }
+      for (const event of ['emptied', 'error']) {
+        this.video.addEventListener(event, reset, options);
+      }
+      this.waitForFrame();
+    }
+
+    waitForFrame() {
+      if (this.hasAttribute('data-video-ready') || this.frameId != null || this.animationId != null) return;
+      if (this.video.paused || this.video.seeking || this.video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA) return;
+
+      if (typeof this.video.requestVideoFrameCallback === 'function') {
+        this.frameId = this.video.requestVideoFrameCallback((_, metadata) => {
+          this.frameId = null;
+          if (!this.isConnected) return;
+          if (!this.video.paused && !this.video.seeking && metadata.mediaTime >= this.revealAfter) {
+            this.setAttribute('data-video-ready', '');
+          } else {
+            this.waitForFrame();
+          }
+        });
+      } else if (this.video.currentTime >= this.revealAfter) {
+        this.animationId = requestAnimationFrame(() => {
+          this.animationId = requestAnimationFrame(() => {
+            this.animationId = null;
+            if (this.isConnected && !this.video.paused && !this.video.seeking &&
+                this.video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA &&
+                this.video.currentTime >= this.revealAfter) {
+              this.setAttribute('data-video-ready', '');
+            }
+          });
+        });
+      }
+    }
+
+    cancelFrame() {
+      if (this.frameId != null) this.video.cancelVideoFrameCallback(this.frameId);
+      if (this.animationId != null) cancelAnimationFrame(this.animationId);
+      this.frameId = null;
+      this.animationId = null;
+    }
+
+    disconnectedCallback() {
+      this.controller?.abort();
+      this.controller = null;
+      this.cancelFrame();
+      this.removeAttribute('data-video-ready');
+    }
+  }
+
+  if (!customElements.get('hero-video')) {
+    customElements.define('hero-video', HeroVideo);
+  }
+{% endjavascript %}

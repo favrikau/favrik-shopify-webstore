@@ -122,8 +122,8 @@
   class="section section--{{ section.settings.section_width }} spacing-style category-hero-grid-section{% if section.settings.background_color != blank %} color-custom-{{ section.id }}{% endif %}"
   style="
     {% render 'spacing-style', settings: section.settings %}
-    --category-hero-panel-height: 95svh;
-    --category-hero-panel-height-mobile: {{ section.settings.panel_height_mobile | default: 72 }}svh;
+    --category-hero-panel-height: {{ section.settings.panel_height | default: 100 }}svh;
+    --category-hero-panel-height-mobile: {{ section.settings.panel_height_mobile | default: 78 }}svh;
   "
   data-testid="category-hero-grid"
   {% if request.page_type == 'index' %}
@@ -237,6 +237,8 @@
     {% endfor %}
   </div>
 </div>
+
+<script src="{{ 'category-hero-grid.js' | asset_url }}" type="module"></script>
 
 {% stylesheet %}
   .category-hero-grid-section {
@@ -403,7 +405,7 @@
 
   @media screen and (max-width: 749px) {
     .category-hero-grid {
-      --category-hero-panel-height: var(--category-hero-panel-height-mobile, 72svh);
+      --category-hero-panel-height: var(--category-hero-panel-height-mobile, 78svh);
       grid-template-columns: minmax(0, 1fr);
       grid-template-rows: none;
     }
@@ -466,7 +468,7 @@
       "max": 80,
       "step": 1,
       "unit": "svh",
-      "default": 72,
+      "default": 78,
       "info": "Each window on phones. One card per row."
     },
     {

@@ -8,6 +8,11 @@
 
 {% liquid
   assign product_instance = product_instance | default: 1
+  # Same title cleanup as product cards (drops leading [TAG] prefixes).
+  capture product_display_title
+    render 'product-titlecase', title: product.title
+  endcapture
+  assign product_display_title = product_display_title | strip
   assign current_variant = product.selected_or_first_available_variant
   assign has_variants = false
   if product.has_only_default_variant == false
@@ -26,7 +31,7 @@
           sizes: '(min-width: 750px) 12rem, 40vw',
           class: 'shop-social-look__product-img',
           loading: 'lazy',
-          alt: product.featured_image.alt | default: product.title
+          alt: product.featured_image.alt | default: product_display_title
       }}
     {% else %}
       {{ 'product-apparel-1' | placeholder_svg_tag: 'shop-social-look__product-img' }}
@@ -36,21 +41,37 @@
   <a
     class="shop-social-look__product-title"
     href="{{ product.url }}"
-    title="{{ product.title | escape }}"
+    title="{{ product_display_title | escape }}"
   >
-    {{- product.title | escape -}}
+    {{- product_display_title | escape -}}
   </a>
 
+  {%- liquid
+    # Hotfix: display-only launch discount (Theme settings → Prices).
+    assign look_price = product.price
+    assign look_compare_price = 0
+    if product.compare_at_price > product.price
+      assign look_compare_price = product.compare_at_price
+    endif
+    assign launch_discount = settings.launch_discount_percent | default: 0
+    if launch_discount > 0
+      if look_compare_price == 0
+        assign look_compare_price = product.price
+      endif
+      assign launch_factor = 100 | minus: launch_discount | divided_by: 100.0
+      assign look_price = product.price | times: launch_factor | round
+    endif
+  -%}
   <p class="shop-social-look__product-price">
-    {% if product.compare_at_price > product.price %}
-      <s class="shop-social-look__product-compare">{{ product.compare_at_price | money }}</s>
+    {% if look_compare_price > look_price %}
+      <s class="shop-social-look__product-compare">{{ look_compare_price | money }}</s>
     {% endif %}
-    {{ product.price | money }}
+    {{ look_price | money }}
   </p>
 
   <form class="shop-social-look__product-form" data-shop-social-add>
     {% if has_variants %}
-      <label class="visually-hidden" for="ShopSocialVariant-{{ product.id }}-{{ product_instance }}">Choose an option for {{ product.title | escape }}</label>
+      <label class="visually-hidden" for="ShopSocialVariant-{{ product.id }}-{{ product_instance }}">Choose an option for {{ product_display_title | escape }}</label>
       <select
         id="ShopSocialVariant-{{ product.id }}-{{ product_instance }}"
         class="shop-social-look__variant"

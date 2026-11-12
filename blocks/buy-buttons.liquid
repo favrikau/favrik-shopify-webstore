@@ -239,9 +239,16 @@
           %}
 
           {%- liquid
-            assign free_shipping_threshold_cents = 15000
+            assign free_shipping_threshold_cents = 18000
             assign show_free_shipping = false
-            if variant and variant.price >= free_shipping_threshold_cents
+            # Use the price shown on the page (after the launch discount, Theme settings → Prices).
+            assign free_shipping_variant_price = variant.price
+            assign launch_discount = settings.launch_discount_percent | default: 0
+            if variant and launch_discount > 0
+              assign launch_factor = 100 | minus: launch_discount | divided_by: 100.0
+              assign free_shipping_variant_price = variant.price | times: launch_factor | round
+            endif
+            if variant and free_shipping_variant_price >= free_shipping_threshold_cents
               assign show_free_shipping = true
             endif
             assign free_shipping_threshold_label = free_shipping_threshold_cents | money_without_trailing_zeros
