@@ -10,7 +10,7 @@ Preserve the current appearance and buying journey. Make small, reversible chang
 
 Start with redundant resource hints and verified unnecessary loading. Fix noisy lint findings in a separate small change. Leave CSS restructuring, cart logic, image processing, and carousel rewrites until the initial pass has been checked in a browser.
 
-The user has requested a plan before storefront changes. This document records proposed work; it does not mean the cleanup below has been implemented.
+The user requested a plan before storefront changes and then authorized the initial batch. The roadmap below distinguishes proposals from the completed work recorded in section 11.
 
 ### Proposed first batch
 
@@ -284,7 +284,7 @@ This is a map of fields read by the theme. It is not an export or validation of 
 
 `assets/base.css` is the global layer, about 112 KiB uncompressed at audit time. Components add `{% stylesheet %}` CSS; Shopify can subset that CSS by rendered files. Liquid `{% style %}` and ordinary `<style>` blocks remain separate inline paths. Variables and helper snippets supply spacing, borders, palette, typography, and layout values.
 
-`snippets/fonts.liquid` loads Google Poppins and Nanum Gothic, a numeric subset of Inter, a metric-adjusted local Poppins fallback, and configured Shopify font preloads. `theme-styles-variables.liquid` emits Shopify font faces and variables; body text is overridden to Poppins, numbers use Inter, and Korean text has Nanum Gothic. Configured subheading/heading/accent fonts still participate in CSS and must be checked before removing font assets.
+`snippets/fonts.liquid` loads Google Poppins and Nanum Gothic, a numeric subset of Inter, a metric-adjusted local Poppins fallback, and configured Shopify font preloads deduplicated by URL. `theme-styles-variables.liquid` emits Shopify font faces and variables; body text is overridden to Poppins, numbers use Inter, and Korean text has Nanum Gothic. Configured subheading/heading/accent fonts still participate in CSS and must be checked before removing font assets.
 
 Product/card overrides span global CSS and feature snippets. Preserve cascade order and render-tree ownership when consolidating. Moving a shared rule into an unrelated section's stylesheet can make it disappear on other pages. File size alone is not evidence that a file blocks a specific viewport.
 
@@ -337,3 +337,14 @@ A preview or later deployment must be an explicit separate step. This architectu
 - [Stylesheet content subsetting](https://shopify.dev/docs/storefronts/themes/best-practices/performance/stylesheet-subsetting)
 
 Maintain this guide when entry points, data contracts, loading rules, or feature ownership change. Record completed cleanup work and measured results separately from proposed opportunities.
+
+## 11. Completed initial batch — 13 November 2026
+
+- `snippets/fonts.liquid`: deduplicate configured-font preload hints by their resolved URL, preserving order and attributes. The current four roles produce three distinct hints because heading and accent share `inter_n7`. All distinct font URLs remain preloaded, and system/unset font settings emit no hints.
+- Investigated the potentially unnecessary body-font preload. Retained it: Inter participates in numeric typography and configured heading/subheading/accent paths, so source inspection does not prove that its initial request is dispensable. No font declarations, families, weights, Google stylesheet URLs, or fallback metrics changed.
+- `snippets/password-layout-styles.liquid`: removed the literal Liquid tag from a CSS comment. A comparison with comments stripped confirms the rest of the file is identical.
+- Local Liquid render checks covered the current roles, four distinct fonts, one shared font, all system fonts, mixed fonts, and missing settings. Distinct URLs and preload attributes were preserved in every configured-font case. These were local fixture renders, not a live Shopify browser preview.
+- Shopify CLI theme check: errors fell from 219 to 217; the two password errors were resolved and neither edited snippet has findings. The remaining errors are translation findings. Warnings were 26 before and 27 after; the additional finding is an unused `section_id` documentation parameter in the separately edited `cart-summary.liquid`, which this batch did not change.
+- The bundled skill validator could not load compatible local dependencies; the installed Shopify CLI theme checker supplied validation instead.
+- No browser performance improvement has been measured. Duplicate hints may already be coalesced by the browser. This batch removes redundant markup and validation errors without intentionally changing rendered styling or behavior.
+- Changes remain local. No theme upload/publication occurred. This guide remains explicitly excluded in `.shopifyignore`.

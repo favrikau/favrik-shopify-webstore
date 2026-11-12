@@ -27,15 +27,19 @@
   }
 {% endstyle %}
 
-{%- unless settings.type_body_font.system? -%}
-  {{ settings.type_body_font | font_url | preload_tag: as: 'font', type: 'font/woff2', fetchpriority: 'low' }}
-{%- endunless -%}
-{%- unless settings.type_subheading_font.system? -%}
-  {{ settings.type_subheading_font | font_url | preload_tag: as: 'font', type: 'font/woff2', fetchpriority: 'low' }}
-{%- endunless -%}
-{%- unless settings.type_heading_font.system? -%}
-  {{ settings.type_heading_font | font_url | preload_tag: as: 'font', type: 'font/woff2', fetchpriority: 'low' }}
-{%- endunless -%}
-{%- unless settings.type_accent_font.system? -%}
-  {{ settings.type_accent_font | font_url | preload_tag: as: 'font', type: 'font/woff2', fetchpriority: 'low' }}
-{%- endunless -%}
+{%- liquid
+  assign font_setting_ids = 'type_body_font,type_subheading_font,type_heading_font,type_accent_font' | split: ','
+  assign preloaded_font_urls = '' | split: ','
+
+  for font_setting_id in font_setting_ids
+    assign configured_font = settings[font_setting_id]
+    unless configured_font == blank or configured_font.system?
+      assign configured_font_url = configured_font | font_url
+      unless preloaded_font_urls contains configured_font_url
+        echo configured_font_url | preload_tag: as: 'font', type: 'font/woff2', fetchpriority: 'low'
+        assign current_font_urls = configured_font_url | split: ','
+        assign preloaded_font_urls = preloaded_font_urls | concat: current_font_urls
+      endunless
+    endunless
+  endfor
+-%}
