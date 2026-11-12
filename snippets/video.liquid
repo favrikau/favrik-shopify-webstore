@@ -120,6 +120,7 @@
 {% endif %}
 
 {% if video != blank %}
+  <script src="{{ 'media.js' | asset_url }}" type="module"></script>
   <deferred-media
     class="{{ video_class }}"
     style="{{ video_style }}"

@@ -73,6 +73,7 @@
       popover="auto"
       style="position-anchor: {{ anchor_name }};"
     >
+      <script src="{{ 'volume-pricing-info.js' | asset_url }}" type="module"></script>
       <volume-pricing-info>
         {%- if has_quantity_rules -%}
           <div class="volume-pricing-info__rules">

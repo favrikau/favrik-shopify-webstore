@@ -148,6 +148,7 @@
             {%- liquid
               assign use_currency = settings.currency_code_enabled_product_pages
             -%}
+            <script src="{{ 'volume-pricing.js' | asset_url }}" type="module"></script>
             <volume-pricing
               class="volume-pricing"
               data-section-id="{{ section.id }}"

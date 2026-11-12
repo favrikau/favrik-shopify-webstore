@@ -159,13 +159,6 @@
     fetchpriority="low"
   ></script>
 {% endif %}
-{% if false %}
-  <script
-    src="{{ 'cart-discount.js' | asset_url }}"
-    type="module"
-    fetchpriority="low"
-  ></script>
-{% endif %}
 
 <script
   src="{{ 'dialog.js' | asset_url }}"
@@ -204,11 +197,6 @@
 ></script>
 <script
   src="{{ 'accordion-custom.js' | asset_url }}"
-  type="module"
-  fetchpriority="low"
-></script>
-<script
-  src="{{ 'media.js' | asset_url }}"
   type="module"
   fetchpriority="low"
 ></script>
@@ -267,21 +255,6 @@
   type="module"
   fetchpriority="low"
 ></script>
-<script
-  src="{{ 'volume-pricing.js' | asset_url }}"
-  type="module"
-  fetchpriority="low"
-></script>
-<script
-  src="{{ 'price-per-item.js' | asset_url }}"
-  type="module"
-  fetchpriority="low"
-></script>
-<script
-  src="{{ 'volume-pricing-info.js' | asset_url }}"
-  type="module"
-  fetchpriority="low"
-></script>
 
 {% if localization.available_countries.size > 1 or localization.available_languages.size > 1 %}
   <script
@@ -292,11 +265,6 @@
 {% endif %}
 
 {% if template == 'product' or template.name == 'product' or request.page_type == 'product' %}
-  <script
-    src="{{ 'sticky-add-to-cart.js' | asset_url }}"
-    type="module"
-    fetchpriority="low"
-  ></script>
   <script type="module">
     import { RecentlyViewed } from '@theme/recently-viewed-products';
     RecentlyViewed.addProduct('{{ product.id }}');

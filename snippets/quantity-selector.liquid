@@ -160,6 +160,7 @@
         endfor
       -%}
 
+      <script src="{{ 'price-per-item.js' | asset_url }}" type="module"></script>
       <price-per-item
         class="price-per-item"
         data-variant-id="{{ variant.id }}"
