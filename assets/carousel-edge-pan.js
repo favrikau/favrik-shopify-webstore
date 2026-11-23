@@ -21,7 +21,7 @@
  */
 (() => {
   const desktop = window.matchMedia('(min-width: 750px) and (hover: hover) and (pointer: fine)');
-  const PAN_SPEED = 0.6; // px per ms (~600px/s) — constant while hovering a zone
+  const PAN_SPEED = 0.72; // px per ms (~720px/s) — constant while hovering a zone
   const RAMP_MS = 240; // ease-in time from the current speed up to PAN_SPEED
   const END_TAPER = 0.0075; // near an end, speed (px/ms) ≤ remaining distance (px) × this
   const VERTICAL_TOLERANCE = 32; // px above/below the row that still count as the row
