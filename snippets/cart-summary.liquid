@@ -83,15 +83,7 @@
             <li class="cart-discounts__item">
               <span class="cart-discounts__label">
                 {{- 'icon-discount.svg' | inline_asset_content -}}
-                {%- liquid
-                  # The launch discount always reads "Website Launch Sale", whatever it's named in admin.
-                  assign discount_display_title = discount.title
-                  assign discount_title_downcase = discount.title | downcase
-                  if discount_title_downcase contains 'launch'
-                    assign discount_display_title = 'Website Launch Sale'
-                  endif
-                -%}
-                {{ discount_display_title | escape }}
+                {{ discount.title | escape }}
               </span>
               <span class="cart-discounts__value cart-secondary-typography"
                 >-{{ discount.total_allocated_amount | money -}}
@@ -165,7 +157,7 @@
     endif
 
     # Free shipping counts the real amount to pay (cart.total_price is after every discount,
-    # including order-level ones like the launch 15%), not the pre-discount items subtotal.
+    # including order-level ones), not the pre-discount items subtotal.
     assign free_shipping_threshold_cents = 18000
     assign free_shipping_unlocked = false
     if cart.total_price >= free_shipping_threshold_cents
@@ -295,7 +287,7 @@
 
 {% stylesheet %}
   /* Mixed cart (pickup-only + shipped): one compact bar, text left, action right.
-     Amber = pickup-only everywhere (this bar + the PICKUP ONLY tag); red stays for sale. */
+     Dark grey = pickup-only everywhere (this bar + the PICKUP ONLY tag); red stays for sale. */
   .cart__pickup-notice {
     display: flex;
     align-items: center;
@@ -304,7 +296,7 @@
     margin: 0;
     padding: 0.375rem 0.375rem 0.375rem 0.625rem;
     border: 0.5px solid var(--pickup-only-color);
-    background: rgb(180 83 9 / 0.07);
+    background: rgb(74 74 74 / 0.06);
     font-family: var(--font-body--family);
     font-size: var(--favrik-body-size, 0.6875rem);
     font-weight: 400;
@@ -331,7 +323,7 @@
   }
 
   .cart__pickup-notice-remove:hover {
-    background: #92400e;
+    background: #2e2e2e;
   }
 
   .cart__pickup-notice-remove:disabled {

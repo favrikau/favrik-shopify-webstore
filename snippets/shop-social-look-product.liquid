@@ -46,27 +46,11 @@
     {{- product_display_title | escape -}}
   </a>
 
-  {%- liquid
-    # Hotfix: display-only launch discount (Theme settings → Prices).
-    assign look_price = product.price
-    assign look_compare_price = 0
-    if product.compare_at_price > product.price
-      assign look_compare_price = product.compare_at_price
-    endif
-    assign launch_discount = settings.launch_discount_percent | default: 0
-    if launch_discount > 0
-      if look_compare_price == 0
-        assign look_compare_price = product.price
-      endif
-      assign launch_factor = 100 | minus: launch_discount | divided_by: 100.0
-      assign look_price = product.price | times: launch_factor | round
-    endif
-  -%}
   <p class="shop-social-look__product-price">
-    {% if look_compare_price > look_price %}
-      <s class="shop-social-look__product-compare">{{ look_compare_price | money }}</s>
+    {% if product.compare_at_price > product.price %}
+      <s class="shop-social-look__product-compare">{{ product.compare_at_price | money }}</s>
     {% endif %}
-    {{ look_price | money }}
+    {{ product.price | money }}
   </p>
 
   <form class="shop-social-look__product-form" data-shop-social-add>

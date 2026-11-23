@@ -5,8 +5,6 @@
   @param {string} [output] - `labels` (default) or `heading`
   @param {boolean} [force_preorder] - Show the PREORDER tag even if the product metafield is unset.
   @param {boolean} [show_pickup_only] - Show a PICKUP ONLY tag for products tagged "No Shipping". Passed by the cart only.
-  @param {boolean} [include_launch_sale] - Also show the SALE tag while the sitewide launch discount
-    (Theme settings → Prices) is on. Passed by the product page price only.
 {%- enddoc -%}
 
 {%- liquid
@@ -76,11 +74,6 @@
     endfor
   endif
 
-  # Sitewide launch sale: the product page shows the SALE tag on every available product.
-  assign label_launch_discount = settings.launch_discount_percent | default: 0
-  if include_launch_sale and label_launch_discount > 0 and product.available
-    assign is_on_sale = true
-  endif
 
   assign is_made_by_favrik = product.metafields.custom.made_by_favrik.value
   assign is_preorder = product.metafields['custom']['preorder'].value
@@ -107,7 +100,7 @@
     {%- if is_pickup_only -%}
       <span
         class="product-price__tag"
-        style="--product-price-tag-color: var(--pickup-only-color, #b45309);"
+        style="--product-price-tag-color: var(--pickup-only-color, #4a4a4a);"
       >
         PICKUP ONLY
       </span>
@@ -117,7 +110,7 @@
         class="product-price__tag"
         style="--product-price-tag-color: {{ sale_badge_color }};"
       >
-        {%- if label_launch_discount > 0 -%}WEBSITE LAUNCH SALE{%- else -%}SALE{%- endif -%}
+        SALE
       </span>
     {%- endif -%}
     {%- if is_made_by_favrik -%}

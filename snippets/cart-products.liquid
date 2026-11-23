@@ -200,34 +200,19 @@
                         assign cart_item_is_preorder = true
                       endif
 
+                      # Display prices: each item shows its own price (its sale price, with the
+                      # compare-at price struck through, when the product is on sale). Discount codes
+                      # and automatic discounts are NOT spread across the items — they appear only in
+                      # the cart summary, taken off the final bill.
+                      assign line_display_price = item.original_line_price
+                      assign unit_display_price = item.original_price
                       assign cart_item_is_sale = false
-                      if item.original_price != item.final_price or item.variant.compare_at_price > item.original_price
-                        assign cart_item_is_sale = true
-                      endif
-
-                      # Display prices: the line's real price after every Shopify discount that
-                      # applies to it, including its share of order-level discounts (e.g. the launch
-                      # 15% off), so the lines add up to the cart total.
-                      assign line_discount_total = 0
-                      for allocation in item.discount_allocations
-                        assign line_discount_total = line_discount_total | plus: allocation.amount
-                      endfor
-                      assign line_display_price = item.original_line_price | minus: line_discount_total
-                      assign unit_display_price = line_display_price | times: 1.0 | divided_by: item.quantity | round
-                      if line_discount_total > 0
-                        assign cart_item_is_sale = true
-                      endif
-                      assign unit_compare_price = item.original_price
-                      assign compare_line_price = item.original_line_price
+                      assign unit_compare_price = 0
+                      assign compare_line_price = 0
                       if item.variant.compare_at_price > item.original_price
+                        assign cart_item_is_sale = true
                         assign unit_compare_price = item.variant.compare_at_price
                         assign compare_line_price = item.variant.compare_at_price | times: item.quantity
-                      endif
-                      if unit_compare_price <= unit_display_price
-                        assign unit_compare_price = 0
-                      endif
-                      if compare_line_price <= line_display_price
-                        assign compare_line_price = 0
                       endif
 
                       assign cart_item_title = item.product.title
@@ -333,23 +318,6 @@
                         <p>{{ item.selling_plan_allocation.selling_plan.name }}</p>
                       {%- endif -%}
 
-                      {%- if item.line_level_discount_allocations.size > 0 -%}
-                        <ul
-                          class="list-unstyled"
-                          role="list"
-                        >
-                          {%- for discount in item.line_level_discount_allocations -%}
-                            {%- liquid
-                              assign line_discount_title = discount.discount_application.title
-                              assign line_discount_title_downcase = line_discount_title | downcase
-                              if line_discount_title_downcase contains 'launch'
-                                assign line_discount_title = 'Website Launch Sale'
-                              endif
-                            -%}
-                            <li>{{ line_discount_title | escape }}</li>
-                          {%- endfor -%}
-                        </ul>
-                      {%- endif -%}
                     {%- endif -%}
                   </div>
 

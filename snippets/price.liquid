@@ -23,19 +23,6 @@
     assign price = 1999
   endif
 
-  # Hotfix: display-only launch discount (Theme settings → Prices). The pre-discount
-  # price (or the existing compare-at price, if higher) shows struck through.
-  assign launch_discount = settings.launch_discount_percent | default: 0
-  assign launch_factor = 1
-  if launch_discount > 0 and product_resource != blank
-    assign launch_factor = 100 | minus: launch_discount | divided_by: 100.0
-    unless show_compare_price
-      assign compare_at_price = price
-    endunless
-    assign price = price | times: launch_factor | round
-    assign show_compare_price = true
-  endif
-
   # Check if variant has volume pricing
   assign has_volume_pricing = null
   assign price_min = null
@@ -59,11 +46,6 @@
       assign price_min = selected_variant.quantity_price_breaks.last.price
       assign price_max = selected_variant.price
     endif
-  endif
-
-  if launch_factor != 1 and price_min != null
-    assign price_min = price_min | times: launch_factor | round
-    assign price_max = price_max | times: launch_factor | round
   endif
 
   # Determine if currency code should be shown
