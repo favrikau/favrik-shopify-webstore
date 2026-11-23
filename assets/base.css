@@ -1129,6 +1129,30 @@ body:has(.header[transparent]) .content-for-layout[data-template='index']
     padding-block-end: var(--homepage-mobile-section-gap);
   }
 
+  /* Phone section order: hero → Best Sellers → categories → Shop Insta → Signature.
+     (Desktop keeps the template order.) Sections are matched by their template keys. */
+  .content-for-layout[data-template='index'] {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .content-for-layout[data-template='index'] > .shopify-section {
+    order: 10;
+    min-width: 0;
+  }
+
+  .content-for-layout[data-template='index'] > [id$='__collection_list_showcase'] { order: 1; }
+  .content-for-layout[data-template='index'] > [id$='__product_list_best_sellers'] { order: 2; }
+  .content-for-layout[data-template='index'] > [id$='__category_hero_grid'] { order: 3; }
+  .content-for-layout[data-template='index'] > [id$='__shop_social'] { order: 4; }
+  .content-for-layout[data-template='index'] > [id$='__product_list_fa6P9H'] { order: 5; }
+
+  /* Signature is the last homepage section on phones: no gap before the footer. */
+  .content-for-layout[data-template='index'] > [id$='__product_list_fa6P9H'] .section.spacing-style {
+    --padding-block-end: 0px;
+    padding-block-end: 0;
+  }
+
   .content-for-layout[data-template='index'] [data-testid='product-list'] {
     --gap: 0px;
   }

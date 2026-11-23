@@ -84,7 +84,107 @@
     content_type: 'collections',
     test_id: 'collections-list-grid'
   %}
+
+  {%- comment -%} Homepage hero on phones: swipe slider (CSS in collection-card.liquid) + dots. {%- endcomment -%}
+  {%- if section.id contains 'collection_list_showcase' and max_items > 1 -%}
+    <div class="collection-list-showcase__dots" data-showcase-dots>
+      {%- for i in (1..max_items) -%}
+        <button
+          type="button"
+          class="collection-list-showcase__dot"
+          data-index="{{ forloop.index0 }}"
+          aria-label="Show slide {{ i }} of {{ max_items }}"
+          {% if forloop.first %}aria-current="true"{% endif %}
+        ></button>
+      {%- endfor -%}
+    </div>
+    <script>
+      (() => {
+        const dots = document.currentScript.previousElementSibling;
+        const section = dots?.closest('[data-collection-list-showcase]');
+        const track = section?.querySelector('.resource-list--grid');
+        if (!dots || !track) return;
+        const buttons = [...dots.querySelectorAll('[data-index]')];
+
+        // Pin the dots to the bottom of the slides (not of the padded section).
+        const place = () => {
+          const gap = section.getBoundingClientRect().bottom - track.getBoundingClientRect().bottom;
+          dots.style.setProperty('--showcase-dots-offset', `${Math.max(0, gap)}px`);
+        };
+        place();
+        new ResizeObserver(place).observe(section);
+
+        const sync = () => {
+          const index = Math.round(track.scrollLeft / Math.max(1, track.clientWidth));
+          buttons.forEach((button, i) => {
+            if (i === index) button.setAttribute('aria-current', 'true');
+            else button.removeAttribute('aria-current');
+          });
+        };
+        let frame = 0;
+        track.addEventListener('scroll', () => {
+          if (!frame) frame = requestAnimationFrame(() => { frame = 0; sync(); });
+        }, { passive: true });
+
+        buttons.forEach((button) => {
+          button.addEventListener('click', () => {
+            track.scrollTo({ left: Number(button.dataset.index) * track.clientWidth, behavior: 'smooth' });
+          });
+        });
+      })();
+    </script>
+  {%- endif -%}
 </div>
+
+{% stylesheet %}
+  /* Homepage hero dots (phones only; the swipe slider itself is in collection-card.liquid). */
+  .collection-list-showcase__dots {
+    display: none;
+  }
+
+  @media screen and (max-width: 749px) {
+    /* Slide indicators over the slides, just under the "Shop now" caption. The section has its
+       own bottom padding on phones (the homepage section gap); the script measures it into
+       --showcase-dots-offset so they sit on the image, not in that blank strip. The caption's
+       bottom spacing is --page-margin + 5.5rem, so 4.25rem leaves ~18px under "Shop now". */
+    .collection-list-showcase__dots {
+      position: absolute;
+      inset-inline: 0;
+      bottom: calc(var(--showcase-dots-offset, 4rem) + var(--page-margin) + 4.25rem);
+      z-index: 3;
+      display: flex;
+      justify-content: center;
+      gap: 0.375rem;
+      pointer-events: none;
+      filter: drop-shadow(0 0 2px rgb(0 0 0 / 0.35));
+    }
+
+    /* On brand: hairline dashes like the homepage section ticker, square ends. */
+    .collection-list-showcase__dot {
+      position: relative;
+      width: 1.125rem;
+      height: 1.5px;
+      padding: 0;
+      border: 0;
+      border-radius: 0;
+      background: rgb(255 255 255 / 0.45);
+      cursor: pointer;
+      pointer-events: auto;
+      transition: background-color 0.25s ease;
+    }
+
+    /* Finger-sized tap target without a bigger mark. */
+    .collection-list-showcase__dot::after {
+      content: '';
+      position: absolute;
+      inset: -0.875rem -0.1875rem;
+    }
+
+    .collection-list-showcase__dot[aria-current='true'] {
+      background: #ffffff;
+    }
+  }
+{% endstylesheet %}
 
 {% schema %}
 {

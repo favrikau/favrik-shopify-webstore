@@ -312,6 +312,45 @@
     }
   }
 
+  /* Phones: the two hero panels become a swipe slider (New Arrivals first), with dots. */
+  @media screen and (max-width: 749px) {
+    .collection-list-showcase {
+      position: relative;
+    }
+
+    .collection-list-showcase .resource-list--grid {
+      display: flex !important;
+      gap: 0 !important;
+      overflow-x: auto;
+      overflow-y: hidden;
+      scroll-snap-type: x mandatory;
+      overscroll-behavior-x: contain;
+      scrollbar-width: none;
+    }
+
+    .collection-list-showcase .resource-list--grid::-webkit-scrollbar {
+      display: none;
+    }
+
+    /* Every slide is a full screen tall (they were 100svh / 95svh when stacked). */
+    .collection-list-showcase .resource-list__item {
+      --hero-showcase-panel-height: 100svh;
+      flex: 0 0 100%;
+      scroll-snap-align: start;
+      scroll-snap-stop: always;
+    }
+
+    @supports (height: round(down, 100svh, 1px)) {
+      .collection-list-showcase .resource-list__item {
+        --hero-showcase-panel-height: round(down, 100svh, 1px);
+      }
+    }
+
+    .collection-list-showcase .resource-list__item + .resource-list__item {
+      margin-block-start: 0;
+    }
+  }
+
   @media screen and (min-width: 750px) {
     [id*='collection_list_showcase'] .resource-list--grid,
     .collection-list-showcase .resource-list--grid {

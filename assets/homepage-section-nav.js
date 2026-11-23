@@ -25,6 +25,15 @@
     return;
   }
 
+  // Keep sections (and their ticks) in the order they appear on screen. Phones re-order the
+  // homepage with CSS, so the template order isn't always the visual order.
+  const orderByLayout = () => {
+    const pageTop = (item) => item.box.getBoundingClientRect().top;
+    sections.sort((a, b) => pageTop(a) - pageTop(b));
+    sections.forEach((item) => nav.append(item.tick));
+  };
+  orderByLayout();
+
   const getScroller = () => {
     const wrapper = document.querySelector('.page-wrapper');
     if (wrapper) {
@@ -134,6 +143,9 @@
   const wrapper = document.querySelector('.page-wrapper');
   window.addEventListener('scroll', scheduleActiveUpdate, { passive: true });
   wrapper?.addEventListener('scroll', scheduleActiveUpdate, { passive: true });
-  window.addEventListener('resize', scheduleActiveUpdate);
+  window.addEventListener('resize', () => {
+    orderByLayout();
+    scheduleActiveUpdate();
+  });
   updateActiveFromScroll();
 })();
