@@ -243,26 +243,35 @@
     pointer-events: auto;
   }
 
+  /* Minimal teaser: hairline border, no shadow, small tracked uppercase label. The visible box
+     is compact; ::after keeps a full-size tap target. */
   .email-marketing-popup__teaser {
+    position: relative;
     appearance: none;
     margin: 0;
-    border: var(--style-border-width) solid var(--email-popup-border);
+    border: 0.5px solid rgb(48 33 24 / 0.35);
     border-radius: 0;
     background-color: var(--email-popup-bg);
     color: var(--email-popup-text);
-    box-shadow: var(--shadow-popover, 0 4px 20px rgb(0 0 0 / 0.12));
-    padding: var(--padding-sm) var(--padding-lg);
-    min-height: var(--minimum-touch-target);
+    box-shadow: none;
+    padding: 0.5rem 0.875rem;
+    min-height: 0;
     font-family: var(--font-body--family);
-    font-size: var(--font-size--2xs);
+    font-size: 0.625rem;
     font-weight: 300;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.14em;
     text-transform: uppercase;
-    line-height: var(--line-height--body-tight);
+    line-height: 1.2;
     cursor: pointer;
     transition:
       opacity var(--animation-values),
       transform var(--animation-speed-slow) var(--animation-timing-fade-in);
+  }
+
+  .email-marketing-popup__teaser::after {
+    content: '';
+    position: absolute;
+    inset: -0.5rem -0.25rem;
   }
 
   .email-marketing-popup__teaser:hover {
@@ -469,8 +478,10 @@
     }
 
     .email-marketing-popup {
-      /* Keep clear of sticky ATC / chat FAB on small screens */
-      --email-popup-inset: max(var(--margin-2xl), calc(env(safe-area-inset-bottom, 0px) + var(--margin-xl)));
+      /* Phones: sit on the page margin — same gap from the side and the bottom as the rest of
+         the layout (plus the home-bar safe area at the bottom). */
+      --email-popup-inline: max(var(--page-margin), env(safe-area-inset-right, 0px), env(safe-area-inset-left, 0px));
+      --email-popup-inset: calc(var(--page-margin) + env(safe-area-inset-bottom, 0px));
       max-width: min(20.5rem, calc(100vw - (2 * var(--email-popup-inline))));
     }
   }
