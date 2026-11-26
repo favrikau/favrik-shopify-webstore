@@ -30,21 +30,31 @@
       <div class="bf-popup__phase" data-bf-phase-content="sale">
         <p class="bf-popup__eyebrow">{{ settings.bf_popup_eyebrow_sale | escape }}</p>
         <h2 class="bf-popup__heading" id="BlackFridayPopupHeading-sale">{{ settings.bf_popup_heading_sale | escape }}</h2>
+        {%- if settings.bf_popup_offer_sale != blank -%}
+          <p class="bf-popup__offer">{{ settings.bf_popup_offer_sale | escape }}</p>
+        {%- endif -%}
+        <span class="bf-popup__rule" aria-hidden="true"></span>
         {%- if settings.bf_popup_date_sale != blank -%}
           <p class="bf-popup__date">{{ settings.bf_popup_date_sale | escape }}</p>
         {%- endif -%}
-        <span class="bf-popup__rule" aria-hidden="true"></span>
-        <p class="bf-popup__text">{{ settings.bf_popup_text_sale | escape | newline_to_br }}</p>
+        {%- if settings.bf_popup_text_sale != blank -%}
+          <p class="bf-popup__text">{{ settings.bf_popup_text_sale | escape | newline_to_br }}</p>
+        {%- endif -%}
       </div>
 
       <div class="bf-popup__phase" data-bf-phase-content="monday" hidden>
         <p class="bf-popup__eyebrow">{{ settings.bf_popup_eyebrow_monday | escape }}</p>
         <h2 class="bf-popup__heading" id="BlackFridayPopupHeading-monday">{{ settings.bf_popup_heading_monday | escape }}</h2>
+        {%- if settings.bf_popup_offer_monday != blank -%}
+          <p class="bf-popup__offer">{{ settings.bf_popup_offer_monday | escape }}</p>
+        {%- endif -%}
+        <span class="bf-popup__rule" aria-hidden="true"></span>
         {%- if settings.bf_popup_date_monday != blank -%}
           <p class="bf-popup__date">{{ settings.bf_popup_date_monday | escape }}</p>
         {%- endif -%}
-        <span class="bf-popup__rule" aria-hidden="true"></span>
-        <p class="bf-popup__text">{{ settings.bf_popup_text_monday | escape | newline_to_br }}</p>
+        {%- if settings.bf_popup_text_monday != blank -%}
+          <p class="bf-popup__text">{{ settings.bf_popup_text_monday | escape | newline_to_br }}</p>
+        {%- endif -%}
       </div>
 
       <a class="bf-popup__cta" href="{{ bf_cta_link }}">{{ settings.bf_cta_label | escape }}</a>
@@ -160,6 +170,11 @@
     font-family: var(--font-body--family);
   }
 
+  /* Full card width, so the narrower lines inside centre on the card. */
+  .bf-popup__phase {
+    width: 100%;
+  }
+
   .bf-popup__close {
     position: absolute;
     top: 0.25rem;
@@ -188,25 +203,44 @@
     color: var(--bf-muted);
   }
 
+  /* Lead-in line ("YOUR FAVOURITES, FOR LESS.") — sits above the offer, which leads. */
   .bf-popup__heading {
-    margin: 0;
+    margin: 0 auto;
+    max-width: 22rem;
     font-family: var(--font-body--family);
-    font-size: clamp(2.375rem, 10vw, 3.5rem);
-    font-weight: 600;
-    line-height: 1.05;
-    letter-spacing: 0.04em;
+    font-size: clamp(1rem, 4vw, 1.25rem);
+    font-weight: 400;
+    line-height: 1.3;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
+    text-wrap: balance;
     color: var(--bf-text);
   }
 
-  /* Date directly under the heading. */
+  /* The offer is the biggest, boldest line in the popup. */
+  .bf-popup__offer {
+    margin: 1rem auto 0;
+    max-width: 26rem;
+    font-size: clamp(2.125rem, 9vw, 3.125rem);
+    font-weight: 700;
+    line-height: 1.02;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    text-wrap: balance;
+    color: var(--bf-text);
+  }
+
   .bf-popup__date {
-    margin: 0.875rem 0 0;
+    margin: 0;
     font-size: 0.75rem;
     font-weight: 400;
     letter-spacing: 0.28em;
     text-transform: uppercase;
-    color: var(--bf-text);
+    color: var(--bf-muted);
+  }
+
+  .bf-popup__date + .bf-popup__text {
+    margin-block-start: 0.875rem;
   }
 
   .bf-popup__rule {
@@ -218,7 +252,7 @@
   }
 
   .bf-popup__text {
-    margin: 0;
+    margin: 0 auto;
     max-width: 24rem;
     text-wrap: balance;
     font-size: var(--favrik-body-size, 0.6875rem);

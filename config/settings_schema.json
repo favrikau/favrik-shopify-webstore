@@ -1882,25 +1882,30 @@
         "type": "text",
         "id": "bf_popup_eyebrow_sale",
         "label": "Sale — small title",
-        "default": "Black Friday"
+        "default": "The Black Friday Edit"
       },
       {
         "type": "text",
         "id": "bf_popup_heading_sale",
         "label": "Sale — heading",
-        "default": "Up to 50% off"
+        "default": "Your favourites, for less."
+      },
+      {
+        "type": "text",
+        "id": "bf_popup_offer_sale",
+        "label": "Sale — offer (under the heading)",
+        "default": "Up to 50% Off Selected Styles"
       },
       {
         "type": "text",
         "id": "bf_popup_date_sale",
-        "label": "Sale — date (under the heading)",
+        "label": "Sale — date",
         "default": "27–29 November"
       },
       {
         "type": "textarea",
         "id": "bf_popup_text_sale",
-        "label": "Sale — text",
-        "default": "Plus an extra 10% off selected styles on Cyber Monday, 30 November."
+        "label": "Sale — extra text (optional)"
       },
       {
         "type": "text",
@@ -1916,8 +1921,13 @@
       },
       {
         "type": "text",
+        "id": "bf_popup_offer_monday",
+        "label": "Cyber Monday — offer (under the heading, optional)"
+      },
+      {
+        "type": "text",
         "id": "bf_popup_date_monday",
-        "label": "Cyber Monday — date (under the heading)",
+        "label": "Cyber Monday — date",
         "default": "Monday 30 November"
       },
       {
