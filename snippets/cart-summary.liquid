@@ -38,8 +38,9 @@
   # original price (compare-at where set) − sale − each discount = subtotal.
   assign summary_original_total = 0
   assign summary_sale_saving = 0
-  # Black Friday: savings on items tagged "black-friday-2026" are labelled BLACK FRIDAY SALE during
-  # a Black Friday phase (<html data-bf-phase>); outside it everything shows as one "Sale" line.
+  # Black Friday: savings on items tagged "black-friday-2026" are labelled BLACK FRIDAY SALE
+  # (27–29 Nov) / CYBER MONDAY SALE (30 Nov) during a Black Friday phase (<html data-bf-phase>);
+  # outside it everything shows as one "Sale" line.
   assign summary_bf_saving = 0
   for item in cart.items
     assign summary_line_original = item.original_line_price
@@ -96,7 +97,8 @@
           <li class="cart-discounts__item cart-discounts__item--bf">
             <span class="cart-discounts__label">
               {{- 'icon-discount.svg' | inline_asset_content -}}
-              BLACK FRIDAY SALE
+              <span class="cart-discounts__bf-label" data-bf-label="sale">BLACK FRIDAY SALE</span>
+              <span class="cart-discounts__bf-label" data-bf-label="monday">CYBER MONDAY SALE</span>
             </span>
             <span class="cart-discounts__value cart-secondary-typography"
               >-{{ summary_bf_saving | money -}}
@@ -435,6 +437,16 @@
 
   html[data-bf-phase] .cart-discounts__item--bf-off {
     display: none !important;
+  }
+
+  /* BLACK FRIDAY SALE (27–29 Nov) / CYBER MONDAY SALE (30 Nov). */
+  .cart-discounts__bf-label {
+    display: none;
+  }
+
+  html[data-bf-phase='sale'] .cart-discounts__bf-label[data-bf-label='sale'],
+  html[data-bf-phase='monday'] .cart-discounts__bf-label[data-bf-label='monday'] {
+    display: inline;
   }
 
   .cart-discounts__item {
