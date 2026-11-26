@@ -164,36 +164,135 @@
         {% endif %}
       </shopify-account>
       {%- comment -%}
-        The signed-in avatar's ring is painted inside <shopify-account>'s shadow DOM with
-        --shop-brand-color (Shop purple, #5433eb), set on an inner element — so outer CSS can't
-        reach it. Add one rule inside the (open) shadow root to use the brand red (#8a0b10) instead.
-        adoptedStyleSheets survives the component re-rendering its markup.
+        <shopify-account> draws its avatar and dropdown inside an (open) shadow DOM, and the sign-in
+        form inside it (<shopify-login-form>) has a shadow DOM of its own. Sizes are set on inner
+        elements and the site's own type rules (incl. the global letter-spacing) can't reach in, so
+        add a stylesheet inside each shadow root (adoptedStyleSheets survives re-renders) to:
+        - paint the signed-in avatar's ring in the brand red (#8a0b10) instead of Shop purple;
+        - match the header: titles and menu items 13px uppercase, weight 300, the site's letter
+          spacing; buttons and body text (email field, "Email me with news and offers") 11px —
+          the email field stays 16px on phones so iOS doesn't zoom in on tap, as elsewhere on site;
+        - on desktop, line the dropdown's right edge up with the account icon.
+        The dropdown's top is set to the bottom of the header (banner + bar) each time it opens.
       {%- endcomment -%}
       <script>
         (() => {
-          const RING_COLOUR = '#8a0b10';
-          const apply = (account) => {
-            const root = account.shadowRoot;
-            if (!root || root.__favrikRing) return false;
+          const SITE_TYPE = `
+            #shopify-element-wrapper,
+            #shopify-element-wrapper * {
+              letter-spacing: var(--letter-spacing-global, 0.02em) !important;
+            }
+          `;
+          const ACCOUNT_CSS = `${SITE_TYPE}
+            #shopify-element-wrapper {
+              --shop-brand-color: #8a0b10 !important;
+              --font-size-xs: 0.6875rem;
+              --font-size-sm: 0.8125rem;
+              --font-size-md: 0.8125rem;
+            }
+            .account__heading {
+              font-weight: 300;
+            }
+            .account__email {
+              font-size: 0.6875rem;
+            }
+            .account__item {
+              font-weight: 300;
+              text-transform: uppercase;
+            }
+            @media (min-width: 751px) {
+              .dialog {
+                inset-inline-end: var(--favrik-account-right, var(--app-page-spacing)) !important;
+              }
+            }
+          `;
+          const LOGIN_FORM_CSS = `${SITE_TYPE}
+            #shopify-element-wrapper {
+              --font-size-xs: 0.6875rem;
+              --font-size-sm: 0.6875rem;
+            }
+            @media (max-width: 749px) {
+              .login-form__email-input {
+                font-size: 16px;
+              }
+            }
+          `;
+
+          /** Add `css` inside a shadow root, once. */
+          const addSheet = (root, css) => {
+            if (!root || root.__favrikStyled) return false;
             try {
               const sheet = new CSSStyleSheet();
-              sheet.replaceSync(`#shopify-element-wrapper { --shop-brand-color: ${RING_COLOUR} !important; }`);
+              sheet.replaceSync(css);
               root.adoptedStyleSheets = [...root.adoptedStyleSheets, sheet];
             } catch (error) {
               const style = document.createElement('style');
-              style.textContent = `#shopify-element-wrapper { --shop-brand-color: ${RING_COLOUR} !important; }`;
+              style.textContent = css;
               root.append(style);
             }
-            root.__favrikRing = true;
+            root.__favrikStyled = true;
             return true;
           };
+
+          /** Style any sign-in forms inside `root`, looking through nested shadow roots. */
+          const styleLoginForms = (root) => {
+            if (!root) return;
+            root.querySelectorAll('*').forEach((el) => {
+              if (!el.shadowRoot) return;
+              if (el.localName === 'shopify-login-form') addSheet(el.shadowRoot, LOGIN_FORM_CSS);
+              styleLoginForms(el.shadowRoot);
+            });
+          };
+
+          const apply = (account) => addSheet(account.shadowRoot, ACCOUNT_CSS);
+
+          /** Dropdown top = bottom of the header (banner + bar); right edge = the account icon's. */
+          const placeDropdown = (account) => {
+            const headerSection = document.querySelector('.header-section');
+            const top = headerSection ? Math.max(0, Math.round(headerSection.getBoundingClientRect().bottom)) : 0;
+            const button = account.closest('.account-button') || account;
+            const right = Math.max(0, Math.round(document.documentElement.clientWidth - button.getBoundingClientRect().right));
+            account.style.setProperty('--shopify-account-dialog-position-top', `${top}px`);
+            account.style.setProperty('--favrik-account-right', `${right}px`);
+          };
+
+          /** The sign-in form loads when the dropdown opens — style it as soon as it appears. */
+          const watchLoginForm = (account) => {
+            styleLoginForms(account.shadowRoot);
+            let tries = 0;
+            const timer = setInterval(() => {
+              styleLoginForms(account.shadowRoot);
+              if (++tries > 40) clearInterval(timer);
+            }, 150);
+          };
+
+          document.querySelectorAll('shopify-account').forEach((account) => {
+            // Capture runs before the component's own click handler opens the dropdown.
+            ['pointerdown', 'click', 'keydown'].forEach((type) =>
+              account.addEventListener(type, () => placeDropdown(account), { capture: true })
+            );
+            account.addEventListener('click', () => watchLoginForm(account));
+            window.addEventListener('resize', () => placeDropdown(account), { passive: true });
+            placeDropdown(account);
+          });
+
           customElements.whenDefined('shopify-account').then(() => {
             document.querySelectorAll('shopify-account').forEach((account) => {
-              if (apply(account)) return;
+              const ready = () => {
+                if (!apply(account)) return false;
+                // Re-check for the sign-in form whenever the dropdown's contents change.
+                new MutationObserver(() => styleLoginForms(account.shadowRoot)).observe(account.shadowRoot, {
+                  childList: true,
+                  subtree: true,
+                });
+                styleLoginForms(account.shadowRoot);
+                return true;
+              };
+              if (ready()) return;
               // The shadow root can attach a moment after definition.
               let tries = 0;
               const timer = setInterval(() => {
-                if (apply(account) || ++tries > 40) clearInterval(timer);
+                if (ready() || ++tries > 40) clearInterval(timer);
               }, 100);
             });
           });
@@ -402,6 +501,12 @@
     .header-actions__action:not(.account-button) .svg-wrapper {
       height: var(--icon-size-md);
       width: var(--icon-size-md);
+    }
+
+    /* Same for the account icon: <shopify-account> otherwise draws its button 44px wide around a
+       15px icon (or a 28px avatar), adding extra space either side of it. */
+    .header__column--right .account-button shopify-account {
+      --shopify-account-avatar-size: var(--icon-size-md);
     }
 
     .header-actions--text {
