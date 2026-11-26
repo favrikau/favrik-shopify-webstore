@@ -95,7 +95,10 @@
       const hasSeen = (phase) => {
         if (document.cookie.split('; ').includes(`${seenKey(phase)}=1`)) return true;
         try {
-          return sessionStorage.getItem(seenKey(phase)) === '1';
+          return (
+            sessionStorage.getItem(seenKey(phase)) === '1' ||
+            sessionStorage.getItem(`favrik-bf-popup-${phase}`) === '1' // key used before this change
+          );
         } catch (error) {
           return false;
         }
