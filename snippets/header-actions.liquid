@@ -163,6 +163,45 @@
           </span>
         {% endif %}
       </shopify-account>
+      {%- comment -%}
+        The signed-in avatar's ring is painted inside <shopify-account>'s shadow DOM with
+        --shop-brand-color (Shop purple, #5433eb), set on an inner element — so outer CSS can't
+        reach it. During Black Friday only, add one rule inside the (open) shadow root to use the
+        Black Friday red instead.
+        adoptedStyleSheets survives the component re-rendering its markup.
+      {%- endcomment -%}
+      <script>
+        (() => {
+          const RING_COLOUR = '#8a0b10';
+          const apply = (account) => {
+            const root = account.shadowRoot;
+            if (!root || root.__favrikRing) return false;
+            try {
+              const sheet = new CSSStyleSheet();
+              sheet.replaceSync(`#shopify-element-wrapper { --shop-brand-color: ${RING_COLOUR} !important; }`);
+              root.adoptedStyleSheets = [...root.adoptedStyleSheets, sheet];
+            } catch (error) {
+              const style = document.createElement('style');
+              style.textContent = `#shopify-element-wrapper { --shop-brand-color: ${RING_COLOUR} !important; }`;
+              root.append(style);
+            }
+            root.__favrikRing = true;
+            return true;
+          };
+          // Time-gated: only during a Black Friday phase (<html data-bf-phase>, from 12am 27 Nov).
+          if (!document.documentElement.dataset.bfPhase) return;
+          customElements.whenDefined('shopify-account').then(() => {
+            document.querySelectorAll('shopify-account').forEach((account) => {
+              if (apply(account)) return;
+              // The shadow root can attach a moment after definition.
+              let tries = 0;
+              const timer = setInterval(() => {
+                if (apply(account) || ++tries > 40) clearInterval(timer);
+              }, 100);
+            });
+          });
+        })();
+      </script>
     </div>
   {% else %}
     <a
