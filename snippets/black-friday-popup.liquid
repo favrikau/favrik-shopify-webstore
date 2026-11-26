@@ -1,6 +1,6 @@
 {% doc %}
   Black Friday popup (Theme settings → Black Friday). A compact centred card — not full screen —
-  shown once per visit while a phase is live (<html data-bf-phase>, set in <head> by
+  shown once per browser session (per phase) while a phase is live (<html data-bf-phase>, set in <head> by
   black-friday-phase). Closes with ×, Esc, a tap outside, or "No thanks".
 {% enddoc %}
 
@@ -87,27 +87,44 @@
       dialog.addEventListener('click', (event) => {
         if (event.target === dialog) close();
       });
-      dialog.addEventListener('close', () => {
+      // Once per browser session (per phase, so Cyber Monday shows once too). Remembered the moment
+      // it opens — not on close — so clicking "Shop the sale" or leaving the page with it open still
+      // counts. A session cookie (no expiry) is shared by every tab and clears when the browser closes;
+      // sessionStorage is a fallback in case cookies are blocked.
+      const seenKey = (phase) => `favrik_bf_popup_${phase}`;
+      const hasSeen = (phase) => {
+        if (document.cookie.split('; ').includes(`${seenKey(phase)}=1`)) return true;
         try {
-          sessionStorage.setItem(`favrik-bf-popup-${dialog.dataset.phase}`, '1');
+          return sessionStorage.getItem(seenKey(phase)) === '1';
+        } catch (error) {
+          return false;
+        }
+      };
+      const markSeen = (phase) => {
+        document.cookie = `${seenKey(phase)}=1; path=/; SameSite=Lax`;
+        try {
+          sessionStorage.setItem(seenKey(phase), '1');
         } catch (error) {}
-      });
+      };
 
-      // Automatic: once per visit while a phase is live.
+      // Automatic: once per session while a phase is live.
       const phase = root.dataset.bfPhase;
       if (!phase) return;
 
-      const preview = new URLSearchParams(location.search).has('bf_preview');
       // Don't interrupt editing in the theme editor unless previewing on purpose.
+      const preview = new URLSearchParams(location.search).has('bf_preview');
       if (dialog.dataset.designMode === 'true' && !preview) return;
 
-      try {
-        if (!preview && sessionStorage.getItem(`favrik-bf-popup-${phase}`)) return;
-      } catch (error) {}
+      if (hasSeen(phase)) return;
 
       setPhase(phase);
-      if (document.readyState === 'complete') setTimeout(open, 900);
-      else window.addEventListener('load', () => setTimeout(open, 900), { once: true });
+      const show = () => {
+        if (hasSeen(phase)) return; // opened in another tab meanwhile
+        markSeen(phase);
+        open();
+      };
+      if (document.readyState === 'complete') setTimeout(show, 900);
+      else window.addEventListener('load', () => setTimeout(show, 900), { once: true });
     })();
   </script>
 {%- endif -%}
