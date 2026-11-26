@@ -79,7 +79,9 @@
   assign bf_discount_percent = 0
   if is_bf_tagged and is_on_sale
     assign is_black_friday = true
-    assign bf_discount_percent = product.compare_at_price | minus: product.price | times: 100.0 | divided_by: product.compare_at_price | round
+    assign bf_discount_percent = product.compare_at_price | minus: product.price | times: 100.0 | divided_by: product.compare_at_price
+    # Show the nearest of 5, 10, 15 … 50 (e.g. 29% → 30%, 33% → 35%).
+    assign bf_discount_percent = bf_discount_percent | divided_by: 5.0 | round | times: 5 | at_least: 5 | at_most: 50
   endif
   assign is_pickup_only = false
   if show_pickup_only
