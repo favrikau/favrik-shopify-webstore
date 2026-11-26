@@ -1,5 +1,7 @@
 {% doc %}
-  Static delivery promo banner at the top of every page.
+  Delivery promo banner at the top of every page.
+  While a Black Friday phase is live (Theme settings → Black Friday; <html data-bf-phase>), it
+  crossfades between the delivery message and the Black Friday message (CSS only).
   Visible only while the page is scrolled to the top; not dismissable.
 {% enddoc %}
 
@@ -35,14 +37,89 @@
   .header-section:has(> .product-delivery-banner) {
     --product-delivery-banner-height: 1.875rem;
   }
+
+  /* During the Black Friday window the banner turns deep dark red with white text. */
+  html[data-bf-phase] .product-delivery-banner {
+    background: #8a0b10;
+    color: #ffffff;
+  }
+
+  /* Messages share one grid cell so they crossfade in place. */
+  .product-delivery-banner__messages {
+    display: grid;
+    place-items: center;
+  }
+
+  .product-delivery-banner__messages > .product-delivery-banner__message {
+    grid-area: 1 / 1;
+  }
+
+  /* Black Friday messages only exist while their phase is live. */
+  .product-delivery-banner__message[data-bf-message] {
+    display: none;
+  }
+
+  html[data-bf-phase='sale'] .product-delivery-banner__message[data-bf-message='sale'],
+  html[data-bf-phase='monday'] .product-delivery-banner__message[data-bf-message='monday'] {
+    display: block;
+  }
+
+  /* Sequential, never overlapping: the shown message fades out (drifting up), there's a short
+     blank beat, then the next fades in (settling down). Each holds for ~4s of a 10s cycle;
+     the Black Friday message runs half a cycle behind the delivery message. */
+  html[data-bf-phase] .product-delivery-banner__messages > .product-delivery-banner__message {
+    opacity: 0;
+    animation: product-delivery-banner-swap 10s ease-in-out infinite;
+    will-change: opacity, transform;
+  }
+
+  html[data-bf-phase] .product-delivery-banner__message[data-bf-message] {
+    animation-delay: -5s;
+  }
+
+  @keyframes product-delivery-banner-swap {
+    0% { opacity: 0; transform: translateY(4px); }
+    5%, 43% { opacity: 1; transform: translateY(0); }
+    48%, 100% { opacity: 0; transform: translateY(-4px); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html[data-bf-phase] .product-delivery-banner__messages > .product-delivery-banner__message {
+      animation-timing-function: steps(1, end);
+    }
+  }
+
+  /* The Black Friday message is longer: tighter tracking while it rotates. */
+  @media screen and (max-width: 1099px) {
+    html[data-bf-phase] .product-delivery-banner__message {
+      letter-spacing: 0.16em;
+    }
+  }
+
+  @media screen and (max-width: 749px) {
+    html[data-bf-phase] .product-delivery-banner__message {
+      font-size: 0.625rem;
+      letter-spacing: 0.1em;
+    }
+  }
 </style>
 
 <div
   class="product-delivery-banner"
   id="product-delivery-banner"
-  aria-label="Free delivery promotion"
+  aria-label="Store promotions"
 >
-  <span class="product-delivery-banner__message">
-    Free delivery on orders over $180
-  </span>
+  <div class="product-delivery-banner__messages">
+    <span class="product-delivery-banner__message">
+      Free delivery on orders over $180
+    </span>
+    {%- if settings.bf_enabled -%}
+      <span class="product-delivery-banner__message" data-bf-message="sale">
+        {{- settings.bf_banner_sale | escape -}}
+      </span>
+      <span class="product-delivery-banner__message" data-bf-message="monday">
+        {{- settings.bf_banner_monday | escape -}}
+      </span>
+    {%- endif -%}
+  </div>
 </div>

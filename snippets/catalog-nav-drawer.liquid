@@ -24,6 +24,14 @@
   assign shop_insta_url = pages['shop-insta'].url | default: '/pages/shop-insta'
   assign locations_url = pages['locations'].url | default: '/pages/locations'
   assign contact_url = pages['contact'].url | default: '/pages/contact'
+
+  # Black Friday link (red, top of the list) — only shown while a Black Friday phase is live
+  # (<html data-bf-phase>, Theme settings → Black Friday). Same destination as the popup button.
+  capture bf_url
+    render 'black-friday-collection-url'
+  endcapture
+  assign bf_url = bf_url | strip
+  assign bf_handle = bf_url | split: '/collections/' | last | split: '?' | first
 %}
 
 <div
@@ -59,6 +67,19 @@
       assign category_names = 'Outer,Top,Knit,Bottom,Dress,Set,Acc,Home' | split: ','
     %}
     <ul class="catalog-nav-drawer__list list-unstyled">
+      {%- if settings.bf_enabled -%}
+        <li class="catalog-nav-drawer__bf">
+          <a
+            href="{{ bf_url }}"
+            class="catalog-nav-drawer__link catalog-nav-drawer__link--bf{% if current_handle == bf_handle %} catalog-nav-drawer__link--active{% endif %}"
+            {% if current_handle == bf_handle %}aria-current="page"{% endif %}
+          >
+            <span class="catalog-nav-drawer__bf-label" data-bf-label="sale">BLACK FRIDAY SALE</span>
+            <span class="catalog-nav-drawer__bf-label" data-bf-label="monday">CYBER MONDAY</span>
+          </a>
+        </li>
+        <li class="catalog-nav-drawer__divider catalog-nav-drawer__bf" aria-hidden="true"></li>
+      {%- endif -%}
       <li>
         <a
           href="{{ all_url }}"
@@ -307,6 +328,27 @@
     font-weight: 400;
     opacity: 1;
     color: #302118;
+  }
+
+  /* Black Friday link: red (the sale colour), only while a Black Friday phase is live. */
+  .catalog-nav-drawer__bf,
+  .catalog-nav-drawer__bf-label {
+    display: none;
+  }
+
+  html[data-bf-phase] .catalog-nav-drawer__bf {
+    display: list-item;
+  }
+
+  html[data-bf-phase='sale'] .catalog-nav-drawer__bf-label[data-bf-label='sale'],
+  html[data-bf-phase='monday'] .catalog-nav-drawer__bf-label[data-bf-label='monday'] {
+    display: inline;
+  }
+
+  .catalog-nav-drawer__link--bf,
+  .catalog-nav-drawer__link--bf.catalog-nav-drawer__link--active {
+    color: #8a0b10;
+    font-weight: 400;
   }
 
   @media screen and (min-width: 750px) {

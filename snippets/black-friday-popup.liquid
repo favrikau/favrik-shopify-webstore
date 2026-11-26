@@ -1,0 +1,280 @@
+{% doc %}
+  Black Friday popup (Theme settings → Black Friday). A compact centred card — not full screen —
+  shown once per visit while a phase is live (<html data-bf-phase>, set in <head> by
+  black-friday-phase). Closes with ×, Esc, a tap outside, or "No thanks".
+{% enddoc %}
+
+{%- if settings.bf_enabled -%}
+  {%- liquid
+    assign bf_cta_link = settings.bf_cta_link
+    if bf_cta_link == blank
+      capture bf_cta_link
+        render 'black-friday-collection-url'
+      endcapture
+      assign bf_cta_link = bf_cta_link | strip
+    endif
+  -%}
+  <dialog
+    class="bf-popup"
+    id="BlackFridayPopup"
+    aria-labelledby="BlackFridayPopupHeading-sale"
+    data-design-mode="{{ request.design_mode }}"
+  >
+    <div class="bf-popup__card" tabindex="-1" autofocus>
+      <button type="button" class="bf-popup__close" aria-label="Close" data-bf-close>
+        <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true" focusable="false">
+          <path d="M1 1l10 10M11 1L1 11" stroke="currentColor" stroke-width="1" fill="none"/>
+        </svg>
+      </button>
+
+      <div class="bf-popup__phase" data-bf-phase-content="sale">
+        <p class="bf-popup__eyebrow">{{ settings.bf_popup_eyebrow_sale | escape }}</p>
+        <h2 class="bf-popup__heading" id="BlackFridayPopupHeading-sale">{{ settings.bf_popup_heading_sale | escape }}</h2>
+        {%- if settings.bf_popup_date_sale != blank -%}
+          <p class="bf-popup__date">{{ settings.bf_popup_date_sale | escape }}</p>
+        {%- endif -%}
+        <span class="bf-popup__rule" aria-hidden="true"></span>
+        <p class="bf-popup__text">{{ settings.bf_popup_text_sale | escape | newline_to_br }}</p>
+      </div>
+
+      <div class="bf-popup__phase" data-bf-phase-content="monday" hidden>
+        <p class="bf-popup__eyebrow">{{ settings.bf_popup_eyebrow_monday | escape }}</p>
+        <h2 class="bf-popup__heading" id="BlackFridayPopupHeading-monday">{{ settings.bf_popup_heading_monday | escape }}</h2>
+        {%- if settings.bf_popup_date_monday != blank -%}
+          <p class="bf-popup__date">{{ settings.bf_popup_date_monday | escape }}</p>
+        {%- endif -%}
+        <span class="bf-popup__rule" aria-hidden="true"></span>
+        <p class="bf-popup__text">{{ settings.bf_popup_text_monday | escape | newline_to_br }}</p>
+      </div>
+
+      <a class="bf-popup__cta" href="{{ bf_cta_link }}">{{ settings.bf_cta_label | escape }}</a>
+      <button type="button" class="bf-popup__dismiss" data-bf-close>No thanks</button>
+    </div>
+  </dialog>
+
+  <script>
+    (() => {
+      const dialog = document.getElementById('BlackFridayPopup');
+      if (!dialog) return;
+      const root = document.documentElement;
+
+      /** Show the content for a phase ('sale' | 'monday') in the popup. */
+      const setPhase = (phase) => {
+        dialog.dataset.phase = phase;
+        dialog.querySelectorAll('[data-bf-phase-content]').forEach((el) => {
+          el.hidden = el.dataset.bfPhaseContent !== phase;
+        });
+        dialog.setAttribute('aria-labelledby', `BlackFridayPopupHeading-${phase}`);
+      };
+
+      const open = () => {
+        if (!dialog.open && typeof dialog.showModal === 'function') dialog.showModal();
+      };
+      const close = () => dialog.open && dialog.close();
+
+      dialog.querySelectorAll('[data-bf-close]').forEach((button) => button.addEventListener('click', close));
+      // Tap/click on the dimmed backdrop (outside the card) closes it.
+      dialog.addEventListener('click', (event) => {
+        if (event.target === dialog) close();
+      });
+      dialog.addEventListener('close', () => {
+        try {
+          sessionStorage.setItem(`favrik-bf-popup-${dialog.dataset.phase}`, '1');
+        } catch (error) {}
+      });
+
+      // Automatic: once per visit while a phase is live.
+      const phase = root.dataset.bfPhase;
+      if (!phase) return;
+
+      const preview = new URLSearchParams(location.search).has('bf_preview');
+      // Don't interrupt editing in the theme editor unless previewing on purpose.
+      if (dialog.dataset.designMode === 'true' && !preview) return;
+
+      try {
+        if (!preview && sessionStorage.getItem(`favrik-bf-popup-${phase}`)) return;
+      } catch (error) {}
+
+      setPhase(phase);
+      if (document.readyState === 'complete') setTimeout(open, 900);
+      else window.addEventListener('load', () => setTimeout(open, 900), { once: true });
+    })();
+  </script>
+{%- endif -%}
+
+{% stylesheet %}
+  /* Black Friday popup: compact card in the Black Friday red, cream type, square corners, hairline details. */
+  .bf-popup {
+    --bf-bg: #8a0b10; /* Black Friday red — same as the banner */
+    --bf-text: #f3eee7;
+    --bf-muted: rgb(243 238 231 / 0.72);
+    width: min(34rem, calc(100vw - 2rem));
+    max-width: none;
+    max-height: calc(100dvh - 2rem);
+    margin: auto;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: var(--bf-bg);
+    color: var(--bf-text);
+    overflow: auto;
+  }
+
+  .bf-popup::backdrop {
+    background: rgb(0 0 0 / 0.45);
+  }
+
+  .bf-popup[open] {
+    animation: bf-popup-in 0.35s var(--ease-out-cubic, cubic-bezier(0.33, 1, 0.68, 1)) both;
+  }
+
+  .bf-popup[open]::backdrop {
+    animation: bf-popup-fade 0.35s ease both;
+  }
+
+  @keyframes bf-popup-in {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: none; }
+  }
+
+  @keyframes bf-popup-fade {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .bf-popup[open],
+    .bf-popup[open]::backdrop {
+      animation: none;
+    }
+  }
+
+  .bf-popup__card {
+    outline: none;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 4rem 3.5rem 2.25rem;
+    text-align: center;
+    font-family: var(--font-body--family);
+  }
+
+  .bf-popup__close {
+    position: absolute;
+    top: 0.25rem;
+    right: 0.25rem;
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--bf-muted);
+    cursor: pointer;
+  }
+
+  .bf-popup__close:hover {
+    color: var(--bf-text);
+  }
+
+  .bf-popup__eyebrow {
+    margin: 0 0 1.125rem;
+    font-size: 0.75rem;
+    font-weight: 300;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    color: var(--bf-muted);
+  }
+
+  .bf-popup__heading {
+    margin: 0;
+    font-family: var(--font-body--family);
+    font-size: clamp(2.375rem, 10vw, 3.5rem);
+    font-weight: 600;
+    line-height: 1.05;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--bf-text);
+  }
+
+  /* Date directly under the heading. */
+  .bf-popup__date {
+    margin: 0.875rem 0 0;
+    font-size: 0.75rem;
+    font-weight: 400;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--bf-text);
+  }
+
+  .bf-popup__rule {
+    display: block;
+    width: 2.5rem;
+    height: 0;
+    margin: 1.5rem auto;
+    border-top: 0.5px solid rgb(243 238 231 / 0.35);
+  }
+
+  .bf-popup__text {
+    margin: 0;
+    max-width: 24rem;
+    text-wrap: balance;
+    font-size: var(--favrik-body-size, 0.6875rem);
+    font-weight: 300;
+    line-height: 1.6;
+    letter-spacing: 0.02em;
+    color: var(--bf-muted);
+  }
+
+  .bf-popup__cta {
+    display: block;
+    width: 100%;
+    margin-top: 2rem;
+    padding: 1.125rem 1rem;
+    border: 0;
+    border-radius: 0;
+    background: var(--bf-text);
+    color: var(--bf-bg);
+    font-size: 0.6875rem;
+    font-weight: 400;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    text-decoration: none;
+    transition: opacity 0.2s ease;
+  }
+
+  .bf-popup__cta:hover {
+    opacity: 0.85;
+  }
+
+  .bf-popup__dismiss {
+    margin-top: 0.5rem;
+    padding: 0.75rem 1rem;
+    border: 0;
+    background: none;
+    color: var(--bf-muted);
+    font-family: inherit;
+    font-size: 0.625rem;
+    font-weight: 300;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+
+  .bf-popup__dismiss:hover {
+    color: var(--bf-text);
+  }
+
+  .bf-popup :focus-visible {
+    outline: 1px solid var(--bf-text);
+    outline-offset: 2px;
+  }
+
+  @media screen and (max-width: 749px) {
+    .bf-popup__card {
+      padding: 3.25rem 1.75rem 1.5rem;
+    }
+  }
+{% endstylesheet %}

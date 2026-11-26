@@ -6,6 +6,7 @@
   lang="{{ request.locale.iso_code }}"
 >
   <head>
+    {% render 'black-friday-phase' %}
     {% liquid
       assign hero_video_page = false
       if template.name == 'index'
@@ -155,5 +156,8 @@
     {% if settings.quick_add or settings.mobile_quick_add %}
       {% render 'quick-add-modal' %}
     {% endif %}
+
+    {% render 'black-friday-popup' %}
+    {% render 'black-friday-preview-prices' %}
   </body>
 </html>

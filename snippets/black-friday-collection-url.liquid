@@ -1,0 +1,24 @@
+{% doc %}
+  Outputs the Black Friday collection URL (Theme settings → Black Friday): the picked collection,
+  else the "Black Friday Sale" collection (handle black-friday-sale), else "black-friday",
+  else On Sale, else all products.
+  Used by the popup button and the red menu link so they always go to the same place.
+{% enddoc %}
+
+{%- liquid
+  assign bf_target = settings.bf_collection
+  if bf_target == blank or bf_target.id == blank
+    assign bf_target = collections['black-friday-sale']
+  endif
+  if bf_target == blank or bf_target.id == blank
+    assign bf_target = collections['black-friday']
+  endif
+  if bf_target == blank or bf_target.id == blank
+    assign bf_target = collections['on-sale']
+  endif
+  if bf_target != blank and bf_target.id != blank
+    echo bf_target.url
+  else
+    echo routes.all_products_collection_url
+  endif
+-%}

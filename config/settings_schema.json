@@ -1822,6 +1822,125 @@
     ]
   },
   {
+    "name": "Black Friday",
+    "settings": [
+      {
+        "type": "paragraph",
+        "content": "Popup on first visit + rotating top banner, switched on automatically between the dates below (use Melbourne time, e.g. 2026-11-27T00:00:00+11:00). Preview any time by adding ?bf_preview=sale or ?bf_preview=monday to a store URL. Sale prices themselves come from compare-at prices in Shopify admin."
+      },
+      {
+        "type": "checkbox",
+        "id": "bf_enabled",
+        "label": "Enable Black Friday",
+        "default": false
+      },
+      {
+        "type": "collection",
+        "id": "bf_collection",
+        "label": "Black Friday collection",
+        "info": "Where the popup's button and the red Black Friday menu link go. If empty: the Black Friday Sale collection (handle black-friday-sale), otherwise On Sale."
+      },
+      {
+        "type": "text",
+        "id": "bf_sale_start",
+        "label": "Sale starts",
+        "default": "2026-11-27T00:00:00+11:00"
+      },
+      {
+        "type": "text",
+        "id": "bf_sale_end",
+        "label": "Sale ends / Cyber Monday starts",
+        "default": "2026-11-30T00:00:00+11:00"
+      },
+      {
+        "type": "text",
+        "id": "bf_monday_end",
+        "label": "Cyber Monday ends",
+        "default": "2026-12-01T00:00:00+11:00"
+      },
+      {
+        "type": "header",
+        "content": "Top banner"
+      },
+      {
+        "type": "text",
+        "id": "bf_banner_sale",
+        "label": "Banner — sale",
+        "default": "Black Friday • Up to 50% off • 27–29 Nov"
+      },
+      {
+        "type": "text",
+        "id": "bf_banner_monday",
+        "label": "Banner — Cyber Monday",
+        "default": "Cyber Monday • Extra 10% off selected styles"
+      },
+      {
+        "type": "header",
+        "content": "Popup"
+      },
+      {
+        "type": "text",
+        "id": "bf_popup_eyebrow_sale",
+        "label": "Sale — small title",
+        "default": "Black Friday"
+      },
+      {
+        "type": "text",
+        "id": "bf_popup_heading_sale",
+        "label": "Sale — heading",
+        "default": "Up to 50% off"
+      },
+      {
+        "type": "text",
+        "id": "bf_popup_date_sale",
+        "label": "Sale — date (under the heading)",
+        "default": "27–29 November"
+      },
+      {
+        "type": "textarea",
+        "id": "bf_popup_text_sale",
+        "label": "Sale — text",
+        "default": "Plus an extra 10% off selected styles on Cyber Monday, 30 November."
+      },
+      {
+        "type": "text",
+        "id": "bf_popup_eyebrow_monday",
+        "label": "Cyber Monday — small title",
+        "default": "Cyber Monday"
+      },
+      {
+        "type": "text",
+        "id": "bf_popup_heading_monday",
+        "label": "Cyber Monday — heading",
+        "default": "Extra 10% off"
+      },
+      {
+        "type": "text",
+        "id": "bf_popup_date_monday",
+        "label": "Cyber Monday — date (under the heading)",
+        "default": "Monday 30 November"
+      },
+      {
+        "type": "textarea",
+        "id": "bf_popup_text_monday",
+        "label": "Cyber Monday — text",
+        "default": "On selected styles, on top of their Black Friday price. One day only."
+      },
+      {
+        "type": "text",
+        "id": "bf_cta_label",
+        "label": "Button label",
+        "default": "Shop the sale"
+      },
+      {
+        "type": "url",
+        "id": "bf_cta_link",
+        "label": "Button link (optional override)",
+        "info": "Leave empty to use the Black Friday collection above."
+      }
+    ]
+  },
+  {
     "name": "t:names.prices",
     "settings": [
       {

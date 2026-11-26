@@ -1,0 +1,31 @@
+{% doc %}
+  Black Friday phase (Theme settings → Black Friday). Runs in <head> before first paint and sets
+  <html data-bf-phase="sale|monday"> while a phase is live, so the banner and popup never flash.
+  Worked out in the browser (pages are cached), from the dates in theme settings.
+  Preview any time: ?bf_preview=sale or ?bf_preview=monday. On the local dev server
+  (127.0.0.1 / localhost) the sale phase is always on, so it can be reviewed without a link.
+{% enddoc %}
+
+{%- if settings.bf_enabled -%}
+  <script>
+    (() => {
+      const preview = new URLSearchParams(location.search).get('bf_preview');
+      const now = Date.now();
+      const saleStart = Date.parse({{ settings.bf_sale_start | json }});
+      const saleEnd = Date.parse({{ settings.bf_sale_end | json }});
+      const mondayEnd = Date.parse({{ settings.bf_monday_end | json }});
+      // Local dev preview (shopify theme dev) always shows the sale; the live domain never matches.
+      const isLocalPreview = location.hostname === '127.0.0.1' || location.hostname === 'localhost';
+      let phase = '';
+      if (preview === 'sale' || preview === 'monday') phase = preview;
+      else if (now >= saleStart && now < saleEnd) phase = 'sale';
+      else if (now >= saleEnd && now < mondayEnd) phase = 'monday';
+      else if (isLocalPreview) phase = 'sale';
+      if (phase) document.documentElement.dataset.bfPhase = phase;
+      // Preview visits (link or local dev) may emulate sale prices; real visitors never do.
+      if (phase && (preview === 'sale' || preview === 'monday' || (isLocalPreview && !(now >= saleStart && now < mondayEnd)))) {
+        document.documentElement.dataset.bfPreview = '';
+      }
+    })();
+  </script>
+{%- endif -%}
