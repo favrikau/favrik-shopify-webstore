@@ -62,6 +62,17 @@
   if product.available and product.compare_at_price > product.price
     assign is_on_sale = true
   endif
+  # Black Friday: products tagged "black-friday-2026" (any case). Shown only during a Black
+  # Friday phase (<html data-bf-phase>): a BLACK FRIDAY SALE chip replaces the red SALE chip.
+  assign is_bf_tagged = false
+  for product_tag in product.tags
+    assign product_tag_normalized = product_tag | downcase | strip
+    if product_tag_normalized == 'black-friday-2026'
+      assign is_bf_tagged = true
+      break
+    endif
+  endfor
+
   assign is_made_by_favrik = product.metafields.custom.made_by_favrik.value
   assign is_preorder = product.metafields['custom']['preorder'].value
   assign favrik_made_badge_color = shop.metafields['custom']['favrik_made_badge_color'].value
@@ -77,6 +88,11 @@
   style="{% render 'size-style', settings: block_settings %}"
   data-product-id="{{ product.id }}"
   id="product-card-{{ block.id }}"
+  {% if is_bf_tagged %}
+    data-bf-tagged
+    data-bf-price="{{ variant_to_link.price }}"
+    {% unless is_on_sale %}data-bf-unpriced{% endunless %}
+  {% endif %}
   {% if settings.transition_to_main_product %}
     data-product-transition="true"
     data-featured-media-url="{{ featured_media_url }}"
@@ -103,10 +119,15 @@
       {{ product_titlecase }}
     </span>
   </a>
-  {% if is_on_sale or is_made_by_favrik or is_preorder %}
+  {% if is_on_sale or is_made_by_favrik or is_preorder or is_bf_tagged %}
     <div class="product-card__badges">
+      {% if is_bf_tagged %}
+        <span class="product-card__bf-badge{% unless is_on_sale %} product-card__bf-badge--unpriced{% endunless %}">
+          BLACK FRIDAY SALE
+        </span>
+      {% endif %}
       {% if is_on_sale %}
-        <span class="product-card__sale-badge">
+        <span class="product-card__sale-badge{% if is_bf_tagged %} product-card__sale-badge--bf-tagged{% endif %}">
           SALE
         </span>
       {% endif %}
@@ -202,6 +223,34 @@
     text-align: center;
     text-transform: uppercase;
     white-space: nowrap;
+  }
+
+  /* BLACK FRIDAY SALE chip (every product tagged black-friday-2026), top-right like SALE: solid
+     black, cream text. Time-gated: only during a Black Friday phase (from 12am 27 Nov, Melbourne);
+     the red SALE chip is hidden on those cards then. */
+  .product-card__bf-badge {
+    display: none;
+    order: 1;
+    align-items: center;
+    padding: 0.2rem 0.4rem;
+    border-radius: 0;
+    background: #111111;
+    color: #f3eee7;
+    font-family: var(--font-body--family);
+    font-size: 0.625rem;
+    font-weight: 400;
+    line-height: 1.2;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  html[data-bf-phase] .product-card__bf-badge {
+    display: flex;
+  }
+
+  html[data-bf-phase] .product-card__sale-badge--bf-tagged {
+    display: none;
   }
 
   /* SALE: small solid red chip, square corners, pinned to the far top-right of the badge row.

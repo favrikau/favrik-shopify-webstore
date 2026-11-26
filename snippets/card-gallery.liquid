@@ -17,6 +17,22 @@
   endcapture
   assign product_titlecase = product_titlecase | strip
 
+  # Black Friday discount box (bottom-right of the image) for products tagged "black-friday-2026".
+  assign is_bf_tagged = false
+  if product != blank
+    for product_tag in product.tags
+      assign product_tag_normalized = product_tag | downcase | strip
+      if product_tag_normalized == 'black-friday-2026'
+        assign is_bf_tagged = true
+        break
+      endif
+    endfor
+  endif
+  assign bf_discount_percent = 0
+  if is_bf_tagged and product.compare_at_price > product.price
+    assign bf_discount_percent = product.compare_at_price | minus: product.price | times: 100.0 | divided_by: product.compare_at_price | round
+  endif
+
   # Check if product has badges and determine position
   assign has_badges = false
   assign badge_position = null
@@ -218,6 +234,19 @@
       </span>
     </div>
   {%- endif -%}
+  {%- if is_bf_tagged -%}
+    {%- comment -%}
+      Time-gated (CSS): only during a Black Friday phase. Empty for tagged products without a
+      sale price yet; the preview fills it with an emulated percentage.
+    {%- endcomment -%}
+    <span
+      class="card-gallery__bf-discount{% if bf_discount_percent == 0 %} card-gallery__bf-discount--unpriced{% endif %}"
+      data-bf-discount
+      {% if bf_discount_percent > 0 %}aria-label="{{ bf_discount_percent }}% off"{% endif %}
+    >
+      {%- if bf_discount_percent > 0 -%}−{{ bf_discount_percent }}%{%- endif -%}
+    </span>
+  {%- endif -%}
   {{ children }}
 </div>
 
@@ -236,6 +265,38 @@
 
   .card-gallery__progress {
     display: none;
+  }
+
+  /* Black Friday: discount percentage in a red box, bottom-right of the image (same inset as the
+     top-right chips). Only during a Black Friday phase; unpriced ones only in preview. */
+  .card-gallery__bf-discount {
+    position: absolute;
+    right: 0.875rem;
+    bottom: 0.875rem;
+    z-index: 3;
+    display: none;
+    padding: 0.2rem 0.4rem;
+    border-radius: 0;
+    background: #8a0b10;
+    color: #ffffff;
+    font-family: var(--font-body--family);
+    font-size: 0.625rem;
+    font-weight: 400;
+    line-height: 1.2;
+    letter-spacing: 0.06em;
+    pointer-events: none;
+  }
+
+  html[data-bf-phase] .card-gallery__bf-discount:not(.card-gallery__bf-discount--unpriced),
+  html[data-bf-preview] .card-gallery__bf-discount--unpriced:not(:empty) {
+    display: block;
+  }
+
+  @media screen and (max-width: 749px) {
+    .card-gallery__bf-discount {
+      right: 0.75rem;
+      bottom: 1.25rem;
+    }
   }
 
   .card-gallery .product-media-container--png,

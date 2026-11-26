@@ -1,0 +1,89 @@
+{% doc %}
+  PREVIEW ONLY: emulates Black Friday sale prices — on the Black Friday collection's cards and on
+  product pages — so the sale design can be reviewed before real sale (compare-at) prices are loaded.
+  Runs only on preview visits (<html data-bf-preview>: ?bf_preview=… or the local dev server),
+  and only for products tagged "black-friday-2026" that don't have a real sale price yet. Real
+  visitors on the live site never see emulated prices.
+{% enddoc %}
+
+{%- if settings.bf_enabled -%}
+  {%- capture bf_collection_url -%}{%- render 'black-friday-collection-url' -%}{%- endcapture -%}
+  <script>
+    (() => {
+      const root = document.documentElement;
+      if (!('bfPreview' in root.dataset)) return;
+      const collectionPath = {{ bf_collection_url | strip | json }};
+      const onCollection = location.pathname.startsWith(collectionPath);
+
+      const PERCENTS = [20, 30, 40, 50]; // up to 50% off; fixed per product so it doesn't change on reload
+      const money = (cents) => `AUD ${(cents / 100).toFixed(2)}`;
+      // Stable per product: a small string hash of the ID (Shopify IDs share remainders, so a
+      // plain modulo would give every product the same percentage). Same on cards and product pages.
+      const percentFor = (productId) => {
+        let hash = 0;
+        for (const char of String(productId || '')) hash = (hash * 31 + char.charCodeAt(0)) >>> 0;
+        return PERCENTS[hash % PERCENTS.length];
+      };
+
+      /** Before / after price, using the theme's own sale-price markup inside `scope`. */
+      const showSalePrice = (scope, price, percent) => {
+        const regular = scope.querySelector('.price__regular');
+        const salePrice = scope.querySelector('.price__sale');
+        if (!regular || !salePrice) return;
+        regular.classList.add('price__hidden');
+        salePrice.classList.remove('price__hidden');
+        const now = salePrice.querySelector('.price-item--sale');
+        const was = salePrice.querySelector('.compare-at-price');
+        if (now) now.textContent = money(Math.round((price * (100 - percent)) / 100));
+        if (was) was.textContent = money(price);
+      };
+
+      // Product cards on the Black Friday collection: price + red % box on the image.
+      const emulateCard = (card) => {
+        if ('bfEmulated' in card.dataset || !card.hasAttribute('data-bf-unpriced')) return;
+        const price = Number(card.dataset.bfPrice);
+        if (!price) return;
+        const percent = percentFor(card.dataset.productId);
+        card.dataset.bfEmulated = '';
+        showSalePrice(card, price, percent);
+        const box = card.querySelector('[data-bf-discount]');
+        if (box) box.textContent = `−${percent}%`;
+      };
+
+      // Product page: price + red "NN% OFF" under it (same percentage as the card).
+      // "AUD 1,234.50" → 123450 (cents)
+      const toCents = (text) => {
+        const number = Number(String(text).replace(/[^0-9.]/g, ''));
+        return Number.isFinite(number) && number > 0 ? Math.round(number * 100) : 0;
+      };
+
+      const emulateProductPage = (tag) => {
+        const details = tag.closest('.product-details');
+        if (!details) return;
+        const percent = percentFor(tag.dataset.productId);
+        if (!tag.textContent.trim()) tag.textContent = `${percent}% OFF`;
+        // Re-apply only when the price shows its regular (un-emulated) state — on load, or after a
+        // variant change re-renders it — so our own edits never retrigger this. Uses the price
+        // actually shown, so variants with different prices stay correct.
+        const priceBlock = details.querySelector('product-price');
+        const regular = priceBlock?.querySelector('.price__regular');
+        if (!priceBlock || !regular || regular.classList.contains('price__hidden')) return;
+        const price = toCents(regular.textContent) || Number(tag.dataset.bfPrice);
+        if (price) showSalePrice(priceBlock, price, percent);
+      };
+
+      let frame = 0;
+      const run = () => {
+        frame = 0;
+        const cardScope = onCollection ? 'product-card[data-bf-tagged]' : "[data-homepage-section='black-friday'] product-card[data-bf-tagged]";
+        document.querySelectorAll(cardScope).forEach(emulateCard);
+        document.querySelectorAll('.product-details [data-bf-pdp-discount]').forEach(emulateProductPage);
+      };
+      run();
+      // Cards added later (filters, sorting, pagination).
+      new MutationObserver(() => {
+        if (!frame) frame = requestAnimationFrame(run);
+      }).observe(document.body, { childList: true, subtree: true });
+    })();
+  </script>
+{%- endif -%}

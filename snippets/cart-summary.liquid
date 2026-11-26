@@ -38,15 +38,27 @@
   # original price (compare-at where set) − sale − each discount = subtotal.
   assign summary_original_total = 0
   assign summary_sale_saving = 0
+  # Black Friday: savings on items tagged "black-friday-2026" are labelled BLACK FRIDAY SALE during
+  # a Black Friday phase (<html data-bf-phase>); outside it everything shows as one "Sale" line.
+  assign summary_bf_saving = 0
   for item in cart.items
     assign summary_line_original = item.original_line_price
     if item.variant.compare_at_price > item.original_price
       assign summary_line_original = item.variant.compare_at_price | times: item.quantity
-      assign summary_sale_saving = summary_sale_saving | plus: summary_line_original | minus: item.original_line_price
+      assign summary_line_saving = summary_line_original | minus: item.original_line_price
+      assign summary_sale_saving = summary_sale_saving | plus: summary_line_saving
+      for product_tag in item.product.tags
+        assign product_tag_normalized = product_tag | downcase | strip
+        if product_tag_normalized == 'black-friday-2026'
+          assign summary_bf_saving = summary_bf_saving | plus: summary_line_saving
+          break
+        endif
+      endfor
     endif
     assign summary_original_total = summary_original_total | plus: summary_line_original
   endfor
   assign summary_total_saving = summary_original_total | minus: cart.total_price
+  assign summary_other_sale_saving = summary_sale_saving | minus: summary_bf_saving
 -%}
 
 <div class="cart-totals">
@@ -68,7 +80,8 @@
         aria-label="{{ 'content.discounts' | t }}"
       >
         {%- if summary_sale_saving > 0 -%}
-          <li class="cart-discounts__item">
+          {%- comment -%} Outside a Black Friday phase (or no Black Friday items): one "Sale" line. {%- endcomment -%}
+          <li class="cart-discounts__item{% if summary_bf_saving > 0 %} cart-discounts__item--bf-off{% endif %}">
             <span class="cart-discounts__label">
               {{- 'icon-discount.svg' | inline_asset_content -}}
               Sale
@@ -77,6 +90,29 @@
               >-{{ summary_sale_saving | money -}}
             </span>
           </li>
+        {%- endif -%}
+        {%- if summary_bf_saving > 0 -%}
+          {%- comment -%} During a Black Friday phase: Black Friday items, then any other sale items. {%- endcomment -%}
+          <li class="cart-discounts__item cart-discounts__item--bf">
+            <span class="cart-discounts__label">
+              {{- 'icon-discount.svg' | inline_asset_content -}}
+              BLACK FRIDAY SALE
+            </span>
+            <span class="cart-discounts__value cart-secondary-typography"
+              >-{{ summary_bf_saving | money -}}
+            </span>
+          </li>
+          {%- if summary_other_sale_saving > 0 -%}
+            <li class="cart-discounts__item cart-discounts__item--bf">
+              <span class="cart-discounts__label">
+                {{- 'icon-discount.svg' | inline_asset_content -}}
+                Sale
+              </span>
+              <span class="cart-discounts__value cart-secondary-typography"
+                >-{{ summary_other_sale_saving | money -}}
+              </span>
+            </li>
+          {%- endif -%}
         {%- endif -%}
         {%- for discount in cart.discount_applications -%}
           {%- if discount.total_allocated_amount > 0 -%}
@@ -386,6 +422,19 @@
     list-style: none;
     padding: 0;
     margin: 0;
+  }
+
+  /* Black Friday split of the sale savings (time-gated): */
+  .cart-discounts__item--bf {
+    display: none !important;
+  }
+
+  html[data-bf-phase] .cart-discounts__item--bf {
+    display: flex !important;
+  }
+
+  html[data-bf-phase] .cart-discounts__item--bf-off {
+    display: none !important;
   }
 
   .cart-discounts__item {

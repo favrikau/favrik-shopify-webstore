@@ -63,6 +63,24 @@
   if product.available and product.compare_at_price > product.price
     assign is_on_sale = true
   endif
+
+  # Black Friday (products tagged "black-friday-2026", any case). During a Black Friday phase
+  # (<html data-bf-phase>): a BLACK FRIDAY SALE tag above the title replaces the collection name,
+  # and a red "NN% OFF" box under the price replaces the SALE tag. Outside it: unchanged.
+  assign is_bf_tagged = false
+  for product_tag in product.tags
+    assign product_tag_normalized = product_tag | downcase | strip
+    if product_tag_normalized == 'black-friday-2026'
+      assign is_bf_tagged = true
+      break
+    endif
+  endfor
+  assign is_black_friday = false
+  assign bf_discount_percent = 0
+  if is_bf_tagged and is_on_sale
+    assign is_black_friday = true
+    assign bf_discount_percent = product.compare_at_price | minus: product.price | times: 100.0 | divided_by: product.compare_at_price | round
+  endif
   assign is_pickup_only = false
   if show_pickup_only
     for product_tag in product.tags
@@ -87,16 +105,34 @@
 -%}
 
 {%- if output_mode == 'heading' -%}
+  {%- if is_bf_tagged -%}
+    {%- capture bf_collection_url -%}{%- render 'black-friday-collection-url' -%}{%- endcapture -%}
+    <a
+      class="product-title__collection product-title__bf-tag{% unless is_on_sale %} product-title__bf-tag--unpriced{% endunless %}"
+      href="{{ bf_collection_url | strip }}"
+    >
+      {{- 'Black Friday Sale' -}}
+    </a>
+  {%- endif -%}
   {%- if show_collection_heading -%}
     <a
-      class="product-title__collection"
+      class="product-title__collection{% if is_black_friday %} product-title__collection--bf-priced{% elsif is_bf_tagged %} product-title__collection--bf-unpriced{% endif %}"
       href="{{ product_collection.url }}"
     >
       {{- product_collection.title | escape -}}
     </a>
   {%- endif -%}
-{%- elsif is_on_sale or is_made_by_favrik or is_preorder or is_pickup_only -%}
+{%- elsif is_on_sale or is_made_by_favrik or is_preorder or is_pickup_only or is_bf_tagged -%}
   <div class="product-price__labels">
+    {%- if is_bf_tagged and is_on_sale == false and show_pickup_only != true -%}
+      {%- comment -%} PREVIEW ONLY: filled by black-friday-preview-prices with an emulated discount. {%- endcomment -%}
+      <span
+        class="product-price__tag product-price__tag--bf-unpriced"
+        data-bf-pdp-discount
+        data-product-id="{{ product.id }}"
+        data-bf-price="{{ product.selected_or_first_available_variant.price }}"
+      ></span>
+    {%- endif -%}
     {%- if is_pickup_only -%}
       <span
         class="product-price__tag"
@@ -105,7 +141,21 @@
         PICKUP ONLY
       </span>
     {%- endif -%}
-    {%- if is_on_sale -%}
+    {%- if is_black_friday -%}
+      {%- comment -%}
+        Time-gated: the red "NN% OFF" box only while a Black Friday phase is live
+        (<html data-bf-phase>, 27–30 Nov); the regular SALE tag shows at any other time.
+      {%- endcomment -%}
+      <span class="product-price__tag product-price__tag--black-friday">
+        {{- bf_discount_percent }}% OFF
+      </span>
+      <span
+        class="product-price__tag product-price__tag--bf-off"
+        style="--product-price-tag-color: {{ sale_badge_color }};"
+      >
+        SALE
+      </span>
+    {%- elsif is_on_sale -%}
       <span
         class="product-price__tag"
         style="--product-price-tag-color: {{ sale_badge_color }};"
@@ -157,5 +207,58 @@
     text-transform: uppercase;
     white-space: nowrap;
     background: transparent;
+  }
+
+  /* Black Friday discount under the price: solid red "NN% OFF". Only during a Black Friday
+     phase; otherwise the tagged product shows the regular SALE tag. */
+  .product-price__tag--black-friday {
+    display: none;
+  }
+
+  html[data-bf-phase] .product-price__tag--black-friday {
+    display: inline-flex;
+  }
+
+  html[data-bf-phase] .product-price__tag--bf-off {
+    display: none;
+  }
+
+  .product-price__tag--black-friday {
+    border-color: #8a0b10;
+    background: #8a0b10;
+    color: #ffffff;
+    letter-spacing: 0.06em;
+  }
+
+  /* Above the title: "Black Friday Sale" in the same plain style as the collection name it
+     replaces (it uses the collection link's class), on every tagged product during a Black Friday
+     phase (from 12am 27 Nov, Melbourne). */
+  /* Higher specificity than the collection link's own `.product-title-stack .product-title__collection
+     { display: block }` (this label reuses that class for its look). With equal specificity the
+     winner depended on stylesheet bundle order — on staging the label leaked outside the sale and
+     doubled up with the collection name. */
+  .product-title-stack .product-title__collection.product-title__bf-tag {
+    display: none;
+  }
+
+  html[data-bf-phase] .product-title-stack .product-title__collection.product-title__bf-tag {
+    display: block;
+  }
+
+  .product-price__tag--bf-unpriced {
+    display: none;
+    border-color: #8a0b10;
+    background: #8a0b10;
+    color: #ffffff;
+    letter-spacing: 0.06em;
+  }
+
+  html[data-bf-preview] .product-price__tag--bf-unpriced:not(:empty) {
+    display: inline-flex;
+  }
+
+  html[data-bf-phase] .product-title__collection--bf-priced,
+  html[data-bf-phase] .product-title__collection--bf-unpriced {
+    display: none !important;
   }
 {% endstylesheet %}
