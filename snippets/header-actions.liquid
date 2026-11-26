@@ -166,8 +166,7 @@
       {%- comment -%}
         The signed-in avatar's ring is painted inside <shopify-account>'s shadow DOM with
         --shop-brand-color (Shop purple, #5433eb), set on an inner element — so outer CSS can't
-        reach it. During Black Friday only, add one rule inside the (open) shadow root to use the
-        Black Friday red instead.
+        reach it. Add one rule inside the (open) shadow root to use the brand red (#8a0b10) instead.
         adoptedStyleSheets survives the component re-rendering its markup.
       {%- endcomment -%}
       <script>
@@ -188,8 +187,6 @@
             root.__favrikRing = true;
             return true;
           };
-          // Time-gated: only during a Black Friday phase (<html data-bf-phase>, from 12am 27 Nov).
-          if (!document.documentElement.dataset.bfPhase) return;
           customElements.whenDefined('shopify-account').then(() => {
             document.querySelectorAll('shopify-account').forEach((account) => {
               if (apply(account)) return;
