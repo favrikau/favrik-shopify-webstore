@@ -21,6 +21,13 @@
       assign randomize_products = false
       assign max_items = 16
       assign homepage_section_key = 'best-sellers'
+    elsif section.settings.heading_en == 'Black Friday Sale'
+      # Black Friday: up to 16 in collection order. Only displayed during a Black Friday phase
+      # (<html data-bf-phase>, 27–30 Nov) or a ?bf_preview link — see the CSS below.
+      assign homepage_product_carousel = true
+      assign randomize_products = false
+      assign max_items = 16
+      assign homepage_section_key = 'black-friday'
     elsif section.settings.collection != blank and section.settings.collection.handle == 'fw2026'
       assign homepage_product_carousel = true
       assign randomize_products = true
@@ -30,7 +37,7 @@
   endif
 
   assign is_pan_carousel = false
-  if homepage_section_key == 'signature' or homepage_section_key == 'best-sellers'
+  if homepage_section_key == 'signature' or homepage_section_key == 'best-sellers' or homepage_section_key == 'black-friday'
     assign is_pan_carousel = true
   endif
 
@@ -42,7 +49,7 @@
     if homepage_product_carousel
       echo 'data-page-size-desktop="' | append: section.settings.columns | append: '" data-page-size-mobile="1"'
     endif
-    # Signature + Best Sellers (desktop): 4.5 cards, free 1:1 drag + edge-hover panning.
+    # Signature, Best Sellers, Black Friday (desktop): 4.5 cards, free 1:1 drag + edge-hover panning.
     if is_pan_carousel
       echo ' data-free-drag-desktop data-edge-pan'
     endif
@@ -363,6 +370,15 @@
       scroll-snap-align: start;
       scroll-snap-stop: always;
     }
+  }
+
+  /* Black Friday homepage section: hidden outside a Black Friday phase (time-gated). */
+  .shopify-section:has(> [data-homepage-section='black-friday']) {
+    display: none;
+  }
+
+  html[data-bf-phase] .shopify-section:has(> [data-homepage-section='black-friday']) {
+    display: block;
   }
 
   /* Homepage pan carousels (Signature, Best Sellers) on desktop. The shared 4.5-card / drag /

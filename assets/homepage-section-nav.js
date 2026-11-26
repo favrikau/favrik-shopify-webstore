@@ -14,9 +14,11 @@
       return { tick, key, target, box: target?.closest('.shopify-section') ?? target };
     })
     .filter((item) => {
-      // Sections hidden in the theme editor aren't rendered; drop their ticks too.
-      if (!item.box) item.tick.remove();
-      return item.box;
+      // Sections hidden in the theme editor aren't rendered, and time-gated ones (Black Friday)
+      // may be display:none; drop their ticks too.
+      const shown = item.box && item.box.getClientRects().length > 0;
+      if (!shown) item.tick.remove();
+      return shown;
     });
   const ticks = sections.map((item) => item.tick);
 
@@ -101,7 +103,7 @@
     if (!match) return;
 
     const scroller = getScroller();
-    const titlePad = key === 'signature' || key === 'best-sellers' || key === 'fw2026' || key === 'shop-social' ? 32 : 0;
+    const titlePad = ['signature', 'best-sellers', 'black-friday', 'fw2026', 'shop-social'].includes(key) ? 32 : 0;
     const offset = key === 'hero' ? 0 : headerOffset() + titlePad;
     const { scrollTop, viewport, scrollHeight } = scrollMetrics(scroller);
     const maxScroll = Math.max(0, scrollHeight - viewport);

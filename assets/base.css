@@ -1129,7 +1129,8 @@ body:has(.header[transparent]) .content-for-layout[data-template='index']
     padding-block-end: var(--homepage-mobile-section-gap);
   }
 
-  /* Phone section order: hero → Best Sellers → categories → Shop Insta → Signature.
+  /* Phone section order: hero → Best Sellers → categories → Shop Insta → Black Friday (only during
+     the sale) → Signature.
      (Desktop keeps the template order.) Sections are matched by their template keys. */
   .content-for-layout[data-template='index'] {
     display: flex;
@@ -1145,7 +1146,8 @@ body:has(.header[transparent]) .content-for-layout[data-template='index']
   .content-for-layout[data-template='index'] > [id$='__product_list_best_sellers'] { order: 2; }
   .content-for-layout[data-template='index'] > [id$='__category_hero_grid'] { order: 3; }
   .content-for-layout[data-template='index'] > [id$='__shop_social'] { order: 4; }
-  .content-for-layout[data-template='index'] > [id$='__product_list_fa6P9H'] { order: 5; }
+  .content-for-layout[data-template='index'] > [id$='__product_list_black_friday'] { order: 5; }
+  .content-for-layout[data-template='index'] > [id$='__product_list_fa6P9H'] { order: 6; }
 
   /* Signature is the last homepage section on phones: no gap before the footer. */
   .content-for-layout[data-template='index'] > [id$='__product_list_fa6P9H'] .section.spacing-style {
